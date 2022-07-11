@@ -32,5 +32,6 @@
  "Levofloxacino": "LEVO",
  "Minociclina": "MINO",
  "Daptomicina": "DAP",
- "Vancomicina": "VAN"
+ "Vancomicina": "VAN",
+ "Ceftazidima/avibactam": "CAZ"
 }
