@@ -152,7 +152,6 @@ class Formateador():
     def mappear_resultados_a_formato_excel(self, tabla_una_cepa):
         cambiador_nomenclatura_sensibilidades = {'Sensible': 'S', 'Resistente': 'R', 'Intermedio': 'I'}
         diccionario_sensibilidades_a_llenar = {farmaco: None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
-        print(tabla_una_cepa)
         for farmaco in tabla_una_cepa.index:
             resultado_sensibilidad = tabla_una_cepa['Cepa'][farmaco]
             diccionario_sensibilidades_a_llenar[farmaco] = cambiador_nomenclatura_sensibilidades[resultado_sensibilidad]
