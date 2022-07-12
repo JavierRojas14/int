@@ -93,8 +93,8 @@ class Formateador():
         datos_totales = pd.read_excel(nombre_archivo)
         
         indice_fila_inicio_antibio, indice_fila_termino_antibio = self.identificar_localizacion_antibiograma(datos_totales)
-        antibiograma_crudo = datos_totales.iloc[indice_fila_inicio_antibio: indice_fila_termino_antibio]
-        antibiograma_crudo = antibiograma_crudo.dropna(axis = 1, how = 'all')
+        cantidad_columnas = len(list(datos_totales.iloc[indice_fila_inicio_antibio - 1])[1:]) - 2
+        antibiograma_crudo = datos_totales.iloc[indice_fila_inicio_antibio: indice_fila_termino_antibio, :cantidad_columnas]
         if not(antibiograma_crudo.empty):
             # Si hay un número par de columnas (o sea, que una de las CIM estaba vacia)
             if antibiograma_crudo.shape[1] % 2 == 0:
@@ -152,6 +152,7 @@ class Formateador():
     def mappear_resultados_a_formato_excel(self, tabla_una_cepa):
         cambiador_nomenclatura_sensibilidades = {'Sensible': 'S', 'Resistente': 'R', 'Intermedio': 'I'}
         diccionario_sensibilidades_a_llenar = {farmaco: None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
+        print(tabla_una_cepa)
         for farmaco in tabla_una_cepa.index:
             resultado_sensibilidad = tabla_una_cepa['Cepa'][farmaco]
             diccionario_sensibilidades_a_llenar[farmaco] = cambiador_nomenclatura_sensibilidades[resultado_sensibilidad]
