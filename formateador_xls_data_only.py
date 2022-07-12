@@ -1,3 +1,4 @@
+from cmath import nan
 import pandas as pd
 import json
 import os
@@ -93,8 +94,14 @@ class Formateador():
         datos_totales = pd.read_excel(nombre_archivo)
         
         indice_fila_inicio_antibio, indice_fila_termino_antibio = self.identificar_localizacion_antibiograma(datos_totales)
-        cantidad_columnas = len(list(datos_totales.iloc[indice_fila_inicio_antibio - 1])[1:]) - 2
-        antibiograma_crudo = datos_totales.iloc[indice_fila_inicio_antibio: indice_fila_termino_antibio, :cantidad_columnas]
+        columnas_sobre_antibiograma = list(datos_totales.iloc[indice_fila_inicio_antibio - 1].dropna())
+        columnas_sobre_antibiograma.remove('ANTIBIOTICOS')
+        columnas_sobre_antibiograma.remove('CIM')
+        columnas_sobre_antibiograma.remove('ANTIBIOGRAMA')
+        cantidad_columnas_de_cepas = len(columnas_sobre_antibiograma)
+        antibiograma_crudo = datos_totales.iloc[indice_fila_inicio_antibio: indice_fila_termino_antibio, :cantidad_columnas_de_cepas]
+
+
         if not(antibiograma_crudo.empty):
             # Si hay un número par de columnas (o sea, que una de las CIM estaba vacia)
             if antibiograma_crudo.shape[1] % 2 == 0:
