@@ -17,7 +17,7 @@ class Formateador():
 
     def hacer_tabla_global(self):
         todas_las_entradas = self.obtener_entradas_todos_los_pacientes()
-        columnas = ['Ingreso', 'Tipo muestra', 'Nº de Cultivo', 'Rut', 'Nombre', 'Servicio', 'Fecha Firma', 'Microorganismo', 'BLEE'] + \
+        columnas = ['Ingreso', 'Tipo muestra', 'Nº de Cultivo', 'Rut', 'Nombre', 'Servicio', 'Comentario', 'Fecha Firma', 'Microorganismo', 'BLEE'] + \
                    list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values())[:35] + \
                    list(DICCIONARIO_CIM.keys())        
 
@@ -47,11 +47,15 @@ class Formateador():
             n_cultivo = datos_totales_hongos[datos_totales_hongos.iloc[:, 0] == 'Nº CULTIVO'].iloc[0, 4]
             datos_persona[2] = n_cultivo
             for microorganismo in lista_microorganismos_persona:
-                entrada_hongos = datos_persona + microorganismo + [None for i in range(43)]
+                largo = len(list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values())[:35]) + \
+                   len(list(DICCIONARIO_CIM.keys()))
+                entrada_hongos = datos_persona + microorganismo + [None for i in range(largo + 1)]
                 entradas.append(entrada_hongos)
         
         elif 'POLI' in nombre_archivo:
-            entrada_poli = datos_persona + ['Polimicrobiano'] + [None for i in range(43)]
+            largo = len(list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values())[:35]) + \
+                   len(list(DICCIONARIO_CIM.keys()))
+            entrada_poli = datos_persona + ['Polimicrobiano'] + [None for i in range(largo + 1)]
             entradas.append(entrada_poli)
         
         else:
@@ -186,6 +190,7 @@ class Formateador():
 
 
     def obtener_datos_demograficos_de_un_paciente(self, nombre_archivo):
+        tabla_cruda = pd.read_excel(nombre_archivo)
         nombre_archivo = nombre_archivo[:-4] + '.pdf'
 
         with pdfplumber.open(nombre_archivo) as pdf:
@@ -211,8 +216,15 @@ class Formateador():
             seccion = datos_personales_relevantes[5].split(':')[1][:-13]
             tipo_muestra = datos_personales_relevantes[7].split(':')[-1]
             n_cultivo = datos_personales_relevantes[8].split(':', 1)[-1]
+        
+        comentario = None
+        for filas in list(tabla_cruda.iloc[:, 0]):
+            if type(filas) == str:
+                if 'Avisado' in filas:
+                    comentario = 'ALERTA'
+                    print(f'El paciente {nombre_archivo} tiene una alerta!')
 
-            return [fecha_ingreso, tipo_muestra, n_cultivo, rut, nombre_paciente, seccion, fecha_firma]
+        return [fecha_ingreso, tipo_muestra, n_cultivo, rut, nombre_paciente, seccion, comentario, fecha_firma]
 
 
 formateador = Formateador()
