@@ -11,18 +11,24 @@ with open('DICCIONARIO_CODIGO_NOMBRE_FARMACOS.json', 'r', encoding = 'utf-8') as
 with open ('DICCIONARIO_CIM.json', 'r', encoding = 'utf-8') as f:
     DICCIONARIO_CIM = json.load(f)
 
+###################################################################################################
+
+COLUMNAS_FARMACOS = list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()) + list(DICCIONARIO_CIM.keys())   
+LARGO_COLUMNAS_FARMACOS = len(COLUMNAS_FARMACOS)
+COLUMNAS_A_NO_OCUPAR = ['CZA', '?']
+
+#########################################################################################
+
 class Formateador():
     def __init__(self):
         pass
 
     def hacer_tabla_global(self):
         todas_las_entradas = self.obtener_entradas_todos_los_pacientes()
-        columnas = ['Ingreso', 'Tipo muestra', 'Nº de Cultivo', 'Rut', 'Nombre', 'Servicio', 'Comentario', 'Fecha Firma', 'Microorganismo', 'BLEE'] + \
-                   list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values())[:35] + \
-                   list(DICCIONARIO_CIM.keys())        
-
+        columnas = ['Ingreso', 'Tipo muestra', 'Nº de Cultivo', 'Rut', 'Nombre', 'Servicio', 'Comentario', 'Fecha Firma', 'Microorganismo', 'BLEE'] + COLUMNAS_FARMACOS
         df = pd.DataFrame(todas_las_entradas, columns = columnas)
-        df.drop(columns = ['CZA'], inplace = True)
+        df.drop(columns = COLUMNAS_A_NO_OCUPAR, inplace = True)
+
         return df
 
     def obtener_entradas_todos_los_pacientes(self):
@@ -47,16 +53,16 @@ class Formateador():
             n_cultivo = datos_totales_hongos[datos_totales_hongos.iloc[:, 0] == 'Nº CULTIVO'].iloc[0, 4]
             datos_persona[2] = n_cultivo
             for microorganismo in lista_microorganismos_persona:
-                largo = len(list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values())[:35]) + \
-                   len(list(DICCIONARIO_CIM.keys()))
-                entrada_hongos = datos_persona + microorganismo + [None for i in range(largo + 1)]
+                entrada_hongos = datos_persona + microorganismo + [None for i in range(LARGO_COLUMNAS_FARMACOS)]
                 entradas.append(entrada_hongos)
         
         elif 'POLI' in nombre_archivo:
-            largo = len(list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values())[:35]) + \
-                   len(list(DICCIONARIO_CIM.keys()))
-            entrada_poli = datos_persona + ['Polimicrobiano'] + [None for i in range(largo + 1)]
+            entrada_poli = datos_persona + ['Polimicrobiano', None] + [None for i in range(LARGO_COLUMNAS_FARMACOS)]
             entradas.append(entrada_poli)
+        
+        elif 'NOANTI' in nombre_archivo:
+            entrada_noanti = datos_persona + lista_microorganismos_persona[0] + [None for i in range(LARGO_COLUMNAS_FARMACOS)]
+            entradas.append(entrada_noanti)
         
         else:
             lista_antibiogramas_persona = self.obtener_antibiogramas_de_un_paciente(nombre_archivo)
@@ -99,7 +105,7 @@ class Formateador():
             lista_cepas_formato_listas = list(map(self.mappear_resultados_a_formato_excel, lista_cepas_formato_df))
         
         else:
-            lista_cepas_formato_listas = [[None for i in range(42)]]
+            lista_cepas_formato_listas = [[None for i in range(LARGO_COLUMNAS_FARMACOS)]]
 
         return lista_cepas_formato_listas
 
@@ -161,10 +167,10 @@ class Formateador():
 
     def obtener_microorganismos_de_un_paciente(self, nombre_archivo):
         datos_totales = pd.read_excel(nombre_archivo)
+        microorganismos = []
         # Si es un archivo de hongos
         if 'HONGOS' in nombre_archivo:
             datos_hongos = datos_totales[datos_totales.iloc[:, 0] == 'CULTIVO DE HONGOS']
-            microorganismos = []
             # Al parecer todos los hongos están en 1 casilla. 
             # Por lo tanto:
             for hongo in datos_hongos.iloc[:, 3][0].split(','):
@@ -173,12 +179,20 @@ class Formateador():
                 
                 else:
                     microorganismos.append([hongo, None])
-
         
+        elif 'NOANTI' in nombre_archivo:
+            datos_hemo = datos_totales[(datos_totales.iloc[:, 0] == 'HEMOCULTIVO AEROBICO') | (datos_totales.iloc[:, 0] == 'HEMOCULTIVO ANAEROBICO')]
+            contaminado = list(datos_hemo.iloc[:, 2])[0].split(' ')
+            microorganismo = ' '.join(contaminado[2:])
+            if 'BLEE' in microorganismo:
+                microorganismo.append([microorganismo, '(+)'])
+            
+            else:
+                microorganismos.append([microorganismo, None])
+
         # Si es cualquier otro
         else:
             datos_cepas = datos_totales[(datos_totales.iloc[:, 0] == 'Cepa')]
-            microorganismos = []
             for cepa in datos_cepas.iloc[:, 2]:
                 if 'BLEE' in cepa:
                     microorganismos.append([cepa, '(+)'])
