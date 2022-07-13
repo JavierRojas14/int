@@ -33,5 +33,6 @@
  "Minociclina": "MINO",
  "Daptomicina": "DAP",
  "Vancomicina": "VAN",
- "Ceftazidima/avibactam": "CZA"
+ "Ceftazidima/avibactam": "CZA",
+ "Ceftolozano/Tazobactam": "?"
 }

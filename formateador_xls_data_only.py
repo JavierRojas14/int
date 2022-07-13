@@ -5,6 +5,7 @@ import os
 import pdfplumber
 import numpy as np
 from datetime import datetime
+from itertools import zip_longest
 
 with open('DICCIONARIO_CODIGO_NOMBRE_FARMACOS.json', 'r', encoding = 'utf-8') as f:
     DICCIONARIO_CODIGO_NOMBRE_FARMACOS = json.load(f)
@@ -37,84 +38,151 @@ class Formateador():
 
         for nombre_archivo in os.listdir():
             if nombre_archivo[-4:len(nombre_archivo)] == '.xls':
-                entradas_de_un_paciente = self.obtener_entradas_de_un_paciente(nombre_archivo)
+                nombre_archivo_sin_extension = nombre_archivo[:-4]
+                tipo_archivo = nombre_archivo_sin_extension.split('_')[-1]
+                entradas_de_un_paciente = self.obtener_entradas_de_un_paciente(nombre_archivo, tipo_archivo)
                 for entrada_de_un_paciente in entradas_de_un_paciente:
                     entradas_todos_los_pacientes.append(entrada_de_un_paciente)
 
         return entradas_todos_los_pacientes
 
-    def obtener_entradas_de_un_paciente(self, nombre_archivo):
+    def obtener_entradas_de_un_paciente(self, nombre_archivo, tipo_archivo):
+        datos_persona = self.obtener_datos_demograficos_de_un_paciente(nombre_archivo, tipo_archivo)
+        lista_microorganismos_persona = self.obtener_microorganismos_de_un_paciente(nombre_archivo, tipo_archivo)
+        numero_microorganismos = len(lista_microorganismos_persona)
+
+        lista_antibiogramas_persona = self.obtener_antibiogramas_de_un_paciente(nombre_archivo, tipo_archivo, numero_microorganismos)
+        entradas_de_un_paciente_formato_lista = self.formatear_todos_los_datos_un_paciente(datos_persona, lista_microorganismos_persona, lista_antibiogramas_persona)
+
+        for entrada in entradas_de_un_paciente_formato_lista:
+            print(f'Entrada de {nombre_archivo}, largo {len(entrada)} ')
+
+        return entradas_de_un_paciente_formato_lista
+    
+    def formatear_todos_los_datos_un_paciente(self, datos_persona, lista_microorganismos_persona, lista_antibiogramas_persona):
         entradas = []
+        diccionario_numeracion_cepas = {0: ' I', 1: ' II', 2: ' III', 3: ' IV'}
+        for i in range(len(lista_microorganismos_persona)):
+            micro = lista_microorganismos_persona[i]
+            antibio = lista_antibiogramas_persona[i]
+            if len(lista_microorganismos_persona) > 1:
+                datos_persona_romanos = datos_persona.copy()
+                nuevo_numero_cultivo = f'{datos_persona_romanos[2]}{diccionario_numeracion_cepas[i]}'
+                datos_persona_romanos[2] = nuevo_numero_cultivo
 
-        datos_persona = self.obtener_datos_demograficos_de_un_paciente(nombre_archivo)
-        lista_microorganismos_persona = self.obtener_microorganismos_de_un_paciente(nombre_archivo)
+                entrada_paciente = datos_persona_romanos + micro + antibio
+            
+            else:
+                entrada_paciente = datos_persona + micro + antibio
 
-        if 'HONGOS' in nombre_archivo:
-            datos_totales_hongos = pd.read_excel(nombre_archivo)
-            n_cultivo = datos_totales_hongos[datos_totales_hongos.iloc[:, 0] == 'Nº CULTIVO'].iloc[0, 4]
-            datos_persona[2] = n_cultivo
-            for microorganismo in lista_microorganismos_persona:
-                entrada_hongos = datos_persona + microorganismo + [None for i in range(LARGO_COLUMNAS_FARMACOS)]
-                entradas.append(entrada_hongos)
-        
-        elif 'POLI' in nombre_archivo:
-            entrada_poli = datos_persona + ['Polimicrobiano', None] + [None for i in range(LARGO_COLUMNAS_FARMACOS)]
-            entradas.append(entrada_poli)
-        
-        elif 'NOANTI' in nombre_archivo:
-            entrada_noanti = datos_persona + lista_microorganismos_persona[0] + [None for i in range(LARGO_COLUMNAS_FARMACOS)]
-            entradas.append(entrada_noanti)
-        
-        else:
-            lista_antibiogramas_persona = self.obtener_antibiogramas_de_un_paciente(nombre_archivo)
-
-            diccionario_numeracion_cepas = {0: ' I', 1: ' II', 2: ' III', 3: ' IV'}
-            for i in range(len(lista_antibiogramas_persona)):
-                microorganismo = lista_microorganismos_persona[i]
-                antibiograma = lista_antibiogramas_persona[i]
-
-                if len(lista_antibiogramas_persona) > 1:
-                    datos_persona_romanos = datos_persona.copy()
-                    nuevo_numero_cultivo = f'{datos_persona_romanos[2]}{diccionario_numeracion_cepas[i]}'
-                    datos_persona_romanos[2] = nuevo_numero_cultivo
-                    entrada_antibiograma = datos_persona_romanos + microorganismo + antibiograma
-                
-                else:
-                    entrada_antibiograma = datos_persona + microorganismo + antibiograma
-
-                entradas.append(entrada_antibiograma)
-        
-        for i in entradas:
-            print(f'Entrada de {nombre_archivo}, largo {len(i)} ')
+            
+            entradas.append(entrada_paciente)
 
         return entradas
-
     
-    def obtener_antibiogramas_de_un_paciente(self, nombre_archivo):
-        datos_totales = pd.read_excel(nombre_archivo)
+    def obtener_datos_demograficos_de_un_paciente(self, nombre_archivo, tipo_archivo):
+        tabla_cruda = pd.read_excel(nombre_archivo)
+        nombre_archivo = nombre_archivo[:-4] + '.pdf'
+
+        with pdfplumber.open(nombre_archivo) as pdf:
+            datos_personales_relevantes = pdf.pages[0].extract_text().split('\n')[3:12]
+
+            nombre_paciente = datos_personales_relevantes[0].split(':')[1][:-10]
+            n_orden = datos_personales_relevantes[0].split(':')[-1]
+            rut = datos_personales_relevantes[1].split(':')[-1]
+
+            linea_ingreso = datos_personales_relevantes[4].split(' ')
+            try:
+                fecha_ingreso = datetime.strptime(f'{linea_ingreso[-2]} {linea_ingreso[-1]}', ':%d-%m-%Y %H:%M:%S')
+            except ValueError:
+                fecha_ingreso = datetime.strptime(f'{linea_ingreso[-2]} {linea_ingreso[-1]}', ':%d/%m/%Y %H:%M:%S')
+
+
+            linea_firma = datos_personales_relevantes[5].split(' ')
+            try:
+                fecha_firma = datetime.strptime(f'{linea_firma[-2]} {linea_firma[-1]}', ':%d-%m-%Y %H:%M:%S')
+            except ValueError:
+                fecha_firma = datetime.strptime(f'{linea_firma[-2]} {linea_firma[-1]}', ':%d/%m/%Y %H:%M:%S')
+
+            seccion = datos_personales_relevantes[5].split(':')[1][:-13]
+            tipo_muestra = datos_personales_relevantes[7].split(':')[-1]
+            n_cultivo = datos_personales_relevantes[8].split(':', 1)[-1]
         
-        indice_fila_inicio_antibio, indice_fila_termino_antibio = self.identificar_localizacion_antibiograma(datos_totales)
-        columnas_sobre_antibiograma = list(datos_totales.iloc[indice_fila_inicio_antibio - 1].dropna())
-        columnas_sobre_antibiograma.remove('ANTIBIOTICOS')
-        columnas_sobre_antibiograma.remove('CIM')
-        columnas_sobre_antibiograma.remove('ANTIBIOGRAMA')
-        cantidad_columnas_de_cepas = len(columnas_sobre_antibiograma)
-        antibiograma_crudo = datos_totales.iloc[indice_fila_inicio_antibio: indice_fila_termino_antibio, :cantidad_columnas_de_cepas]
+        if tipo_archivo == 'HONGOS':
+            n_cultivo = tabla_cruda[tabla_cruda.iloc[:, 0] == 'Nº CULTIVO'].iloc[0, 4]
+        
+        comentario = None
+        for filas in list(tabla_cruda.iloc[:, 0]):
+            if type(filas) == str:
+                if 'Avisado' in filas:
+                    comentario = 'ALERTA'
+                    print(f'El paciente {nombre_archivo} tiene una alerta!')
 
+        return [fecha_ingreso, tipo_muestra, n_cultivo, rut, nombre_paciente, seccion, comentario, fecha_firma]
 
-        if not(antibiograma_crudo.empty):
-            # Si hay un número par de columnas (o sea, que una de las CIM estaba vacia)
-            if antibiograma_crudo.shape[1] % 2 == 0:
-                antibiograma_crudo['CIM'] = None
-
-            antibiograma_formateado = self.formatear_tabla_antibiograma(antibiograma_crudo)
-            lista_cepas_formato_df = self.separar_cepas(antibiograma_formateado)
-            lista_cepas_formato_listas = list(map(self.mappear_resultados_a_formato_excel, lista_cepas_formato_df))
+    def obtener_microorganismos_de_un_paciente(self, nombre_archivo, tipo_archivo):
+        datos_totales = pd.read_excel(nombre_archivo)
+        microorganismos = []
+        # Si es un archivo de hongos
+        if tipo_archivo == 'HONGOS':
+            datos_hongos = datos_totales[datos_totales.iloc[:, 0] == 'CULTIVO DE HONGOS']
+            for hongo in datos_hongos.iloc[:, 3][0].split(','):
+                microorganismos.append(hongo)
+        
+        elif tipo_archivo == 'POLI':
+            microorganismos.append('POLIMICROBIANO')
+        
+        elif tipo_archivo == 'NOANTI':
+            datos_hemo = datos_totales[(datos_totales.iloc[:, 0] == 'HEMOCULTIVO AEROBICO') | (datos_totales.iloc[:, 0] == 'HEMOCULTIVO ANAEROBICO')]
+            microorganismo_contaminante = list(datos_hemo.iloc[:, 2])[0].split(' ')
+            microorganismo_contaminante = ' '.join(microorganismo_contaminante[2:])
+            microorganismos.append(microorganismo_contaminante)
         
         else:
-            lista_cepas_formato_listas = [[None for i in range(LARGO_COLUMNAS_FARMACOS)]]
+            datos_cepas = datos_totales[(datos_totales.iloc[:, 0] == 'Cepa')]
+            for microorganismo in datos_cepas.iloc[:, 2]:
+                microorganismos.append(microorganismo)
+        
+        microorganismos = list(map(lambda microorg: [microorg, '(+)'] if ('BLEE' in microorg) else [microorg, None], microorganismos))
+        return microorganismos
 
-        return lista_cepas_formato_listas
+    def obtener_antibiogramas_de_un_paciente(self, nombre_archivo, tipo_archivo, numero_microorganismos):
+        datos_totales = pd.read_excel(nombre_archivo)
+        lista_sin_antibiograma = [None for i in range(LARGO_COLUMNAS_FARMACOS)]
+        antibiogramas = []
+
+        if tipo_archivo == 'HONGOS' or tipo_archivo == 'POLI' or tipo_archivo == 'NOANTI':
+            for i in range(numero_microorganismos):
+                antibiogramas.append(lista_sin_antibiograma)
+        
+        else:
+            indice_fila_inicio_antibio, indice_fila_termino_antibio = self.identificar_localizacion_antibiograma(datos_totales)
+            columnas_sobre_antibiograma = list(datos_totales.iloc[indice_fila_inicio_antibio - 1].dropna())
+            numero_cepas = []
+            for columna in columnas_sobre_antibiograma:
+                if type(columna) == str:
+                    if columna.isnumeric():
+                        numero_cepas.append(columna)
+                
+                elif type(columna) == np.float64:
+                    numero_cepas.append(int(columna))
+            
+            cantidad_columnas_de_cepas = len(numero_cepas)
+            indice_columnas_a_tomar = (cantidad_columnas_de_cepas * 2) + 1
+            antibiograma_crudo = datos_totales.iloc[indice_fila_inicio_antibio: indice_fila_termino_antibio, :indice_columnas_a_tomar]
+
+            if not(antibiograma_crudo.empty):
+                antibiograma_formateado = self.formatear_tabla_antibiograma(antibiograma_crudo)
+                lista_cepas_formato_df = self.separar_cepas(antibiograma_formateado)
+                antibiogramas = list(map(self.mappear_resultados_a_formato_excel, lista_cepas_formato_df))
+            
+            else:
+                print('Hay un antibiograma vacio!')
+                for i in range(numero_microorganismos):
+                    antibiogramas.append(lista_sin_antibiograma)
+            
+        return antibiogramas
+
 
 
     def identificar_localizacion_antibiograma(self, datos_totales):
@@ -128,7 +196,7 @@ class Formateador():
             if (identificadores[1] == '-') and (se_encontro_antibiograma):
                 indice_final = identificadores[0]
 
-        return indice_inicial + 1, indice_final
+        return indice_inicial + 1, indice_final - 2
 
 
     def formatear_tabla_antibiograma(self, antibiograma_crudo):
@@ -171,81 +239,6 @@ class Formateador():
         
         lista_sensibilidades_llenas = list(diccionario_sensibilidades_a_llenar.values()) + list(diccionario_cim_a_llenar.values())
         return lista_sensibilidades_llenas 
-
-    def obtener_microorganismos_de_un_paciente(self, nombre_archivo):
-        datos_totales = pd.read_excel(nombre_archivo)
-        microorganismos = []
-        # Si es un archivo de hongos
-        if 'HONGOS' in nombre_archivo:
-            datos_hongos = datos_totales[datos_totales.iloc[:, 0] == 'CULTIVO DE HONGOS']
-            # Al parecer todos los hongos están en 1 casilla. 
-            # Por lo tanto:
-            for hongo in datos_hongos.iloc[:, 3][0].split(','):
-                if 'BLEE' in hongo:
-                    microorganismos.append([hongo, '(+)'])
-                
-                else:
-                    microorganismos.append([hongo, None])
-        
-        elif 'NOANTI' in nombre_archivo:
-            datos_hemo = datos_totales[(datos_totales.iloc[:, 0] == 'HEMOCULTIVO AEROBICO') | (datos_totales.iloc[:, 0] == 'HEMOCULTIVO ANAEROBICO')]
-            contaminado = list(datos_hemo.iloc[:, 2])[0].split(' ')
-            microorganismo = ' '.join(contaminado[2:])
-            if 'BLEE' in microorganismo:
-                microorganismo.append([microorganismo, '(+)'])
-            
-            else:
-                microorganismos.append([microorganismo, None])
-
-        # Si es cualquier otro
-        else:
-            datos_cepas = datos_totales[(datos_totales.iloc[:, 0] == 'Cepa')]
-            for cepa in datos_cepas.iloc[:, 2]:
-                if 'BLEE' in cepa:
-                    microorganismos.append([cepa, '(+)'])
-                
-                else:
-                    microorganismos.append([cepa, None])
-
-        return microorganismos
-
-
-    def obtener_datos_demograficos_de_un_paciente(self, nombre_archivo):
-        tabla_cruda = pd.read_excel(nombre_archivo)
-        nombre_archivo = nombre_archivo[:-4] + '.pdf'
-
-        with pdfplumber.open(nombre_archivo) as pdf:
-            datos_personales_relevantes = pdf.pages[0].extract_text().split('\n')[3:12]
-
-            nombre_paciente = datos_personales_relevantes[0].split(':')[1][:-10]
-            n_orden = datos_personales_relevantes[0].split(':')[-1]
-            rut = datos_personales_relevantes[1].split(':')[-1]
-
-            linea_ingreso = datos_personales_relevantes[4].split(' ')
-            try:
-                fecha_ingreso = datetime.strptime(f'{linea_ingreso[-2]} {linea_ingreso[-1]}', ':%d-%m-%Y %H:%M:%S')
-            except ValueError:
-                fecha_ingreso = datetime.strptime(f'{linea_ingreso[-2]} {linea_ingreso[-1]}', ':%d/%m/%Y %H:%M:%S')
-
-
-            linea_firma = datos_personales_relevantes[5].split(' ')
-            try:
-                fecha_firma = datetime.strptime(f'{linea_firma[-2]} {linea_firma[-1]}', ':%d-%m-%Y %H:%M:%S')
-            except ValueError:
-                fecha_firma = datetime.strptime(f'{linea_firma[-2]} {linea_firma[-1]}', ':%d/%m/%Y %H:%M:%S')
-
-            seccion = datos_personales_relevantes[5].split(':')[1][:-13]
-            tipo_muestra = datos_personales_relevantes[7].split(':')[-1]
-            n_cultivo = datos_personales_relevantes[8].split(':', 1)[-1]
-        
-        comentario = None
-        for filas in list(tabla_cruda.iloc[:, 0]):
-            if type(filas) == str:
-                if 'Avisado' in filas:
-                    comentario = 'ALERTA'
-                    print(f'El paciente {nombre_archivo} tiene una alerta!')
-
-        return [fecha_ingreso, tipo_muestra, n_cultivo, rut, nombre_paciente, seccion, comentario, fecha_firma]
 
 
 formateador = Formateador()
