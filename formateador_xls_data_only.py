@@ -132,8 +132,7 @@ class Formateador():
         
         elif tipo_archivo == 'NOANTI':
             datos_hemo = datos_totales[(datos_totales.iloc[:, 0] == 'HEMOCULTIVO AEROBICO') | (datos_totales.iloc[:, 0] == 'HEMOCULTIVO ANAEROBICO')]
-            microorganismo_contaminante = list(datos_hemo.iloc[:, 2])[0].split(' ')
-            microorganismo_contaminante = ' '.join(microorganismo_contaminante[2:])
+            microorganismo_contaminante = list(datos_hemo.iloc[:, 2])[0]
             microorganismos.append(microorganismo_contaminante)
         
         else:
