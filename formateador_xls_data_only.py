@@ -174,9 +174,7 @@ class Formateador():
                 lista_cepas_formato_df = self.separar_cepas(antibiograma_formateado)
                 antibiogramas = list(map(self.mappear_resultados_a_formato_excel, lista_cepas_formato_df))
                 if len(antibiogramas) < numero_microorganismos:
-                    cantidad_cepas_sin_antibiograma = numero_microorganismos - len(antibiogramas)
-                    for i in range(cantidad_cepas_sin_antibiograma):
-                        antibiogramas.append(lista_sin_antibiograma)
+                    antibiogramas.append(lista_sin_antibiograma)
             
             else:
                 print('Hay un antibiograma vacio!')
