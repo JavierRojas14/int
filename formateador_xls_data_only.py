@@ -17,7 +17,7 @@ with open ('DICCIONARIO_CIM.json', 'r', encoding = 'utf-8') as f:
 
 COLUMNAS_FARMACOS = list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()) + list(DICCIONARIO_CIM.keys())   
 LARGO_COLUMNAS_FARMACOS = len(COLUMNAS_FARMACOS)
-COLUMNAS_A_NO_OCUPAR = ['CZA', '?']
+COLUMNAS_A_NO_OCUPAR = ['CZA', '?', '? 2']
 
 #########################################################################################
 
@@ -131,7 +131,7 @@ class Formateador():
             microorganismos.append('POLIMICROBIANO')
         
         elif tipo_archivo == 'NOANTI':
-            datos_hemo = datos_totales[(datos_totales.iloc[:, 0] == 'HEMOCULTIVO AEROBICO') | (datos_totales.iloc[:, 0] == 'HEMOCULTIVO ANAEROBICO') | (datos_totales.iloc[:, 0] == 'UROCULTIVO 2')]
+            datos_hemo = datos_totales[(datos_totales.iloc[:, 0] == 'HEMOCULTIVO AEROBICO') | (datos_totales.iloc[:, 0] == 'HEMOCULTIVO ANAEROBICO')]
             microorganismo_contaminante = list(datos_hemo.iloc[:, 2])[0].split(' ')
             microorganismo_contaminante = ' '.join(microorganismo_contaminante[2:])
             microorganismos.append(microorganismo_contaminante)

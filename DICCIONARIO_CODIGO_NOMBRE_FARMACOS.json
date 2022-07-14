@@ -34,5 +34,6 @@
  "Daptomicina": "DAP",
  "Vancomicina": "VAN",
  "Ceftazidima/avibactam": "CZA",
- "Ceftolozano/Tazobactam": "?"
+ "Ceftolozano/Tazobactam": "?",
+ "Cotrimoxazol": "? 2"
 }
