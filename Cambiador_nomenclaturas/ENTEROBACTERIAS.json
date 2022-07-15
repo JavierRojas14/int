@@ -8,6 +8,11 @@
   "E.kobei",
   "Enterobacter"
  ],
+ "Hafnia": [
+   "H. alvei",
+   "H. paralvei",
+   "Hafnia"
+ ],
  "Klebsiella": [
     "K. aerogenes",
     "K. oxytoca",
@@ -16,9 +21,20 @@
     "K. variicola",
     "Klebsiella"
  ],
+ "Morganella": [
+   "M. morganii",
+   "Morganella morganii"
+ ],
  "Proteus": [
   "P. mirabilis",
+  "P. penneri",
+  "P. vulgaris",
   "Proteus"
+ ],
+ "Providencia": [
+   "P. rettgeri",
+   "P. stuartii",
+   "Providencia"
  ],
  "Salmonella": [
   "Salmonella"
