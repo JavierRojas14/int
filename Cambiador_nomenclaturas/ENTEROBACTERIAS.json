@@ -1,0 +1,29 @@
+{
+ "Escherichia": [
+  "E.coli",
+  "E.coli BLEE (+)",
+  "Escherichia"
+ ],
+ "Enterobacter": [
+  "E.kobei",
+  "Enterobacter"
+ ],
+ "Klebsiella": [
+  "K"
+ ],
+ "Proteus": [
+  "P. mirabilis",
+  "Proteus"
+ ],
+ "Salmonella": [
+  "Salmonella"
+ ],
+ "Serratia": [
+  "S. liquefaciens",
+  "S. marcescens",
+  "Serratia"
+ ],
+ "Shigella": [
+  "Shigella"
+ ]
+}
