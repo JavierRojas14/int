@@ -139,7 +139,9 @@ class Formateador():
             datos_cepas = datos_totales[(datos_totales.iloc[:, 0] == 'Cepa')]
             for microorganismo in datos_cepas.iloc[:, 2]:
                 microorganismos.append(microorganismo)
-        
+
+
+        # microorganismos = list(map(lambda microorg: [f'{microorg[0]}. {microorg.split(" ")[1]}', '(+)'] if ('BLEE' in microorg) else [f'{microorg[0]}. {microorg.split(" ")[1]}', None], microorganismos))
         microorganismos = list(map(lambda microorg: [microorg, '(+)'] if ('BLEE' in microorg) else [microorg, None], microorganismos))
         return microorganismos
 
