@@ -9,7 +9,12 @@
   "Enterobacter"
  ],
  "Klebsiella": [
-  "K"
+    "K. aerogenes",
+    "K. oxytoca",
+    "K. pneumoniae",
+    "K. pneumoniae BLEE (+)",
+    "K. variicola",
+    "Klebsiella"
  ],
  "Proteus": [
   "P. mirabilis",
