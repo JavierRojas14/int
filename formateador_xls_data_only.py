@@ -1,4 +1,5 @@
 from cmath import nan
+from re import S
 import pandas as pd
 import json
 import os
@@ -63,20 +64,45 @@ class Formateador():
         for i in range(len(lista_microorganismos_persona)):
             micro = lista_microorganismos_persona[i]
             antibio = lista_antibiogramas_persona[i]
+
+            nuevo_antibio = self.cambiar_sensibilidades_enteros_y_staphylos(micro[0], antibio)
+
             if len(lista_microorganismos_persona) > 1:
                 datos_persona_romanos = datos_persona.copy()
                 nuevo_numero_cultivo = f'{datos_persona_romanos[2]}{diccionario_numeracion_cepas[i]}'
                 datos_persona_romanos[2] = nuevo_numero_cultivo
 
-                entrada_paciente = datos_persona_romanos + micro + antibio
+                entrada_paciente = datos_persona_romanos + micro + nuevo_antibio
             
             else:
-                entrada_paciente = datos_persona + micro + antibio
+                entrada_paciente = datos_persona + micro + nuevo_antibio
 
             
             entradas.append(entrada_paciente)
 
         return entradas
+    
+    def cambiar_sensibilidades_enteros_y_staphylos(self, nombre_microorganismo, antibiograma):
+        if ('Staphylococcus' in nombre_microorganismo) \
+           or ('aureus' in nombre_microorganismo) \
+           or ('epidermidis' in nombre_microorganismo) \
+           or ('capitis' in nombre_microorganismo) \
+           or ('coagulasa (-)' in nombre_microorganismo) \
+           or ('epidermidis' in nombre_microorganismo) \
+           or ('haemolyticus' in nombre_microorganismo) \
+           or ('hominis' in nombre_microorganismo) \
+           or ('lugdunensis' in nombre_microorganismo) \
+           or ('pasteuri' in nombre_microorganismo) \
+           or ('pettenkoferi' in nombre_microorganismo) \
+           or ('pseudointermedius' in nombre_microorganismo) \
+           or ('saprophyticus' in nombre_microorganismo) \
+           or ('warneri' in nombre_microorganismo):
+           nuevo_antibiograma = antibiograma[:29] + ['S'] + antibiograma[30:38] + ['S'] + antibiograma[39:]
+           return nuevo_antibiograma
+        
+        else:
+            return antibiograma
+
     
     def obtener_datos_demograficos_de_un_paciente(self, nombre_archivo, tipo_archivo):
         tabla_cruda = pd.read_excel(nombre_archivo)
@@ -139,9 +165,7 @@ class Formateador():
             datos_cepas = datos_totales[(datos_totales.iloc[:, 0] == 'Cepa')]
             for microorganismo in datos_cepas.iloc[:, 2]:
                 microorganismos.append(microorganismo)
-
-
-        # microorganismos = list(map(lambda microorg: [f'{microorg[0]}. {microorg.split(" ")[1]}', '(+)'] if ('BLEE' in microorg) else [f'{microorg[0]}. {microorg.split(" ")[1]}', None], microorganismos))
+        
         microorganismos = list(map(lambda microorg: [microorg, '(+)'] if ('BLEE' in microorg) else [microorg, None], microorganismos))
         return microorganismos
 
