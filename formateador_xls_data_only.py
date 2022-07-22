@@ -14,6 +14,13 @@ with open('DICCIONARIO_CODIGO_NOMBRE_FARMACOS.json', 'r', encoding = 'utf-8') as
 with open ('DICCIONARIO_CIM.json', 'r', encoding = 'utf-8') as f:
     DICCIONARIO_CIM = json.load(f)
 
+with open('ENTEROBACTERIAS.json', 'r', encoding = 'utf-8') as f:
+    TODAS_LAS_ENTEROBACTERIAS = json.load(f)
+
+with open('ENTEROBACTERIAS_RESISTENTES_NATURALMENTE.json', 'r', encoding = 'utf-8') as f:
+    ENTEROBACTERIAS_RESISTENTES_NATURALMENTE = json.load(f)
+
+
 ###################################################################################################
 
 COLUMNAS_FARMACOS = list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()) + list(DICCIONARIO_CIM.keys())   
@@ -97,8 +104,13 @@ class Formateador():
            or ('pseudointermedius' in nombre_microorganismo) \
            or ('saprophyticus' in nombre_microorganismo) \
            or ('warneri' in nombre_microorganismo):
+           print(f'Hay un {nombre_microorganismo}, que es sensible a LIN y TGC')
            antibiograma[19] = 'S'
            antibiograma[28] = 'S'
+        
+        if (nombre_microorganismo in TODAS_LAS_ENTEROBACTERIAS) and not(nombre_microorganismo in ENTEROBACTERIAS_RESISTENTES_NATURALMENTE):
+            antibiograma[12] = 'S'
+            print(f'Hay un {nombre_microorganismo}, que es sensible a COL!')
            
         
         return antibiograma

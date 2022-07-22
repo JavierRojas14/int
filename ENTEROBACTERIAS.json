@@ -1,0 +1,50 @@
+{
+ "Escherichia": [
+  "E.coli",
+  "E.coli BLEE (+)",
+  "Escherichia"
+ ],
+ "Enterobacter": [
+  "E.kobei",
+  "Enterobacter"
+ ],
+ "Hafnia": [
+   "H. alvei",
+   "H. paralvei",
+   "Hafnia"
+ ],
+ "Klebsiella": [
+    "K. aerogenes",
+    "K. oxytoca",
+    "K. pneumoniae",
+    "K. pneumoniae BLEE (+)",
+    "K. variicola",
+    "Klebsiella"
+ ],
+ "Morganella": [
+   "M. morganii",
+   "Morganella morganii"
+ ],
+ "Proteus": [
+  "P. mirabilis",
+  "P. penneri",
+  "P. vulgaris",
+  "Proteus"
+ ],
+ "Providencia": [
+   "P. rettgeri",
+   "P. stuartii",
+   "Providencia"
+ ],
+ "Salmonella": [
+  "Salmonella"
+ ],
+ "Serratia": [
+  "S. liquefaciens",
+  "S. marcescens",
+  "Serratia"
+ ],
+ "Shigella": [
+  "Shigella"
+ ]
+}
