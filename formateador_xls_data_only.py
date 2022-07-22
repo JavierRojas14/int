@@ -57,6 +57,7 @@ class Formateador():
                 nombre_archivo_sin_extension = nombre_archivo[:-4]
                 tipo_archivo = nombre_archivo_sin_extension.split('_')[-1]
                 entradas_de_un_paciente = self.obtener_entradas_de_un_paciente(nombre_archivo, tipo_archivo)
+
                 for entrada_de_un_paciente in entradas_de_un_paciente:
                     entradas_todos_los_pacientes.append(entrada_de_un_paciente)
 
@@ -69,7 +70,6 @@ class Formateador():
         entradas_de_un_paciente_formato_lista = self.formatear_todos_los_datos_un_paciente(datos_persona, lista_microorganismos_persona, lista_antibiogramas_persona)
 
         for entrada in entradas_de_un_paciente_formato_lista:
-            pass
             print(f'Entrada de {nombre_archivo}, largo {len(entrada)} ')
 
         return entradas_de_un_paciente_formato_lista
@@ -195,8 +195,8 @@ class Formateador():
             microorganismos.append('POLIMICROBIANO')
         
         elif tipo_archivo == 'NOANTI':
-            datos_hemo = datos_totales[(datos_totales.iloc[:, 0] == 'HEMOCULTIVO AEROBICO') | (datos_totales.iloc[:, 0] == 'HEMOCULTIVO ANAEROBICO')]
-            microorganismo_contaminante = list(datos_hemo.iloc[:, 2])[0]
+            datos_sin_antibiograma = datos_totales[(datos_totales.iloc[:, 0] == 'HEMOCULTIVO AEROBICO') | (datos_totales.iloc[:, 0] == 'HEMOCULTIVO ANAEROBICO') | (datos_totales.iloc[:, 0] == 'UROCULTIVO 2') | (datos_totales.iloc[:, 0] == 'CULTIVO CORRIENTE 2')]
+            microorganismo_contaminante = list(datos_sin_antibiograma.iloc[:, 2])[0]
             microorganismos.append(microorganismo_contaminante)
         
         else:
