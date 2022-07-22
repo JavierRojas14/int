@@ -6,7 +6,9 @@ import os
 import pdfplumber
 import numpy as np
 from datetime import datetime
-from itertools import zip_longest
+
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 with open('DICCIONARIO_CODIGO_NOMBRE_FARMACOS.json', 'r', encoding = 'utf-8') as f:
     DICCIONARIO_CODIGO_NOMBRE_FARMACOS = json.load(f)
@@ -15,10 +17,16 @@ with open ('DICCIONARIO_CIM.json', 'r', encoding = 'utf-8') as f:
     DICCIONARIO_CIM = json.load(f)
 
 with open('ENTEROBACTERIAS.json', 'r', encoding = 'utf-8') as f:
-    TODAS_LAS_ENTEROBACTERIAS = json.load(f)
+    diccionario_enteros = json.load(f)
+    TODAS_LAS_ENTEROBACTERIAS = []
+    for llave in diccionario_enteros.keys():
+        TODAS_LAS_ENTEROBACTERIAS += diccionario_enteros[llave]
 
 with open('ENTEROBACTERIAS_RESISTENTES_NATURALMENTE.json', 'r', encoding = 'utf-8') as f:
     ENTEROBACTERIAS_RESISTENTES_NATURALMENTE = json.load(f)
+
+with open('GENEROS_ENTEROBACTERIAS.json', 'r', encoding = 'utf-8') as f:
+    GENEROS_ENTEROBACTERIAS = json.load(f)
 
 
 ###################################################################################################
@@ -61,7 +69,8 @@ class Formateador():
         entradas_de_un_paciente_formato_lista = self.formatear_todos_los_datos_un_paciente(datos_persona, lista_microorganismos_persona, lista_antibiogramas_persona)
 
         for entrada in entradas_de_un_paciente_formato_lista:
-            print(f'Entrada de {nombre_archivo}, largo {len(entrada)} ')
+            pass
+            #print(f'Entrada de {nombre_archivo}, largo {len(entrada)} ')
 
         return entradas_de_un_paciente_formato_lista
     
@@ -108,9 +117,27 @@ class Formateador():
            antibiograma[19] = 'S'
            antibiograma[28] = 'S'
         
-        if (nombre_microorganismo in TODAS_LAS_ENTEROBACTERIAS) and not(nombre_microorganismo in ENTEROBACTERIAS_RESISTENTES_NATURALMENTE):
-            antibiograma[12] = 'S'
-            print(f'Hay un {nombre_microorganismo}, que es sensible a COL!')
+        # Formato completo
+        if not('.' in nombre_microorganismo):
+            if nombre_microorganismo != 'POLIMICROBIANO':
+                nombre_separado = nombre_microorganismo.split(' ')
+                genero, especie = nombre_separado[0], nombre_separado[1]
+                if genero in GENEROS_ENTEROBACTERIAS:
+                    if not(nombre_microorganismo in ENTEROBACTERIAS_RESISTENTES_NATURALMENTE):
+                        antibiograma[12] = 'S'
+                        print(f'{nombre_microorganismo} es sensible a COL')
+                    
+                    else:
+                        print(f'{nombre_microorganismo} es insensible a COL')
+        
+        else:
+            if nombre_microorganismo in TODAS_LAS_ENTEROBACTERIAS:
+                if not(nombre_microorganismo in ENTEROBACTERIAS_RESISTENTES_NATURALMENTE):
+                    antibiograma[12] = 'S'
+                    print(f'{nombre_microorganismo} es sensible a COL \n')
+                
+                else:
+                    print(f'{nombre_microorganismo} es insensible a COL \n')
            
         
         return antibiograma
