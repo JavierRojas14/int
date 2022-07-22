@@ -65,17 +65,17 @@ class Formateador():
             micro = lista_microorganismos_persona[i]
             antibio = lista_antibiogramas_persona[i]
 
-            nuevo_antibio = self.cambiar_sensibilidades_enteros_y_staphylos(micro[0], antibio)
+            antibio[:] = self.cambiar_sensibilidades_enteros_y_staphylos(micro[0], antibio)
 
             if len(lista_microorganismos_persona) > 1:
                 datos_persona_romanos = datos_persona.copy()
                 nuevo_numero_cultivo = f'{datos_persona_romanos[2]}{diccionario_numeracion_cepas[i]}'
                 datos_persona_romanos[2] = nuevo_numero_cultivo
 
-                entrada_paciente = datos_persona_romanos + micro + nuevo_antibio
+                entrada_paciente = datos_persona_romanos + micro + antibio
             
             else:
-                entrada_paciente = datos_persona + micro + nuevo_antibio
+                entrada_paciente = datos_persona + micro + antibio
 
             
             entradas.append(entrada_paciente)
@@ -97,11 +97,11 @@ class Formateador():
            or ('pseudointermedius' in nombre_microorganismo) \
            or ('saprophyticus' in nombre_microorganismo) \
            or ('warneri' in nombre_microorganismo):
-           nuevo_antibiograma = antibiograma[:29] + ['S'] + antibiograma[30:38] + ['S'] + antibiograma[39:]
-           return nuevo_antibiograma
+           antibiograma[19] = 'S'
+           antibiograma[28] = 'S'
+           
         
-        else:
-            return antibiograma
+        return antibiograma
 
     
     def obtener_datos_demograficos_de_un_paciente(self, nombre_archivo, tipo_archivo):
