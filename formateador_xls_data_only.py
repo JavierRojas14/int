@@ -70,7 +70,7 @@ class Formateador():
 
         for entrada in entradas_de_un_paciente_formato_lista:
             pass
-            #print(f'Entrada de {nombre_archivo}, largo {len(entrada)} ')
+            print(f'Entrada de {nombre_archivo}, largo {len(entrada)} ')
 
         return entradas_de_un_paciente_formato_lista
     
@@ -99,45 +99,44 @@ class Formateador():
         return entradas
     
     def cambiar_sensibilidades_enteros_y_staphylos(self, nombre_microorganismo, antibiograma):
-        if ('Staphylococcus' in nombre_microorganismo) \
-           or ('aureus' in nombre_microorganismo) \
-           or ('epidermidis' in nombre_microorganismo) \
-           or ('capitis' in nombre_microorganismo) \
-           or ('coagulasa (-)' in nombre_microorganismo) \
-           or ('epidermidis' in nombre_microorganismo) \
-           or ('haemolyticus' in nombre_microorganismo) \
-           or ('hominis' in nombre_microorganismo) \
-           or ('lugdunensis' in nombre_microorganismo) \
-           or ('pasteuri' in nombre_microorganismo) \
-           or ('pettenkoferi' in nombre_microorganismo) \
-           or ('pseudointermedius' in nombre_microorganismo) \
-           or ('saprophyticus' in nombre_microorganismo) \
-           or ('warneri' in nombre_microorganismo):
-           print(f'Hay un {nombre_microorganismo}, que es sensible a LIN y TGC')
-           antibiograma[19] = 'S'
-           antibiograma[28] = 'S'
-        
-        # Formato completo
-        if not('.' in nombre_microorganismo):
-            if nombre_microorganismo != 'POLIMICROBIANO':
-                nombre_separado = nombre_microorganismo.split(' ')
-                genero, especie = nombre_separado[0], nombre_separado[1]
-                if genero in GENEROS_ENTEROBACTERIAS:
+        if any(antibiograma):
+            if ('Staphylococcus' in nombre_microorganismo) \
+            or ('aureus' in nombre_microorganismo) \
+            or ('epidermidis' in nombre_microorganismo) \
+            or ('capitis' in nombre_microorganismo) \
+            or ('coagulasa (-)' in nombre_microorganismo) \
+            or ('epidermidis' in nombre_microorganismo) \
+            or ('haemolyticus' in nombre_microorganismo) \
+            or ('hominis' in nombre_microorganismo) \
+            or ('lugdunensis' in nombre_microorganismo) \
+            or ('pasteuri' in nombre_microorganismo) \
+            or ('pettenkoferi' in nombre_microorganismo) \
+            or ('pseudointermedius' in nombre_microorganismo) \
+            or ('saprophyticus' in nombre_microorganismo) \
+            or ('warneri' in nombre_microorganismo):
+                antibiograma[19] = 'S'
+                antibiograma[28] = 'S'
+            
+            # Formato completo
+            if not('.' in nombre_microorganismo):
+                    nombre_separado = nombre_microorganismo.split(' ')
+                    genero, especie = nombre_separado[0], nombre_separado[1]
+                    if genero in GENEROS_ENTEROBACTERIAS:
+                        if not(nombre_microorganismo in ENTEROBACTERIAS_RESISTENTES_NATURALMENTE):
+                            antibiograma[12] = 'S'
+                            print(f'{nombre_microorganismo} es sensible a COL')
+                        
+                        else:
+                            print(f'{nombre_microorganismo} es insensible a COL')
+            
+            else:
+                if nombre_microorganismo in TODAS_LAS_ENTEROBACTERIAS:
                     if not(nombre_microorganismo in ENTEROBACTERIAS_RESISTENTES_NATURALMENTE):
                         antibiograma[12] = 'S'
-                        print(f'{nombre_microorganismo} es sensible a COL')
+                        print(f'{nombre_microorganismo} es sensible a COL \n')
                     
                     else:
-                        print(f'{nombre_microorganismo} es insensible a COL')
-        
-        else:
-            if nombre_microorganismo in TODAS_LAS_ENTEROBACTERIAS:
-                if not(nombre_microorganismo in ENTEROBACTERIAS_RESISTENTES_NATURALMENTE):
-                    antibiograma[12] = 'S'
-                    print(f'{nombre_microorganismo} es sensible a COL \n')
-                
-                else:
-                    print(f'{nombre_microorganismo} es insensible a COL \n')
+                        print(f'{nombre_microorganismo} es insensible a COL \n')
            
         
         return antibiograma
