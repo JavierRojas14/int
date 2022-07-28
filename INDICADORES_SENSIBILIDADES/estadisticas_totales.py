@@ -102,15 +102,14 @@ class Estadisticas:
 
         for nombre_microorganismo, df, lista_resistencias in nombre_df_farmacos_microorganismos:
             for farmaco in lista_resistencias:
+                microorganismos_totales = df.shape[0]
                 try:
                     serie_resistencia_farmaco = df.loc[:, farmaco].value_counts()
                     numero_resistenes = serie_resistencia_farmaco['R']
-                    microorganismos_totales = serie_resistencia_farmaco.sum()
                     resistencia_farmaco = round((numero_resistenes/ microorganismos_totales) * 100, 1)
 
                 except KeyError:
                     numero_resistenes = 0
-                    microorganismos_totales = 0
                     resistencia_farmaco = 0
                 
                 nuevo_diccionario[f'{nombre_microorganismo} {farmaco} N resistentes'] = numero_resistenes
