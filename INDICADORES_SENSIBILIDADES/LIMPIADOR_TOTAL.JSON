@@ -44,7 +44,7 @@
           "S. pseudointermedius": "Staphylococcus pseudintermedius",
           "S. viridans": "Streptococcus viridans",
           "S. warneri": "Staphylococcus warneri",
-          "St. alfa hemol\u00edtico": "Streptococcus alfa hemolitico",
+          "St. alfa hemolítico": "Streptococcus alfa hemolitico",
           "St. pneumoniae": "Streptococcus pneumoniae"
      },
      "REDUNDANTES": {
@@ -81,7 +81,7 @@
           "Klebsiella oxytoca": null,
           "Klebsiella pneumoniae": null,
           "Klebsiella variicola": null,
-          "No hubo desarrollo bacteriano a las 24 horas de incubaci\u00f3n.": null,
+          "No hubo desarrollo bacteriano a las 24 horas de incubación.": null,
           "Nocardia cyriacigeorgica": null,
           "Nocardia spp,": "Nocardia spp.",
           "Nocardia spp.": null,
@@ -95,6 +95,7 @@
           "Pseudomonas spp.": null,
           "Raoultella ornithinolytica": null,
           "Raoultella planticola": null,
+          "Rcto: + Aspergillus secc. fumigati": "Aspergillus secc. fumigati",
           "Rcto ++: Candida albicans.": "Candida albicans",
           "Rcto: +++ Candida albicans": "Candida albicans",
           "Rhizobium larrymoorei": null,
@@ -104,6 +105,7 @@
           "Staphylococcus aureus": null,
           "Staphylococcus aureus Metilcilino Resistente": "Staphylococcus aureus Meticilino resistente",
           "Stenotrophomonas maltophilia": null,
-          "Streptococcus alfa hemolítico": null
+          "Streptococcus alfa hemolítico": null,
+          "-": null
      }
 }
