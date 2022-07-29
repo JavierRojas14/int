@@ -6,14 +6,22 @@ import numpy as np
 
 warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 
-with open('RESISTENCIAS_PSEUDOMONAS.json', 'r') as f:
+with open('RESISTENCIAS_PSEUDOMONAS.json', 'r', encoding = 'utf-8') as f:
     RESISTENCIAS_PSEUDOMONAS = json.load(f)
 
-with open('RESISTENCIAS_ENTEROCOCCUS.json', 'r') as f:
+with open('RESISTENCIAS_ENTEROCOCCUS.json', 'r', encoding = 'utf-8') as f:
     RESISTENCIAS_ENTEROCOCCUS = json.load(f)
 
-with open('RESISTENCIAS_KLEBSIELLA.json', 'r') as f:
+with open('RESISTENCIAS_KLEBSIELLA.json', 'r', encoding = 'utf-8') as f:
     RESISTENCIAS_KLEBSIELLA = json.load(f)
+
+with open('LIMPIADOR_TOTAL.json', 'r', encoding = 'utf-8') as f:
+    DICCIONARIO_LIMPIADOR_NOMENCLATURAS = json.load(f)
+
+    LIMPIADOR_EVE = DICCIONARIO_LIMPIADOR_NOMENCLATURAS['NOMENCLATURA EVE']
+    LIMPIADOR_REDUNDANTES = DICCIONARIO_LIMPIADOR_NOMENCLATURAS['REDUNDANTES']
+
+    LIMPIADOR_GLOBAL = LIMPIADOR_EVE | LIMPIADOR_REDUNDANTES
 
 class Estadisticas:
     def __init__(self):
@@ -48,18 +56,17 @@ class Estadisticas:
         return estadisticas_fq
 
     def obtener_estadistica_por_archivo(self, nombre_archivo):
-        df = pd.read_excel(nombre_archivo, header = 1)
+        df = pd.read_excel(nombre_archivo, header = 1).dropna(how = 'all')
         df = df.fillna('-')
+        df_limpia = df.copy()
+        df_limpia['MICROORGANISMO'] = df_limpia['MICROORGANISMO'].map(lambda x: LIMPIADOR_GLOBAL[x] if (LIMPIADOR_GLOBAL[x] != None) else x) 
 
-        estadisticas_fq = self.calcular_estadisticas(df)
+        estadisticas_fq = self.calcular_estadisticas(df_limpia)
 
         return estadisticas_fq
 
     def calcular_estadisticas(self, df_fq):
         estadisticas = {}
-
-        # Calcular frecuencias de microorganismos por archivo
-        # % de resistencias a TOB 
 
         frecuencias_microorganismos = df_fq['MICROORGANISMO'].value_counts()
 
