@@ -149,26 +149,16 @@ class ProgramaSensibilidades:
     def obtener_tipo_de_archivo_y_texto_pdf(self, nombre_archivo):
         with pdfplumber.open(nombre_archivo) as pdf:
             texto_completo_pdf = pdf.pages[0].extract_text().split('\n')
+            tipo_archivo = None
 
             for linea in texto_completo_pdf:
-                if 'CULTIVO DE HONGOS' in linea:
-                    tipo_archivo = 'HONGOS'
-                    break
-                
-                elif 'Polimicrobiano' in linea:
-                    tipo_archivo = 'POLI'
-                    break
-                
-                elif ('HEMOCULTIVO AEROBICO' in linea) or ('HEMOCULTIVO ANAEROBICO' in linea):
-                    tipo_archivo = 'NOANTI'
-                    break
-
-                elif ('ANTIBIOGRAMA' in linea):
+                if 'ANTIBIOGRAMA' in linea:
                     tipo_archivo = 'ANTI'
                     break
 
-                else:
-                    tipo_archivo = None
+                elif ('CULTIVO DE HONGOS :' in linea) or ('Polimicrobiano' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('CULTIVO CORRIENTE :' in linea):
+                    tipo_archivo = 'NOANTI'
+                    break
     
         return tipo_archivo, texto_completo_pdf
 
@@ -245,7 +235,7 @@ class ProgramaSensibilidades:
         
         else:
             for linea in texto_pdf:
-                if ('CULTIVO DE HONGOS :' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('UROCULTIVO : Polimicrobiano' in linea):
+                if ('CULTIVO DE HONGOS :' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('UROCULTIVO : Polimicrobiano' in linea) or ('CULTIVO CORRIENTE :' in linea):
                     microorganismos = list(map(self.borrador_recuentos_positivos, linea.split(':', 1)[-1].split(',')))
                     break
         
