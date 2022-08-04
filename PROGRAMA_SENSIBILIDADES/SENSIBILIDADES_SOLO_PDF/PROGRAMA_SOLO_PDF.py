@@ -159,6 +159,7 @@ class ProgramaSensibilidades:
                 elif ('CULTIVO DE HONGOS :' in linea) or ('Polimicrobiano' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('CULTIVO CORRIENTE :' in linea):
                     tipo_archivo = 'NOANTI'
                     break
+
     
         return tipo_archivo, texto_completo_pdf
 
@@ -220,18 +221,19 @@ class ProgramaSensibilidades:
         if tipo_archivo == 'ANTI':
             microorganismos = []
             for linea in texto_pdf:
-                if ((('Cepa 1' in linea) or ('Cepa 2' in linea) or ('Cepa 3' in linea) or ('Cepa 4' in linea)) and ('ufc' in linea)):
+                if ((('Cepa 1' in linea) or ('Cepa 2' in linea) or ('Cepa 3' in linea) or ('Cepa 4' in linea)) and (('ufc' in linea) or ('+' in linea))):
                     linea_separada = linea.split(' ')
                     for indice, palabra in enumerate(linea_separada):
                         if palabra == '1' or palabra == '2' or palabra == '3' or palabra == '4':
                             indice_inicio_microorganismo = indice + 1
                         
-                        elif palabra == 'Mas' or palabra == 'Menos' or '.' in palabra:
+                        elif palabra == 'Mas' or palabra == 'Menos' or '.' in palabra or '+' in palabra:
                             indice_termino_miccroorganismo = indice
                             break
                         
                     microorganismo = ' '.join(linea_separada[indice_inicio_microorganismo: indice_termino_miccroorganismo])
                     microorganismos.append(microorganismo)
+
         
         else:
             for linea in texto_pdf:
