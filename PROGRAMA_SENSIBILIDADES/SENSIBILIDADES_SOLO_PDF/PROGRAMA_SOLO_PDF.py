@@ -6,13 +6,29 @@ import pdfplumber
 from datetime import datetime
 import json
 
+#################################################
+
 with open('DICCIONARIO_CODIGO_NOMBRE_FARMACOS.json', 'r', encoding = 'utf-8') as f:
     DICCIONARIO_CODIGO_NOMBRE_FARMACOS = json.load(f)
 
+with open('ENTEROBACTERIAS.json', 'r', encoding = 'utf-8') as f:
+    diccionario_enteros = json.load(f)
+    TODAS_LAS_ENTEROBACTERIAS = []
+    for llave in diccionario_enteros.keys():
+        TODAS_LAS_ENTEROBACTERIAS += diccionario_enteros[llave]
+
+with open('ENTEROBACTERIAS_RESISTENTES_NATURALMENTE.json', 'r', encoding = 'utf-8') as f:
+    ENTEROBACTERIAS_RESISTENTES_NATURALMENTE = json.load(f)
+
+with open('GENEROS_ENTEROBACTERIAS.json', 'r', encoding = 'utf-8') as f:
+    GENEROS_ENTEROBACTERIAS = json.load(f)
+
+#################################################
 COLUMNAS_FARMACOS = list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()) + list(map(lambda x: f'CIM {x}', DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()))
 LARGO_COLUMNAS_FARMACOS = len(COLUMNAS_FARMACOS)
 COLUMNAS_A_NO_OCUPAR = ['CZA', '?', '? 2', 'CIM CZA', 'CIM ?', 'CIM ? 2']
 ANTIBIOGRAMA_VACIO = [None for i in range(LARGO_COLUMNAS_FARMACOS)]
+#################################################
 
 class ProgramaSensibilidades:
     def __init__(self):
@@ -32,9 +48,9 @@ class ProgramaSensibilidades:
         for nombre_archivo in os.listdir():
             if '.pdf' in nombre_archivo:
                 entradas_de_un_paciente = self.obtener_entradas_de_un_paciente(nombre_archivo)
+                print(f'Leyendo {nombre_archivo}, tiene {len(entradas_de_un_paciente)} entradas')
 
                 for entrada_de_un_paciente in entradas_de_un_paciente:
-                    print(f'Entrada de {nombre_archivo}, largo {len(entrada_de_un_paciente)} ')
                     entradas_todos_los_pacientes.append(entrada_de_un_paciente)
 
         return entradas_todos_los_pacientes
@@ -57,7 +73,7 @@ class ProgramaSensibilidades:
             micro = lista_microorganismos_persona[i]
             antibio = lista_antibiogramas_persona[i]
 
-            #antibio[:] = self.cambiar_sensibilidades_enteros_y_staphylos(micro[0], antibio)
+            antibio[:] = self.cambiar_sensibilidades_enteros_y_staphylos(micro[0], antibio)
 
             if len(lista_microorganismos_persona) > 1:
                 datos_persona_romanos = datos_persona.copy()
@@ -69,10 +85,52 @@ class ProgramaSensibilidades:
             else:
                 entrada_paciente = datos_persona + micro + antibio
 
-            
             entradas.append(entrada_paciente)
 
         return entradas
+    
+    def cambiar_sensibilidades_enteros_y_staphylos(self, nombre_microorganismo, antibiograma):
+        if any(antibiograma):
+            if ('Staphylococcus' in nombre_microorganismo) \
+            or ('aureus' in nombre_microorganismo) \
+            or ('epidermidis' in nombre_microorganismo) \
+            or ('capitis' in nombre_microorganismo) \
+            or ('coagulasa (-)' in nombre_microorganismo) \
+            or ('epidermidis' in nombre_microorganismo) \
+            or ('haemolyticus' in nombre_microorganismo) \
+            or ('hominis' in nombre_microorganismo) \
+            or ('lugdunensis' in nombre_microorganismo) \
+            or ('pasteuri' in nombre_microorganismo) \
+            or ('pettenkoferi' in nombre_microorganismo) \
+            or ('pseudointermedius' in nombre_microorganismo) \
+            or ('saprophyticus' in nombre_microorganismo) \
+            or ('warneri' in nombre_microorganismo):
+                antibiograma[19] = 'S'
+                antibiograma[28] = 'S'
+            
+            # Formato completo
+            if not('.' in nombre_microorganismo):
+                    nombre_separado = nombre_microorganismo.split(' ')
+                    genero, especie = nombre_separado[0], nombre_separado[1]
+                    if genero in GENEROS_ENTEROBACTERIAS:
+                        if not(nombre_microorganismo in ENTEROBACTERIAS_RESISTENTES_NATURALMENTE):
+                            antibiograma[12] = 'S'
+                            print(f'{nombre_microorganismo} es sensible a COL')
+                        
+                        else:
+                            print(f'{nombre_microorganismo} es insensible a COL')
+            
+            else:
+                if nombre_microorganismo in TODAS_LAS_ENTEROBACTERIAS:
+                    if not(nombre_microorganismo in ENTEROBACTERIAS_RESISTENTES_NATURALMENTE):
+                        antibiograma[12] = 'S'
+                        print(f'{nombre_microorganismo} es sensible a COL \n')
+                    
+                    else:
+                        print(f'{nombre_microorganismo} es insensible a COL \n')
+           
+        
+        return antibiograma
     
     def obtener_tipo_de_archivo_y_texto_pdf(self, nombre_archivo):
         with pdfplumber.open(nombre_archivo) as pdf:
