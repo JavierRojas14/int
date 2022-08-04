@@ -24,9 +24,12 @@ with open('GENEROS_ENTEROBACTERIAS.json', 'r', encoding = 'utf-8') as f:
     GENEROS_ENTEROBACTERIAS = json.load(f)
 
 #################################################
+COLUMNAS_DATOS_DEMOGRAFICOS = ['Ingreso', 'Tipo muestra', 'Nº de Cultivo', 'Rut', 'Nombre', 'Servicio', 'Comentario', 'Fecha Firma', 'Microorganismo', 'BLEE']
 COLUMNAS_FARMACOS = list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()) + list(map(lambda x: f'CIM {x}', DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()))
-LARGO_COLUMNAS_FARMACOS = len(COLUMNAS_FARMACOS)
 COLUMNAS_A_NO_OCUPAR = ['CZA', '?', '? 2', 'CIM CZA', 'CIM ?', 'CIM ? 2']
+COLUMNAS_EVE = COLUMNAS_DATOS_DEMOGRAFICOS + list(DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values())[:-3] + ['CIM PEN', 'CIM CAF', 'CIM CAZ', 'CIM DAP', 'CIM VAN', 'CIM COL', 'CIM CFTXIMA', 'CIM COTRI']
+
+LARGO_COLUMNAS_FARMACOS = len(COLUMNAS_FARMACOS)
 ANTIBIOGRAMA_VACIO = [None for i in range(LARGO_COLUMNAS_FARMACOS)]
 #################################################
 
@@ -34,9 +37,20 @@ class ProgramaSensibilidades:
     def __init__(self):
         pass
 
+    def formatear_formato_eve(self, df):
+        df = df.loc[:, COLUMNAS_EVE]
+        df['CIM CAF'] = None
+        df['CIM CAZ'] = None
+        df['CIM DAP'] = None
+        df['CIM COL'] = None
+        df['CIM CFTXIMA'] = None
+        df['CIM COTRI'] = None
+        return df
+
+
     def hacer_tabla_global(self):
         todas_las_entradas = self.obtener_entradas_todos_los_pacientes()
-        columnas = ['Ingreso', 'Tipo muestra', 'Nº de Cultivo', 'Rut', 'Nombre', 'Servicio', 'Comentario', 'Fecha Firma', 'Microorganismo', 'BLEE'] + COLUMNAS_FARMACOS
+        columnas = COLUMNAS_DATOS_DEMOGRAFICOS + COLUMNAS_FARMACOS
         df = pd.DataFrame(todas_las_entradas, columns = columnas)
         df.drop(columns = COLUMNAS_A_NO_OCUPAR, inplace = True)
 
@@ -304,4 +318,6 @@ class ProgramaSensibilidades:
 
 programa = ProgramaSensibilidades()
 tabla_global = programa.hacer_tabla_global()
-tabla_global.to_excel('Formateados.xlsx', index = False)
+tabla_eve = programa.formatear_formato_eve(tabla_global)
+tabla_global.to_excel('TABLA_SENSIBILIDADES_COMPLETA.xlsx', index = False)
+tabla_eve.to_excel('EVE_TABLA_SENSIBILIDADES_COMPLETA.xlsx', index = False)
