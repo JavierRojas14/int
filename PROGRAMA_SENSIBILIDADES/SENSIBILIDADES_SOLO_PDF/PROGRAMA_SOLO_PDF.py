@@ -274,7 +274,10 @@ class ProgramaSensibilidades:
         antibiograma_completo = antibiograma_completo.iloc[1:, :]
         antibiograma_completo['ANTIBIOTICOS'] = antibiograma_completo['ANTIBIOTICOS'].map(DICCIONARIO_CODIGO_NOMBRE_FARMACOS)
         antibiograma_completo.set_index('ANTIBIOTICOS', inplace = True)
-        antibiograma_completo = antibiograma_completo.loc[:, antibiograma_completo.columns.notna()]
+        
+        numero_cepas = len([i for i in list(antibiograma_completo.columns.dropna()) if 'Cepa' in i])
+        antibiograma_completo = antibiograma_completo.iloc[:, 1: (2 * numero_cepas) + 1]
+        print(antibiograma_completo)
 
         return antibiograma_completo
     
@@ -311,5 +314,13 @@ class ProgramaSensibilidades:
 programa = ProgramaSensibilidades()
 tabla_global = programa.hacer_tabla_global()
 tabla_eve = programa.formatear_formato_eve(tabla_global)
-tabla_global.to_excel('TABLA_SENSIBILIDADES_COMPLETA.xlsx', index = False)
-tabla_eve.to_excel('EVE_TABLA_SENSIBILIDADES_COMPLETA.xlsx', index = False)
+
+fecha = os.getcwd().split('\\')[-2]
+tipo = os.getcwd().split('\\')[-1]
+nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
+nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
+
+tabla_global.to_excel(nombre_archivo, index = False)
+tabla_eve.to_excel(nombre_archivo_eve, index = False)
+
+
