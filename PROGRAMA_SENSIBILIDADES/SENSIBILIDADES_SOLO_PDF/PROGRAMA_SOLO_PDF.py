@@ -228,10 +228,10 @@ class ProgramaSensibilidades:
                 tablas_cepas.append(df)
             
             cambiador_nomenclatura_sensibilidades = {'Sensible': 'S', 'Resistente': 'R', 'Intermedio': 'I'}
-            diccionario_sensibilidades_a_llenar = {farmaco: None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
-            diccionario_cim_a_llenar = {f'CIM {farmaco}': None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
 
             for df_cepa in tablas_cepas:
+                diccionario_sensibilidades_a_llenar = {farmaco: None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
+                diccionario_cim_a_llenar = {f'CIM {farmaco}': None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
                 for farmaco in df_cepa.index:
                     resultado_sensibilidad, cim = df_cepa.loc[farmaco][0], df_cepa.loc[farmaco][1]
                     diccionario_sensibilidades_a_llenar[farmaco] = cambiador_nomenclatura_sensibilidades[resultado_sensibilidad]
