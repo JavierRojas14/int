@@ -229,19 +229,16 @@ class ProgramaSensibilidades:
 
         if tipo_archivo == 'ANTI':
             for linea in texto_pdf:
-                if ((('Cepa 1' in linea) or ('Cepa 2' in linea) or ('Cepa 3' in linea) or ('Cepa 4' in linea)) and (('ufc' in linea) or ('+' in linea))):
-                    linea_separada = linea.split(' ')
-                    for indice, palabra in enumerate(linea_separada):
-                        if palabra == '1' or palabra == '2' or palabra == '3' or palabra == '4':
-                            nombre_cepa = f'Cepa {palabra}'
-                            indice_inicio_microorganismo = indice + 1
-                        
-                        elif palabra == 'Mas' or palabra == 'Menos' or ('.' in palabra and not('spp' in palabra))  or '+' in palabra:
-                            indice_termino_miccroorganismo = indice
-                            break
-                        
-                    microorganismo = ' '.join(linea_separada[indice_inicio_microorganismo: indice_termino_miccroorganismo])
-                    microorganismos[nombre_cepa] = self.cambiador_blee(microorganismo)
+                if ((('Cepa 1' in linea) or ('Cepa 2' in linea) or ('Cepa 3' in linea) or ('Cepa 4' in linea)) and not('ANTIBIOTICOS' in linea)):
+                    palabras_a_sacar = ['Mas', '+', 'ufc/ml', 'de', 'Menos', '100.000']
+                    linea_separada = linea.split(' ', 2)
+                    numero_cepa, microorganismo_con_trailing = linea_separada[1], linea_separada[-1]
+
+                    for palabra in palabras_a_sacar:
+                        microorganismo_con_trailing = microorganismo_con_trailing.replace(palabra, '')
+                    
+                    microorganismo = microorganismo_con_trailing.strip()
+                    microorganismos[f'Cepa {numero_cepa}'] = self.cambiador_blee(microorganismo)
         
         else:
             for linea in texto_pdf:
