@@ -242,6 +242,7 @@ class ProgramaSensibilidades:
                     break
         
         microorganismos = list(map(lambda microorg: [microorg, '(+)'] if ('BLEE' in microorg) else [microorg, None], microorganismos))
+        print(microorganismos)
         return microorganismos
     
     
@@ -256,7 +257,7 @@ class ProgramaSensibilidades:
         return antibiogramas
     
     def obtener_antibiograma_completo(self, nombre_archivo):
-        df = tabula.read_pdf(nombre_archivo, columns = [64, 218, 264, 296, 346, 373, 424, 450, 507], pages = 1, guess = False)[0]
+        df = tabula.read_pdf(nombre_archivo, columns = [64, 218, 264, 296, 346, 376, 424, 450, 507], pages = 1, guess = False)[0]
         ya_hay_inicio_antibio = False
 
         for i in range(len(df)):
@@ -277,7 +278,6 @@ class ProgramaSensibilidades:
         
         numero_cepas = len([i for i in list(antibiograma_completo.columns.dropna()) if 'Cepa' in i])
         antibiograma_completo = antibiograma_completo.iloc[:, 1: (2 * numero_cepas) + 1]
-        print(antibiograma_completo)
 
         return antibiograma_completo
     
@@ -297,6 +297,7 @@ class ProgramaSensibilidades:
             cambiador_nomenclatura_sensibilidades = {'Sensible': 'S', 'Resistente': 'R', 'Intermedio': 'I'}
 
             for df_cepa in tablas_cepas:
+                print(df_cepa)
                 diccionario_sensibilidades_a_llenar = {farmaco: None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
                 diccionario_cim_a_llenar = {f'CIM {farmaco}': None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
                 for farmaco in df_cepa.index:
@@ -312,15 +313,16 @@ class ProgramaSensibilidades:
 
 
 programa = ProgramaSensibilidades()
-tabla_global = programa.hacer_tabla_global()
-tabla_eve = programa.formatear_formato_eve(tabla_global)
+# tabla_global = programa.hacer_tabla_global()
+# tabla_eve = programa.formatear_formato_eve(tabla_global)
 
-fecha = os.getcwd().split('\\')[-2]
-tipo = os.getcwd().split('\\')[-1]
-nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
-nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
+# fecha = os.getcwd().split('\\')[-2]
+# tipo = os.getcwd().split('\\')[-1]
+# nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
+# nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
 
-tabla_global.to_excel(nombre_archivo, index = False)
-tabla_eve.to_excel(nombre_archivo_eve, index = False)
+# tabla_global.to_excel(nombre_archivo, index = False)
+# tabla_eve.to_excel(nombre_archivo_eve, index = False)
 
+paciente = programa.obtener_entradas_de_un_paciente('00941778_NICOLAS JESUS LEIVA OLIVOS_FQ.pdf')
 
