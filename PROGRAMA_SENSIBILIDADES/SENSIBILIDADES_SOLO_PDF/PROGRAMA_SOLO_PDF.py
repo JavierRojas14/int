@@ -1,3 +1,4 @@
+from encodings import normalize_encoding
 from locale import normalize
 import tabula
 import pandas as pd
@@ -75,37 +76,36 @@ class ProgramaSensibilidades:
 
         if tipo_archivo != None:
             datos_persona = self.obtener_datos_demograficos_de_un_paciente(texto_completo_pdf)
-            lista_microorganismos_persona = self.obtener_microorganismos_de_un_paciente(texto_completo_pdf, tipo_archivo)
-            lista_antibiogramas_persona = self.obtener_antibiogramas_de_un_paciente(nombre_archivo, tipo_archivo, len(lista_microorganismos_persona))
-            entradas_de_un_paciente_formato_lista = self.formatear_todos_los_datos_un_paciente(datos_persona, lista_microorganismos_persona, lista_antibiogramas_persona)
+            diccionario_microorganismos_persona = self.obtener_microorganismos_de_un_paciente(texto_completo_pdf, tipo_archivo)
+            diccionario_microorganismos_y_antibiogramas_persona = self.obtener_antibiogramas_de_un_paciente(nombre_archivo, tipo_archivo, diccionario_microorganismos_persona)
+            entradas_de_un_paciente_formato_lista = self.formatear_todos_los_datos_un_paciente(datos_persona, diccionario_microorganismos_y_antibiogramas_persona)
 
             return entradas_de_un_paciente_formato_lista
     
-    def formatear_todos_los_datos_un_paciente(self, datos_persona, lista_microorganismos_persona, lista_antibiogramas_persona):
+    def formatear_todos_los_datos_un_paciente(self, datos_persona, diccionario_total):
         entradas = []
         diccionario_numeracion_cepas = {0: ' I', 1: ' II', 2: ' III', 3: ' IV'}
-        for i in range(len(lista_microorganismos_persona)):
-            micro = lista_microorganismos_persona[i]
-            antibio = lista_antibiogramas_persona[i]
+        i = 0
 
-            antibio[:] = self.cambiar_sensibilidades_enteros_y_staphylos(micro[0], antibio)
+        for numero_cepa, datos_microorg_antibio in diccionario_total.items():
+            nombre_microorganismo, blee, antibio = datos_microorg_antibio
+            antibio[:] = self.cambiar_sensibilidades_enteros_y_staphylos(nombre_microorganismo, antibio)
 
-            if len(lista_microorganismos_persona) > 1:
+            if len(diccionario_total) > 1:
                 datos_persona_romanos = datos_persona.copy()
                 nuevo_numero_cultivo = f'{datos_persona_romanos[2]}{diccionario_numeracion_cepas[i]}'
                 datos_persona_romanos[2] = nuevo_numero_cultivo
 
-                entrada_paciente = datos_persona_romanos + micro + antibio
+                entrada_paciente = datos_persona_romanos + [nombre_microorganismo] + [blee] + antibio
             
             else:
-                entrada_paciente = datos_persona + micro + antibio
+                entrada_paciente = datos_persona + [nombre_microorganismo] + [blee] + antibio
 
             entradas.append(entrada_paciente)
 
         return entradas
     
     def cambiar_sensibilidades_enteros_y_staphylos(self, nombre_microorganismo, antibiograma):
-        print(nombre_microorganismo)
         if any(antibiograma):
             if ('Staphylococcus' in nombre_microorganismo) \
             or ('aureus' in nombre_microorganismo) \
@@ -217,16 +217,23 @@ class ProgramaSensibilidades:
         
         return microorganismo
     
+    def cambiador_blee(self, nombre_microorganismo):
+        if 'BLEE' in nombre_microorganismo:
+            return [nombre_microorganismo, '(+)']
+        
+        else:
+            return [nombre_microorganismo, None]
+    
     def obtener_microorganismos_de_un_paciente(self, texto_pdf, tipo_archivo):
-        microorganismos = []
+        microorganismos = {}
 
         if tipo_archivo == 'ANTI':
-            microorganismos = []
             for linea in texto_pdf:
                 if ((('Cepa 1' in linea) or ('Cepa 2' in linea) or ('Cepa 3' in linea) or ('Cepa 4' in linea)) and (('ufc' in linea) or ('+' in linea))):
                     linea_separada = linea.split(' ')
                     for indice, palabra in enumerate(linea_separada):
                         if palabra == '1' or palabra == '2' or palabra == '3' or palabra == '4':
+                            nombre_cepa = f'Cepa {palabra}'
                             indice_inicio_microorganismo = indice + 1
                         
                         elif palabra == 'Mas' or palabra == 'Menos' or ('.' in palabra and not('spp' in palabra))  or '+' in palabra:
@@ -234,27 +241,27 @@ class ProgramaSensibilidades:
                             break
                         
                     microorganismo = ' '.join(linea_separada[indice_inicio_microorganismo: indice_termino_miccroorganismo])
-                    microorganismos.append(microorganismo)
-
+                    microorganismos[nombre_cepa] = self.cambiador_blee(microorganismo)
         
         else:
             for linea in texto_pdf:
                 if ('CULTIVO DE HONGOS :' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('UROCULTIVO : Polimicrobiano' in linea) or ('CULTIVO CORRIENTE :' in linea):
                     microorganismos = list(map(self.borrador_recuentos_positivos, linea.split(':', 1)[-1].split(',')))
+                    for i, nombre in enumerate(microorganismos):
+                        microorganismos[f'Cepa {i + 1}'] = nombre
+
                     break
-        
-        microorganismos = list(map(lambda microorg: [microorg, '(+)'] if ('BLEE' in microorg) else [microorg, None], microorganismos))
-        # print(microorganismos)
+
         return microorganismos
     
     
-    def obtener_antibiogramas_de_un_paciente(self, nombre_archivo, tipo_archivo, numero_microorganismos):
+    def obtener_antibiogramas_de_un_paciente(self, nombre_archivo, tipo_archivo, diccionario_microorganismos):
         if tipo_archivo == 'ANTI':
             antibiograma_completo = self.obtener_antibiograma_completo(nombre_archivo)
-            antibiogramas = self.separar_por_cepa(antibiograma_completo, numero_microorganismos)
+            antibiogramas = self.separar_por_cepa(antibiograma_completo, diccionario_microorganismos)
 
         else:
-            antibiogramas = [ANTIBIOGRAMA_VACIO for i in range(numero_microorganismos)]
+            antibiogramas = [ANTIBIOGRAMA_VACIO for i in range(len(diccionario_microorganismos.keys()))]
         
         return antibiogramas
     
@@ -283,46 +290,54 @@ class ProgramaSensibilidades:
 
         return antibiograma_completo
     
-    def separar_por_cepa(self, antibiograma_completo, numero_microorganismos):
-        antibiogramas = []
+    def separar_por_cepa(self, antibiograma_completo, diccionario_microorganismos):
 
-        if antibiograma_completo.empty:
-            for i in range(numero_microorganismos):
-                antibiogramas.append([None for i in range(LARGO_COLUMNAS_FARMACOS)])
-        
-        else:
-            tablas_cepas = []
+        numero_microorganismos = len(diccionario_microorganismos.keys())
+        # Todos los antibiogramas parten vacios
+        diccionario_antibiogramas = {f'Cepa {i + 1}': ANTIBIOGRAMA_VACIO for i in range(numero_microorganismos)}
+        cambiador_nomenclatura_sensibilidades = {'Sensible': 'S', 'Resistente': 'R', 'Intermedio': 'I'}
+
+        if not(antibiograma_completo.empty):
             for i in range(int((antibiograma_completo.shape[1]) / 2)):
-                df = antibiograma_completo.iloc[:, i * 2: (i * 2) + 2].dropna(how = 'all', axis = 0)
-                tablas_cepas.append(df)
-            
-            cambiador_nomenclatura_sensibilidades = {'Sensible': 'S', 'Resistente': 'R', 'Intermedio': 'I'}
+                df_cepa = antibiograma_completo.iloc[:, i * 2: (i * 2) + 2].dropna(how = 'all', axis = 0)
 
-            for df_cepa in tablas_cepas:
-                # print(df_cepa)
+                numero_cepa = df_cepa.columns[0]
                 diccionario_sensibilidades_a_llenar = {farmaco: None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
                 diccionario_cim_a_llenar = {f'CIM {farmaco}': None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
+
                 for farmaco in df_cepa.index:
                     resultado_sensibilidad, cim = df_cepa.loc[farmaco][0], df_cepa.loc[farmaco][1]
                     diccionario_sensibilidades_a_llenar[farmaco] = cambiador_nomenclatura_sensibilidades[resultado_sensibilidad]
                     diccionario_cim_a_llenar[f'CIM {farmaco}'] = cim
 
                 resultados = list((diccionario_sensibilidades_a_llenar | diccionario_cim_a_llenar).values())
-                antibiogramas.append(resultados)
+                diccionario_antibiogramas[numero_cepa] = resultados
 
-        return antibiogramas
+        diccionario_microorg_y_antibio = {}
+        for numero_cepa in diccionario_microorganismos.keys():
+            microorg_y_blee = diccionario_microorganismos[numero_cepa]
+            antibiograma = diccionario_antibiogramas[numero_cepa]
+            microorg_blee_antibio = microorg_y_blee + [antibiograma]
+            diccionario_microorg_y_antibio[numero_cepa] = microorg_blee_antibio
+        
+#        print(json.dumps(diccionario_microorg_y_antibio, indent = 2))
+
+   
+        return diccionario_microorg_y_antibio
 
 
 
 programa = ProgramaSensibilidades()
-tabla_global = programa.hacer_tabla_global()
-tabla_eve = programa.formatear_formato_eve(tabla_global)
+# tabla_global = programa.hacer_tabla_global()
+# tabla_eve = programa.formatear_formato_eve(tabla_global)
 
-fecha = os.getcwd().split('\\')[-2]
-tipo = os.getcwd().split('\\')[-1]
-nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
-nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
+# fecha = os.getcwd().split('\\')[-2]
+# tipo = os.getcwd().split('\\')[-1]
+# nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
+# nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
 
-tabla_global.to_excel(nombre_archivo, index = False)
-tabla_eve.to_excel(nombre_archivo_eve, index = False)
+# tabla_global.to_excel(nombre_archivo, index = False)
+# tabla_eve.to_excel(nombre_archivo_eve, index = False)
+
+datos = programa.obtener_entradas_de_un_paciente('00940682_MIRIAM ESTER NAVARRO DELGADO.pdf')
 
