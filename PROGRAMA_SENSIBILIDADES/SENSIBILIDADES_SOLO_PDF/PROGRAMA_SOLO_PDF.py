@@ -1,3 +1,4 @@
+from locale import normalize
 import tabula
 import pandas as pd
 import numpy as np
@@ -104,6 +105,7 @@ class ProgramaSensibilidades:
         return entradas
     
     def cambiar_sensibilidades_enteros_y_staphylos(self, nombre_microorganismo, antibiograma):
+        print(nombre_microorganismo)
         if any(antibiograma):
             if ('Staphylococcus' in nombre_microorganismo) \
             or ('aureus' in nombre_microorganismo) \
@@ -123,7 +125,7 @@ class ProgramaSensibilidades:
                 antibiograma[28] = 'S'
             
             # Formato completo
-            if not('.' in nombre_microorganismo):
+            if not('.' in nombre_microorganismo) or ('spp.' in nombre_microorganismo):
                     nombre_separado = nombre_microorganismo.split(' ')
                     genero, especie = nombre_separado[0], nombre_separado[1]
                     if genero in GENEROS_ENTEROBACTERIAS:
@@ -227,7 +229,7 @@ class ProgramaSensibilidades:
                         if palabra == '1' or palabra == '2' or palabra == '3' or palabra == '4':
                             indice_inicio_microorganismo = indice + 1
                         
-                        elif palabra == 'Mas' or palabra == 'Menos' or '.' in palabra or '+' in palabra:
+                        elif palabra == 'Mas' or palabra == 'Menos' or ('.' in palabra and not('spp' in palabra))  or '+' in palabra:
                             indice_termino_miccroorganismo = indice
                             break
                         
@@ -242,7 +244,7 @@ class ProgramaSensibilidades:
                     break
         
         microorganismos = list(map(lambda microorg: [microorg, '(+)'] if ('BLEE' in microorg) else [microorg, None], microorganismos))
-        print(microorganismos)
+        # print(microorganismos)
         return microorganismos
     
     
@@ -297,7 +299,7 @@ class ProgramaSensibilidades:
             cambiador_nomenclatura_sensibilidades = {'Sensible': 'S', 'Resistente': 'R', 'Intermedio': 'I'}
 
             for df_cepa in tablas_cepas:
-                print(df_cepa)
+                # print(df_cepa)
                 diccionario_sensibilidades_a_llenar = {farmaco: None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
                 diccionario_cim_a_llenar = {f'CIM {farmaco}': None for farmaco in DICCIONARIO_CODIGO_NOMBRE_FARMACOS.values()}
                 for farmaco in df_cepa.index:
@@ -313,16 +315,14 @@ class ProgramaSensibilidades:
 
 
 programa = ProgramaSensibilidades()
-# tabla_global = programa.hacer_tabla_global()
-# tabla_eve = programa.formatear_formato_eve(tabla_global)
+tabla_global = programa.hacer_tabla_global()
+tabla_eve = programa.formatear_formato_eve(tabla_global)
 
-# fecha = os.getcwd().split('\\')[-2]
-# tipo = os.getcwd().split('\\')[-1]
-# nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
-# nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
+fecha = os.getcwd().split('\\')[-2]
+tipo = os.getcwd().split('\\')[-1]
+nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
+nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
 
-# tabla_global.to_excel(nombre_archivo, index = False)
-# tabla_eve.to_excel(nombre_archivo_eve, index = False)
-
-paciente = programa.obtener_entradas_de_un_paciente('00941778_NICOLAS JESUS LEIVA OLIVOS_FQ.pdf')
+tabla_global.to_excel(nombre_archivo, index = False)
+tabla_eve.to_excel(nombre_archivo_eve, index = False)
 
