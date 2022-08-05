@@ -246,9 +246,9 @@ class ProgramaSensibilidades:
         else:
             for linea in texto_pdf:
                 if ('CULTIVO DE HONGOS :' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('UROCULTIVO : Polimicrobiano' in linea) or ('CULTIVO CORRIENTE :' in linea):
-                    microorganismos = list(map(self.borrador_recuentos_positivos, linea.split(':', 1)[-1].split(',')))
-                    for i, nombre in enumerate(microorganismos):
-                        microorganismos[f'Cepa {i + 1}'] = nombre
+                    microorganismos_lista = list(map(self.borrador_recuentos_positivos, linea.split(':', 1)[-1].split(',')))
+                    for i, microorganismo in enumerate(microorganismos_lista):
+                        microorganismos[f'Cepa {i + 1}'] = self.cambiador_blee(microorganismo)
 
                     break
 
@@ -258,12 +258,20 @@ class ProgramaSensibilidades:
     def obtener_antibiogramas_de_un_paciente(self, nombre_archivo, tipo_archivo, diccionario_microorganismos):
         if tipo_archivo == 'ANTI':
             antibiograma_completo = self.obtener_antibiograma_completo(nombre_archivo)
-            antibiogramas = self.separar_por_cepa(antibiograma_completo, diccionario_microorganismos)
+            diccionario_antibiogramas = self.separar_por_cepa(antibiograma_completo, diccionario_microorganismos)
 
         else:
-            antibiogramas = [ANTIBIOGRAMA_VACIO for i in range(len(diccionario_microorganismos.keys()))]
+            diccionario_antibiogramas = {f'Cepa {i + 1}': ANTIBIOGRAMA_VACIO for i in range(len(diccionario_microorganismos))}
         
-        return antibiogramas
+        diccionario_microorg_y_antibio = {}
+        for numero_cepa in diccionario_microorganismos.keys():
+            microorg_y_blee = diccionario_microorganismos[numero_cepa]
+            antibiograma = diccionario_antibiogramas[numero_cepa]
+            microorg_blee_antibio = microorg_y_blee + [antibiograma]
+            diccionario_microorg_y_antibio[numero_cepa] = microorg_blee_antibio
+        
+#        print(json.dumps(diccionario_microorg_y_antibio, indent = 2))
+        return diccionario_microorg_y_antibio
     
     def obtener_antibiograma_completo(self, nombre_archivo):
         df = tabula.read_pdf(nombre_archivo, columns = [64, 218, 264, 296, 346, 376, 424, 450, 507], pages = 1, guess = False)[0]
@@ -313,31 +321,19 @@ class ProgramaSensibilidades:
                 resultados = list((diccionario_sensibilidades_a_llenar | diccionario_cim_a_llenar).values())
                 diccionario_antibiogramas[numero_cepa] = resultados
 
-        diccionario_microorg_y_antibio = {}
-        for numero_cepa in diccionario_microorganismos.keys():
-            microorg_y_blee = diccionario_microorganismos[numero_cepa]
-            antibiograma = diccionario_antibiogramas[numero_cepa]
-            microorg_blee_antibio = microorg_y_blee + [antibiograma]
-            diccionario_microorg_y_antibio[numero_cepa] = microorg_blee_antibio
-        
-#        print(json.dumps(diccionario_microorg_y_antibio, indent = 2))
-
-   
-        return diccionario_microorg_y_antibio
+        return diccionario_antibiogramas
 
 
 
 programa = ProgramaSensibilidades()
-# tabla_global = programa.hacer_tabla_global()
-# tabla_eve = programa.formatear_formato_eve(tabla_global)
+tabla_global = programa.hacer_tabla_global()
+tabla_eve = programa.formatear_formato_eve(tabla_global)
 
-# fecha = os.getcwd().split('\\')[-2]
-# tipo = os.getcwd().split('\\')[-1]
-# nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
-# nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
+fecha = os.getcwd().split('\\')[-2]
+tipo = os.getcwd().split('\\')[-1]
+nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
+nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
 
-# tabla_global.to_excel(nombre_archivo, index = False)
-# tabla_eve.to_excel(nombre_archivo_eve, index = False)
-
-datos = programa.obtener_entradas_de_un_paciente('00940682_MIRIAM ESTER NAVARRO DELGADO.pdf')
+tabla_global.to_excel(nombre_archivo, index = False)
+tabla_eve.to_excel(nombre_archivo_eve, index = False)
 
