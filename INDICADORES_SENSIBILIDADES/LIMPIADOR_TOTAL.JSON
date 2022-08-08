@@ -33,7 +33,7 @@
           "P. putida": "Pseudomonas putida",
           "S. aureus": "Staphylococcus aureus",
           "S. aureus meticilino R": "Staphylococcus aureus",
-          "S. aureus Meticilino resistente": "Staphylococcus aureus Meticilino resistente",
+          "S. aureus Meticilino resistente": "Staphylococcus aureus",
           "S. coagulasa (-)": "Staphylococcus coagulasa (-)",
           "S. epidermidis": "Staphylococcus epidermidis",
           "S. haemolyticus": "Staphylococcus haemolyticus",
@@ -103,7 +103,7 @@
           "Saccharomyces cerevisiae": null,
           "Serratia marcescens": null,
           "Staphylococcus aureus": null,
-          "Staphylococcus aureus Metilcilino Resistente": "Staphylococcus aureus Meticilino resistente",
+          "Staphylococcus aureus Metilcilino Resistente": "Staphylococcus aureus",
           "Stenotrophomonas maltophilia": null,
           "Streptococcus alfa hemolítico": "Streptococcus alfa hemolitico",
           "-": null
