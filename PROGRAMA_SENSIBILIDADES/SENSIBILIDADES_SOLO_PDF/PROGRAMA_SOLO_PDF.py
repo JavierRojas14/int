@@ -222,6 +222,8 @@ class ProgramaSensibilidades:
     
     def cambiador_blee(self, nombre_microorganismo):
         if 'BLEE' in nombre_microorganismo:
+            indice_parentesis = nombre_microorganismo.index('(')
+            nombre_microorganismo = nombre_microorganismo[:indice_parentesis] + '+)' 
             return [nombre_microorganismo, '(+)']
         
         else:
@@ -267,7 +269,7 @@ class ProgramaSensibilidades:
 
         else:
             diccionario_antibiogramas = {f'Cepa {i + 1}': ANTIBIOGRAMA_VACIO for i in range(len(diccionario_microorganismos))}
-        
+
         diccionario_microorg_y_antibio = {}
         for numero_cepa in diccionario_microorganismos.keys():
             microorg_y_blee = diccionario_microorganismos[numero_cepa]
@@ -281,7 +283,6 @@ class ProgramaSensibilidades:
     def obtener_antibiograma_completo(self, nombre_archivo):
         df = tabula.read_pdf(nombre_archivo, columns = [61, 215, 260, 296, 346, 376, 424, 455, 507], pages = 1, guess = False)[0]
         ya_hay_inicio_antibio = False
-        print(df)
 
         for i in range(len(df)):
             contenido_linea = df.iloc[i].values
@@ -298,9 +299,15 @@ class ProgramaSensibilidades:
         antibiograma_completo = antibiograma_completo.iloc[1:, :]
         antibiograma_completo['ANTIBIOTICOS'] = antibiograma_completo['ANTIBIOTICOS'].map(DICCIONARIO_CODIGO_NOMBRE_FARMACOS)
         antibiograma_completo.set_index('ANTIBIOTICOS', inplace = True)
-        
-        numero_cepas = len([i for i in list(antibiograma_completo.columns.dropna()) if 'Cepa' in i])
-        antibiograma_completo = antibiograma_completo.iloc[:, 1: (2 * numero_cepas) + 1]
+
+        indices_columnas_utiles = []
+        for i, columna in enumerate(antibiograma_completo.columns):
+            if pd.notna(columna):
+                if 'Cepa' in columna:
+                    indices_columnas_utiles.append(i)
+                    indices_columnas_utiles.append(i + 1)
+
+        antibiograma_completo = antibiograma_completo.iloc[:, indices_columnas_utiles]
 
         return antibiograma_completo
     
