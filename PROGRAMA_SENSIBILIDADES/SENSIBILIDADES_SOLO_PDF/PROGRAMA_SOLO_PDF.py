@@ -89,6 +89,9 @@ class ProgramaSensibilidades:
 
         for numero_cepa, datos_microorg_antibio in diccionario_total.items():
             nombre_microorganismo, blee, antibio = datos_microorg_antibio
+            if blee != None:
+                blee = '(+)'
+
             antibio[:] = self.cambiar_sensibilidades_enteros_y_staphylos(nombre_microorganismo, antibio)
 
             if len(diccionario_total) > 1:
@@ -102,6 +105,7 @@ class ProgramaSensibilidades:
                 entrada_paciente = datos_persona + [nombre_microorganismo] + [blee] + antibio
 
             entradas.append(entrada_paciente)
+            i += 1
 
         return entradas
     
@@ -160,7 +164,6 @@ class ProgramaSensibilidades:
 
                 elif ('CULTIVO DE HONGOS :' in linea) or ('Polimicrobiano' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('CULTIVO CORRIENTE :' in linea):
                     tipo_archivo = 'NOANTI'
-                    break
 
     
         return tipo_archivo, texto_completo_pdf
@@ -205,8 +208,8 @@ class ProgramaSensibilidades:
         
         return [fecha_ingreso, tipo_muestra, n_cultivo, rut, nombre_paciente, seccion, comentario, fecha_firma]
     
-    def borrador_recuentos_positivos(self, microorganismo):
-        a_borrar = ['Rcto', '+', ':']
+    def formateador_nombre_microorganismo(self, microorganismo):
+        a_borrar = ['Rcto', '+', ':', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Mas', 'Menos', 'de', '.', 'ufc', '/', 'ml']
         for palabra in a_borrar:
             microorganismo = microorganismo.replace(palabra, ' ')
 
@@ -226,24 +229,29 @@ class ProgramaSensibilidades:
     
     def obtener_microorganismos_de_un_paciente(self, texto_pdf, tipo_archivo):
         microorganismos = {}
+        
 
         if tipo_archivo == 'ANTI':
+            se_encontro_linea_microorganismos = False
             for linea in texto_pdf:
-                if ((('Cepa 1' in linea) or ('Cepa 2' in linea) or ('Cepa 3' in linea) or ('Cepa 4' in linea)) and not('ANTIBIOTICOS' in linea)):
-                    palabras_a_sacar = ['Mas', '+', 'ufc/ml', 'de', 'Menos', '100.000']
-                    linea_separada = linea.split(' ', 2)
-                    numero_cepa, microorganismo_con_trailing = linea_separada[1], linea_separada[-1]
+                if 'MICROORGANISMOS' in linea:
+                    se_encontro_linea_microorganismos = True
 
-                    for palabra in palabras_a_sacar:
-                        microorganismo_con_trailing = microorganismo_con_trailing.replace(palabra, '')
-                    
-                    microorganismo = microorganismo_con_trailing.strip()
-                    microorganismos[f'Cepa {numero_cepa}'] = self.cambiador_blee(microorganismo)
+                elif (('Cepa 1' in linea) or ('Cepa 2' in linea) or ('Cepa 3' in linea) or ('Cepa 4' in linea)) and (se_encontro_linea_microorganismos):
+                    if not('ANTIBIOTICOS' in linea):
+                        linea_separada = linea.split(' ', 2)
+                        numero_cepa, microorganismo_con_trailing = linea_separada[1], linea_separada[-1]
+                        microorganismo = self.formateador_nombre_microorganismo(microorganismo_con_trailing)
+                        microorganismos[f'Cepa {numero_cepa}'] = self.cambiador_blee(microorganismo)
+
+                    else:
+                        break
+                        
         
         else:
             for linea in texto_pdf:
-                if ('CULTIVO DE HONGOS :' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('UROCULTIVO : Polimicrobiano' in linea) or ('CULTIVO CORRIENTE :' in linea):
-                    microorganismos_lista = list(map(self.borrador_recuentos_positivos, linea.split(':', 1)[-1].split(',')))
+                if (('CULTIVO DE HONGOS :' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('UROCULTIVO :' in linea) or ('CULTIVO CORRIENTE :' in linea)):
+                    microorganismos_lista = list(map(self.formateador_nombre_microorganismo, linea.split(':', 1)[-1].split(',')))
                     for i, microorganismo in enumerate(microorganismos_lista):
                         microorganismos[f'Cepa {i + 1}'] = self.cambiador_blee(microorganismo)
 
@@ -271,8 +279,9 @@ class ProgramaSensibilidades:
         return diccionario_microorg_y_antibio
     
     def obtener_antibiograma_completo(self, nombre_archivo):
-        df = tabula.read_pdf(nombre_archivo, columns = [64, 218, 264, 296, 346, 376, 424, 450, 507], pages = 1, guess = False)[0]
+        df = tabula.read_pdf(nombre_archivo, columns = [61, 215, 260, 296, 346, 376, 424, 455, 507], pages = 1, guess = False)[0]
         ya_hay_inicio_antibio = False
+        print(df)
 
         for i in range(len(df)):
             contenido_linea = df.iloc[i].values
