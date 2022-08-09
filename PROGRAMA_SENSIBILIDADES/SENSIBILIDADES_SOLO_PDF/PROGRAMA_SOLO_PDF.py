@@ -224,7 +224,7 @@ class ProgramaSensibilidades:
     def cambiador_blee(self, nombre_microorganismo):
         if 'BLEE' in nombre_microorganismo:
             indice_parentesis = nombre_microorganismo.index('(')
-            nombre_microorganismo = nombre_microorganismo[:indice_parentesis] + '+)' 
+            nombre_microorganismo = nombre_microorganismo[:indice_parentesis + 1] + '+)' 
             return [nombre_microorganismo, '(+)']
         
         else:
