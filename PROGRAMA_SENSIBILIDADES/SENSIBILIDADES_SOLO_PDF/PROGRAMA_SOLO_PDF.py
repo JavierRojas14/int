@@ -210,10 +210,10 @@ class ProgramaSensibilidades:
     
     def formateador_nombre_microorganismo(self, microorganismo):
         if not('No hubo desarrollo' in microorganismo):
-            a_borrar = ['Rcto', '+', ':', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Mas', 'Menos', 'de', '.', 'ufc', '/', 'ml']
+            a_borrar = ['Rcto', '+', ':', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Mas de', 'Menos de', '.', 'ufc/ml']
             for palabra in a_borrar:
-                microorganismo = microorganismo.replace(palabra, ' ')
-
+                microorganismo = microorganismo.replace(palabra, '')
+        
         microorganismo = microorganismo.strip()
 
         if microorganismo == 'Polimicrobiano':
