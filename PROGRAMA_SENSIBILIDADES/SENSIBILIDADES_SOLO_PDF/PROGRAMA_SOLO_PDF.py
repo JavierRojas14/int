@@ -162,7 +162,7 @@ class ProgramaSensibilidades:
                     tipo_archivo = 'ANTI'
                     break
 
-                elif ('CULTIVO DE HONGOS :' in linea) or ('Polimicrobiano' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('CULTIVO CORRIENTE :' in linea):
+                elif ('CULTIVO DE HONGOS :' in linea) or ('UROCULTIVO :' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('CULTIVO CORRIENTE :' in linea):
                     tipo_archivo = 'NOANTI'
 
     
@@ -209,9 +209,10 @@ class ProgramaSensibilidades:
         return [fecha_ingreso, tipo_muestra, n_cultivo, rut, nombre_paciente, seccion, comentario, fecha_firma]
     
     def formateador_nombre_microorganismo(self, microorganismo):
-        a_borrar = ['Rcto', '+', ':', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Mas', 'Menos', 'de', '.', 'ufc', '/', 'ml']
-        for palabra in a_borrar:
-            microorganismo = microorganismo.replace(palabra, ' ')
+        if not('No hubo desarrollo' in microorganismo):
+            a_borrar = ['Rcto', '+', ':', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Mas', 'Menos', 'de', '.', 'ufc', '/', 'ml']
+            for palabra in a_borrar:
+                microorganismo = microorganismo.replace(palabra, ' ')
 
         microorganismo = microorganismo.strip()
 
