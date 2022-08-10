@@ -287,7 +287,16 @@ class ProgramaSensibilidades:
         else:
             for linea in texto_pdf:
                 if (('CULTIVO DE HONGOS :' in linea) or ('HEMOCULTIVO AEROBICO :' in linea) or ('HEMOCULTIVO ANAEROBICO :' in linea) or ('UROCULTIVO :' in linea) or ('CULTIVO CORRIENTE :' in linea)):
-                    microorganismos_lista = list(map(self.formateador_nombre_microorganismo, linea.split(':', 1)[-1].split(',')))
+                    microorganismos_juntos = linea.split(':', 1)[-1]
+
+                    if '/' in microorganismos_juntos:
+                        microorganismos_lista = microorganismos_juntos.split('/')
+                    
+                    else:
+                        microorganismos_lista = microorganismos_juntos.split(',')
+                    
+                    microorganismos_lista = list(map(self.formateador_nombre_microorganismo, microorganismos_lista))
+                
                     for i, microorganismo in enumerate(microorganismos_lista):
                         microorganismos[f'Cepa {i + 1}'] = self.cambiador_blee(microorganismo)
 
