@@ -75,10 +75,12 @@ class ProgramaSensibilidades:
         tipo_archivo, texto_completo_pdf = self.obtener_tipo_de_archivo_y_texto_pdf(nombre_archivo)
 
         if tipo_archivo != None:
-            datos_persona = self.obtener_datos_demograficos_de_un_paciente(texto_completo_pdf)
+            datos_persona, n_orden = self.obtener_datos_demograficos_de_un_paciente(texto_completo_pdf)
             diccionario_microorganismos_persona = self.obtener_microorganismos_de_un_paciente(texto_completo_pdf, tipo_archivo)
             diccionario_microorganismos_y_antibiogramas_persona = self.obtener_antibiogramas_de_un_paciente(nombre_archivo, tipo_archivo, diccionario_microorganismos_persona)
             entradas_de_un_paciente_formato_lista = self.formatear_todos_los_datos_un_paciente(datos_persona, diccionario_microorganismos_y_antibiogramas_persona)
+
+            os.rename(nombre_archivo, f'{n_orden}_{datos_persona[4]}.pdf')
 
             return entradas_de_un_paciente_formato_lista
     
@@ -206,7 +208,7 @@ class ProgramaSensibilidades:
                 comentario = 'ALERTA'
                 break
         
-        return [fecha_ingreso, tipo_muestra, n_cultivo, rut, nombre_paciente, seccion, comentario, fecha_firma]
+        return [fecha_ingreso, tipo_muestra, n_cultivo, rut, nombre_paciente, seccion, comentario, fecha_firma], n_orden
     
     def formateador_nombre_microorganismo(self, microorganismo):
         if not('No hubo desarrollo' in microorganismo):
