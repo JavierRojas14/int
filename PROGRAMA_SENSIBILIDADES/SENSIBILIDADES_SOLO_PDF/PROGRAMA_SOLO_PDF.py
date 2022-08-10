@@ -39,7 +39,7 @@ class ProgramaSensibilidades:
     def __init__(self):
         pass
 
-    def formatear_formato_eve(self, df):
+    def formatear_formato_eve(self, df, df_poli):
         df = df.loc[:, COLUMNAS_EVE]
         df['CIM CAF'] = None
         df['CIM CAZ'] = None
@@ -47,7 +47,33 @@ class ProgramaSensibilidades:
         df['CIM COL'] = None
         df['CIM CFTXIMA'] = None
         df['CIM COTRI'] = None
-        return df
+
+        df_poli = df_poli.loc[:, COLUMNAS_EVE]
+        df_poli['CIM CAF'] = None
+        df_poli['CIM CAZ'] = None
+        df_poli['CIM DAP'] = None
+        df_poli['CIM COL'] = None
+        df_poli['CIM CFTXIMA'] = None
+        df_poli['CIM COTRI'] = None
+
+        return df, df_poli
+
+    def correr_y_guardar_archivos(self):
+        tabla_global, tabla_global_poli = self.hacer_tabla_global()
+        tabla_eve, tabla_eve_poli = self.formatear_formato_eve(tabla_global, tabla_global_poli)
+
+        fecha = os.getcwd().split('\\')[-2]
+        tipo = os.getcwd().split('\\')[-1]
+
+        with pd.ExcelWriter(f'{fecha}_DATOS_{tipo}.xlsx') as writer:
+            tabla_global.to_excel(writer, index = False, sheet_name = 'GLOBAL')
+            if not(tabla_global_poli.empty):
+                tabla_global_poli.to_excel(writer, index = False, sheet_name = 'POLI')
+            
+        with pd.ExcelWriter(f'EVE_{fecha}_DATOS_{tipo}.xlsx') as writer:
+            tabla_eve.to_excel(writer, index = False, sheet_name = 'GLOBAL')
+            if not(tabla_eve_poli.empty):
+                tabla_eve_poli.to_excel(writer, index = False, sheet_name = 'POLI')            
 
 
     def hacer_tabla_global(self):
@@ -55,8 +81,13 @@ class ProgramaSensibilidades:
         columnas = COLUMNAS_DATOS_DEMOGRAFICOS + COLUMNAS_FARMACOS
         df = pd.DataFrame(todas_las_entradas, columns = columnas)
         df.drop(columns = COLUMNAS_A_NO_OCUPAR, inplace = True)
+        
+        mask_poli = df['Microorganismo'] == 'POLIMICROBIANO'
 
-        return df
+        df_poli = df[mask_poli]
+        df_sin_poli = df[~mask_poli] 
+
+        return df_sin_poli, df_poli
 
     def obtener_entradas_todos_los_pacientes(self):
         entradas_todos_los_pacientes = []
@@ -342,14 +373,6 @@ class ProgramaSensibilidades:
 
 
 programa = ProgramaSensibilidades()
-tabla_global = programa.hacer_tabla_global()
-tabla_eve = programa.formatear_formato_eve(tabla_global)
+programa.correr_y_guardar_archivos()
 
-fecha = os.getcwd().split('\\')[-2]
-tipo = os.getcwd().split('\\')[-1]
-nombre_archivo = f'{fecha}_DATOS_{tipo}.xlsx'
-nombre_archivo_eve = f'EVE_{fecha}_DATOS_{tipo}.xlsx'
-
-tabla_global.to_excel(nombre_archivo, index = False)
-tabla_eve.to_excel(nombre_archivo_eve, index = False)
 
