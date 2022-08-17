@@ -1,6 +1,7 @@
 import pandas as pd
 import biip
 import json
+from datetime import datetime
 
 with open('ASOCIACION_CODIGO_NOMBRE_REACTIVO.json', 'r') as f:
     ASOCIACION_CODIGO_NOMBRE_REACTIVO = json.load(f)
@@ -10,16 +11,15 @@ with open('ASOCIACION_CODIGO_NOMBRE_REACTIVO.json', 'r') as f:
 def hacer_inventario(nombre_archivo):
     tabla_entrada = hacer_tabla(nombre_archivo, 0)
     tabla_salida = hacer_tabla(nombre_archivo, 1)
-    #tabla_actual = tabla_entrada[~tabla_entrada['Nombre Reactivo'].isin(tabla_salida['Nombre Reactivo'])]
-    tabla_actual = tabla_entrada.drop(tabla_salida.index)
-    resumen_inventario = pd.DataFrame(tabla_actual.index.value_counts())
-    #resumen_inventario = pd.DataFrame(tabla_actual['Nombre Reactivo'].value_counts())
+    conteo_entrada = tabla_entrada.index.value_counts()
+    conteo_salida = tabla_salida.index.value_counts()
+    inventario = pd.DataFrame(conteo_entrada.subtract(conteo_salida, fill_value = 0).astype(int).sort_values(ascending = False))
 
     with pd.ExcelWriter('INVENTARIO REACTIVOS 26-7-2022.xlsx') as writer:
+        fecha_actual = datetime.now().strftime("%d-%m-%Y %H_%M_%S")
         tabla_entrada.to_excel(writer, sheet_name = 'ENTRADA')
         tabla_salida.to_excel(writer, sheet_name = 'SALIDA')
-        tabla_actual.to_excel(writer, sheet_name = 'INVENTARIO CRUDO')
-        resumen_inventario.to_excel(writer, sheet_name = 'ACTUAL')
+        inventario.to_excel(writer, sheet_name = f'INV {fecha_actual}')
                                                         
 
 def hacer_tabla(nombre_archivo, hoja):
