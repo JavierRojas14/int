@@ -26,6 +26,8 @@ def hacer_inventario(nombre_archivo):
         tabla_salida.to_excel(writer, sheet_name = 'SALIDA')
         inventario.to_excel(writer, sheet_name = f'INV {fecha_actual}')
         inventario_desglosado.to_excel(writer, sheet_name = f'INV DESG {fecha_actual}')
+    
+    return tabla_entrada, tabla_salida
                                                         
 
 def hacer_tabla(nombre_archivo, hoja):
