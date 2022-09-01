@@ -35,3 +35,5 @@ UCI y de muestras AE/LB (Aspirados Endotraqueales/Lavados Broncoalveolares).
 - El flujo de trabajo corresponde a: Descargar el archivo pdf del paciente -> Lanzar el programa y está listo!.
 - Es innecesaria la presencia de una archivo .xlsx Data Only.
 
+
+# **01/09/2022:** Inicié mis trabajos en la unidad de finanzas en el INT.
