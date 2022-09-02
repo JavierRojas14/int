@@ -1,0 +1,662 @@
+{
+ "22.01.001 y sub asignaciones":{
+  "Código":46,
+  "Item en SIGCOM":"VÍVERES",
+  "Item SIGFE":"BIENES Y SERVICIOS DE CONSUMO: Para Personas",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.01.002":{
+  "Código":46,
+  "Item en SIGCOM":"VÍVERES",
+  "Item SIGFE":"Para Animales",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.02.001":{
+  "Código":43,
+  "Item en SIGCOM":"PRODUCTOS TEXTILES, VESTUARIO Y CALZADO",
+  "Item SIGFE":"Textiles y Acabados Textiles",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.02.002 y sub asignaciones":{
+  "Código":43,
+  "Item en SIGCOM":"PRODUCTOS TEXTILES, VESTUARIO Y CALZADO",
+  "Item SIGFE":"Vest Y Acces P Diversas Para El Personal",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.02.003":{
+  "Código":43,
+  "Item en SIGCOM":"PRODUCTOS TEXTILES, VESTUARIO Y CALZADO",
+  "Item SIGFE":"Calzado",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.03.001":{
+  "Código":3,
+  "Item en SIGCOM":"COMBUSTIBLES Y LUBRICANTES",
+  "Item SIGFE":"Para Vehículos",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.03.002":{
+  "Código":3,
+  "Item en SIGCOM":"COMBUSTIBLES Y LUBRICANTES",
+  "Item SIGFE":"Para Maquinarias, Equipos de Producción, Tracción y Elevación",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.03.003":{
+  "Código":3,
+  "Item en SIGCOM":"COMBUSTIBLES Y LUBRICANTES",
+  "Item SIGFE":"Para Calefacción",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.03.999":{
+  "Código":3,
+  "Item en SIGCOM":"COMBUSTIBLES Y LUBRICANTES",
+  "Item SIGFE":"Para Otros",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.001":{
+  "Código":24,
+  "Item en SIGCOM":"MATERIALES DE OFICINA, PRODUCTOS DE PAPEL E IMPRESOS",
+  "Item SIGFE":"Materiales de Oficina",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.002":{
+  "Código":11,
+  "Item en SIGCOM":"LIBROS, TEXTOS, UTILES DE ENSEÑANZA Y PUBLICACIONES",
+  "Item SIGFE":"Textos y Otros Materiales de Enseñanza",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.003.001":{
+  "Código":9,
+  "Item en SIGCOM":"GASES MEDICINALES",
+  "Item SIGFE":"Oxigeno Y Gases Clínicos",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.003.002":{
+  "Código":41,
+  "Item en SIGCOM":"PRODUCTOS QUÍMICOS",
+  "Item SIGFE":"Otros Químicos",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.004.001 y Específicos":{
+  "Código":30,
+  "Item en SIGCOM":"MEDICAMENTOS",
+  "Item SIGFE":"Farmacia",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.004.002":{
+  "Código":15,
+  "Item en SIGCOM":"MATERIAL DE ODONTOLOGÍA",
+  "Item SIGFE":"Prod Para Cirugia Dental",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.004.003":{
+  "Código":21,
+  "Item en SIGCOM":"MATERIALES DE CURACIÓN",
+  "Item SIGFE":"Materiales De Curación",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.004.004":{
+  "Código":16,
+  "Item en SIGCOM":"MATERIAL DE OSTEOSÍNTESIS Y PRÓTESIS",
+  "Item SIGFE":"Prótesis",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.004.005":{
+  "Código":16,
+  "Item en SIGCOM":"MATERIAL DE OSTEOSÍNTESIS Y PRÓTESIS",
+  "Item SIGFE":"Productos Para Mecánica Dental",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.004.006":{
+  "Código":16,
+  "Item en SIGCOM":"MATERIAL DE OSTEOSÍNTESIS Y PRÓTESIS",
+  "Item SIGFE":"Ayudas Tecnicas - Ortesis",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.005 y sub asignaciones":{
+  "Código":18,
+  "Item en SIGCOM":"MATERIAL MEDICO QUIRURGICO",
+  "Item SIGFE":"Instrumental Quirúrgico",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.006":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Fertilizantes, Insecticidas, Fungicidas y Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.04.007.001":{
+  "Código":178,
+  "Item en SIGCOM":"SERVICIO DE LAVANDERÍA",
+  "Item SIGFE":"Lavanderia",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.04.007.002":{
+  "Código":29,
+  "Item en SIGCOM":"MATERIALES Y ELEMENTOS DE ASEO",
+  "Item SIGFE":"Otros Materiales Y Utiles De Aseo",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.008":{
+  "Código":31,
+  "Item en SIGCOM":"MENAJE PARA OFICINA, CASINO Y OTROS",
+  "Item SIGFE":"Menaje para Oficina, Casino y Otros",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.009":{
+  "Código":27,
+  "Item en SIGCOM":"MATERIALES INFORMATICOS",
+  "Item SIGFE":"Insumos, Repuestos y Accesorios Computacionales",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.010":{
+  "Código":28,
+  "Item en SIGCOM":"MATERIALES PARA MANTENIMIENTO Y REPARACIONES DE INMUEBLES",
+  "Item SIGFE":"Materiales para Mantenimiento y Reparaciones de Inmuebles",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.011":{
+  "Código":44,
+  "Item en SIGCOM":"REPUESTOS Y ACCESORIOS PARA MANTENIMIENTO Y REPARACIONES DE VEHICULOS",
+  "Item SIGFE":"Repuestos y Accesorios para Mantenimiento y Reparaciones de Vehículos",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.012":{
+  "Código":35,
+  "Item en SIGCOM":"OTROS INSUMOS Y MATERIALES",
+  "Item SIGFE":"Otros Materiales, Repuestos y Útiles Diversos para Mantenimiento y Reparaciones",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.013":{
+  "Código":8,
+  "Item en SIGCOM":"EQUIPOS MENORES",
+  "Item SIGFE":"Equipos Menores",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.014":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Productos Elaborados de Cuero, Caucho y Plásticos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.04.015":{
+  "Código":25,
+  "Item en SIGCOM":"MATERIALES DE USO O CONSUMO",
+  "Item SIGFE":"015 Productos Agropecuarios y Forestales",
+  "Gastos SIGCOM":"Insumos"
+ },
+ "22.04.999":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.05.001":{
+  "Código":92,
+  "Item en SIGCOM":"SERVICIO DE ENERGÍA",
+  "Item SIGFE":"Electricidad",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.05.002":{
+  "Código":48,
+  "Item en SIGCOM":"SERVICIO DE AGUA",
+  "Item SIGFE":"Agua",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.05.003":{
+  "Código":100,
+  "Item en SIGCOM":"GAS PROPANO",
+  "Item SIGFE":"Gas",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.05.004":{
+  "Código":179,
+  "Item en SIGCOM":"SERVICIO DE MENSAJERIA Y\/O CORREO",
+  "Item SIGFE":"Correo",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.05.005":{
+  "Código":192,
+  "Item en SIGCOM":"SERVICIO DE TELECOMUNICACIONES",
+  "Item SIGFE":"Telefonía Fija",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.05.006":{
+  "Código":93,
+  "Item en SIGCOM":"ENLACES DE TELECOMUNICACIONES",
+  "Item SIGFE":"Telefonía Celular",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.05.007":{
+  "Código":93,
+  "Item en SIGCOM":"ENLACES DE TELECOMUNICACIONES",
+  "Item SIGFE":"Acceso a Internet",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.05.008":{
+  "Código":93,
+  "Item en SIGCOM":"ENLACES DE TELECOMUNICACIONES",
+  "Item SIGFE":"Enlaces de Telecomunicaciones",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.05.999":{
+  "Código":188,
+  "Item en SIGCOM":"SERVICIOS GENERALES",
+  "Item SIGFE":"Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.001":{
+  "Código":133,
+  "Item en SIGCOM":"MANTENIMIENTO PLANTA FÍSICA",
+  "Item SIGFE":"Mantenimiento y Reparación de Edificaciones",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.002 y sub asignaciones":{
+  "Código":135,
+  "Item en SIGCOM":"MANTENIMIENTO VEHÍCULO",
+  "Item SIGFE":"Mantenimiento y Reparación de Vehículos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.003":{
+  "Código":132,
+  "Item en SIGCOM":"MANTENIMIENTO MUEBLES Y ENSERES",
+  "Item SIGFE":"Mantenimiento y Reparación de Mobiliarios y Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.004":{
+  "Código":131,
+  "Item en SIGCOM":"MANTENIMIENTO MAQUINARIA Y EQUIPO",
+  "Item SIGFE":"Mantenimiento y Reparación de Máquinas y Equipos de Oficina",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.005.001":{
+  "Código":138,
+  "Item en SIGCOM":"MANTENIMIENTO Y REPARACIÓN MÁQUINA Y EQUIPO PREVENTIVO",
+  "Item SIGFE":"Mantenimiento Preventivo de Equipos de Producción",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.005.002":{
+  "Código":137,
+  "Item en SIGCOM":"MANTENIMIENTO Y REPARACIÓN MÁQUINA Y EQUIPO CORRECTIVO",
+  "Item SIGFE":"Mantenimiento Correctivo de Equipos de Producción",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.006.001":{
+  "Código":138,
+  "Item en SIGCOM":"MANTENIMIENTO Y REPARACIÓN MÁQUINA Y EQUIPO PREVENTIVO",
+  "Item SIGFE":"Mantenimiento Preventivo de Equipos de No Médicos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.006.002":{
+  "Código":137,
+  "Item en SIGCOM":"MANTENIMIENTO Y REPARACIÓN MÁQUINA Y EQUIPO CORRECTIVO",
+  "Item SIGFE":"Mantenimiento Correctivo de Equipos de No Médicos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.006.003":{
+  "Código":138,
+  "Item en SIGCOM":"MANTENIMIENTO Y REPARACIÓN MÁQUINA Y EQUIPO PREVENTIVO",
+  "Item SIGFE":"Mantenimiento Preventivo de Equipos Médicos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.006.004":{
+  "Código":137,
+  "Item en SIGCOM":"MANTENIMIENTO Y REPARACIÓN MÁQUINA Y EQUIPO CORRECTIVO",
+  "Item SIGFE":"Mantenimiento Correctivo de Equipos Médicos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.007":{
+  "Código":129,
+  "Item en SIGCOM":"MANTENIMIENTO EQUIPO DE CÓMPUTO",
+  "Item SIGFE":"Mantenimiento y Reparación de Equipos Informáticos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.06.999":{
+  "Código":147,
+  "Item en SIGCOM":"OTROS MANTENIMIENTOS",
+  "Item SIGFE":"Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.07.001":{
+  "Código":158,
+  "Item en SIGCOM":"PUBLICIDAD Y PROPAGANDA",
+  "Item SIGFE":"Servicios de Publicidad",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.07.002":{
+  "Código":158,
+  "Item en SIGCOM":"PUBLICIDAD Y PROPAGANDA",
+  "Item SIGFE":"Servicios de Impresión",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.07.003":{
+  "Código":158,
+  "Item en SIGCOM":"PUBLICIDAD Y PROPAGANDA",
+  "Item SIGFE":"Servicios de Encuadernación y Empaste",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.07.999":{
+  "Código":158,
+  "Item en SIGCOM":"PUBLICIDAD Y PROPAGANDA",
+  "Item SIGFE":"Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.08.001":{
+  "Código":170,
+  "Item en SIGCOM":"SERVICIO DE ASEO",
+  "Item SIGFE":"Servicios de Aseo",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.08.002":{
+  "Código":182,
+  "Item en SIGCOM":"SERVICIO DE VIGILANCIA Y SEGURIDAD",
+  "Item SIGFE":"Servicios de Vigilancia",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.08.003":{
+  "Código":128,
+  "Item en SIGCOM":"MANTENIMIENTO DE PRADOS Y JARDINES",
+  "Item SIGFE":"Servicios de Mantención de Jardines",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.08.007":{
+  "Código":151,
+  "Item en SIGCOM":"PASAJES, FLETES Y BODEGAJE",
+  "Item SIGFE":"Pasajes, Fletes y Bodegajes",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.08.008":{
+  "Código":161,
+  "Item en SIGCOM":"SALA CUNAS Y\/O SERVICIOS INFANTILES",
+  "Item SIGFE":"Salas Cunas y\/o Jardines Infantiles",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.08.009":{
+  "Código":188,
+  "Item en SIGCOM":"SERVICIOS GENERALES",
+  "Item SIGFE":"Servicios de Pago y Cobranza",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.08.010":{
+  "Código":188,
+  "Item en SIGCOM":"SERVICIOS GENERALES",
+  "Item SIGFE":"Servicios de Suscripción y Similares",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.08.999":{
+  "Código":188,
+  "Item en SIGCOM":"SERVICIOS GENERALES",
+  "Item SIGFE":"Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.09.001":{
+  "Código":52,
+  "Item en SIGCOM":"ARRENDAMIENTOS",
+  "Item SIGFE":"Arriendo de Terrenos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.09.002":{
+  "Código":52,
+  "Item en SIGCOM":"ARRENDAMIENTOS",
+  "Item SIGFE":"Arriendo de Edificios",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.09.003":{
+  "Código":52,
+  "Item en SIGCOM":"ARRENDAMIENTOS",
+  "Item SIGFE":"Arriendo de Vehículos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.09.004":{
+  "Código":52,
+  "Item en SIGCOM":"ARRENDAMIENTOS",
+  "Item SIGFE":"Arriendo de Mobiliario y Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.09.005 y sub asignaciones":{
+  "Código":52,
+  "Item en SIGCOM":"ARRENDAMIENTOS",
+  "Item SIGFE":"Arriendo de Máquinas y Equipos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.09.006":{
+  "Código":52,
+  "Item en SIGCOM":"ARRENDAMIENTOS",
+  "Item SIGFE":"Arriendo de Equipos Informáticos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.09.999":{
+  "Código":52,
+  "Item en SIGCOM":"ARRENDAMIENTOS",
+  "Item SIGFE":"Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.10.001":{
+  "Código":168,
+  "Item en SIGCOM":"SEGUROS GENERALES",
+  "Item SIGFE":"Gastos Financieros por Compra y Venta de Títuloes y Valores",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.10.002":{
+  "Código":168,
+  "Item en SIGCOM":"SEGUROS GENERALES",
+  "Item SIGFE":"Primas y Gastos de Seguros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.10.003":{
+  "Código":168,
+  "Item en SIGCOM":"SEGUROS GENERALES",
+  "Item SIGFE":"Servicios de Giros y Remesas",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.10.004":{
+  "Código":168,
+  "Item en SIGCOM":"SEGUROS GENERALES",
+  "Item SIGFE":"Gastos Bancarios",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.10.999":{
+  "Código":168,
+  "Item en SIGCOM":"SEGUROS GENERALES",
+  "Item SIGFE":"Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.11.001":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"Estudios e Investigaciones",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.11.002 y sub asignaciones":{
+  "Código":76,
+  "Item en SIGCOM":"CURSOS DE CAPACITACIÓN",
+  "Item SIGFE":"Ley 18575 Cursos Cont Con Terceros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.11.003":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"Servicios Informáticos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.11.999":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.002":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Gastos Menores",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.003":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Gastos de Representación, Protocolo yCeremonial",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.004":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Intereses, Multas y Recargos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.005":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Derechos y Tasas",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.006":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Contribuciones",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.001":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"Compra De Servicios Medicos De Diálisis",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.002.01":{
+  "Código":177,
+  "Item en SIGCOM":"SERVICIO DE LABORATORIO",
+  "Item SIGFE":"Compra de Exámenes y de Procedimientos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.003.01":{
+  "Código":65,
+  "Item en SIGCOM":"COMPRA DE INTERVENCIONES QUIRÚRGICAS INTRAHOSPITALARIAS CON PERSONAL INTERNO *",
+  "Item SIGFE":"Compra Intervenciones Quirúrgicas Intrahospitalarias Con Personal Interno",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.003.02":{
+  "Código":64,
+  "Item en SIGCOM":"COMPRA DE INTERVENCIONES QUIRÚRGICAS INTRAHOSPITALARIAS CON PERSONAL EXTERNO *",
+  "Item SIGFE":"Compra Intervenciones Quirúrgicas Intrahospitalarias Con Personal Externo",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.003.03":{
+  "Código":63,
+  "Item en SIGCOM":"COMPRA DE INTERVENCIONES QUIRÚRGICAS CLÍNICAS",
+  "Item SIGFE":"Compra Intervenciones Quirúrgicas Clínicas",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.004":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"Compra De Atención De Urgencia",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.005":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"Pago Rebases Ley de Urgencia",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.006.01":{
+  "Código":57,
+  "Item en SIGCOM":"COLOCACIÓN FAMILIAR DE MENORES Y EXTRAHOSPITALARIA",
+  "Item SIGFE":"Colocación Familiar de Menores y Extra Hospitalaria",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.006.02":{
+  "Código":57,
+  "Item en SIGCOM":"COLOCACIÓN FAMILIAR DE MENORES Y EXTRAHOSPITALARIA",
+  "Item SIGFE":"Colocación Embarazadas de Alto Riesgo",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.006.03":{
+  "Código":57,
+  "Item en SIGCOM":"COLOCACIÓN FAMILIAR DE MENORES Y EXTRAHOSPITALARIA",
+  "Item SIGFE":"Colocación Adulto Mayor Riesgo",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.009 y específicos":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Convenios Dfl 36",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.010":{
+  "Código":149,
+  "Item en SIGCOM":"PASAJES Y TRASLADOS DE PACIENTES",
+  "Item SIGFE":"Pasaje Y Traslados De Pacientes",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.011":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Otros - Imprevistos",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.014.01":{
+  "Código":59,
+  "Item en SIGCOM":"COMPRA DE CAMAS AL EXTRA SISTEMA CAMAS CRÍTICAS",
+  "Item SIGFE":"Compra De Camas Al Extra Sistema Camas Criíticas",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.014.02":{
+  "Código":60,
+  "Item en SIGCOM":"COMPRA DE CAMAS AL EXTRA SISTEMA CAMAS NO CRÍTICAS",
+  "Item SIGFE":"Compra De Camas Al Extra Sistema Camas No Críticas",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.015":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"015 Gastos Pueblos Indígenas",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.016.01":{
+  "Código":61,
+  "Item en SIGCOM":"COMPRA DE CONSULTAS MÉDICAS *",
+  "Item SIGFE":"Medicas",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.016.02":{
+  "Código":62,
+  "Item en SIGCOM":"COMPRA DE CONSULTAS NO MÉDICAS *",
+  "Item SIGFE":"No Medicas ( Otros Profesionales De Salud )",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.017":{
+  "Código":145,
+  "Item en SIGCOM":"OTROS GASTOS GENERALES",
+  "Item SIGFE":"Pago Mutualidades De Empleadores Art. 77 Bis",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.018":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"018 Otros",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.019":{
+  "Código":176,
+  "Item en SIGCOM":"SERVICIO DE INTERMEDIACIÓN CENABAST",
+  "Item SIGFE":"019 Servicio de Intermediacion CENABAST",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.020":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"020 Programa Adulto Mayor Canastas Dentales",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.021":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"021 Servicios de Radioterapia",
+  "Gastos SIGCOM":"Gastos Generales"
+ },
+ "22.12.999.022":{
+  "Código":66,
+  "Item en SIGCOM":"COMPRA DE OTROS SERVICIOS",
+  "Item SIGFE":"022 Colocación Pacientes con Enfermedades Mentales",
+  "Gastos SIGCOM":"Gastos Generales"
+ }
+}
