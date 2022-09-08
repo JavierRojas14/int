@@ -132,3 +132,5 @@ dmypy.json
 *.pdf
 *.svg
 *.exe
+*.xls
+*.csv
