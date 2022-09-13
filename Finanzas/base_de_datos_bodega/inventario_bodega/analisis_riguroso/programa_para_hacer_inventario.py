@@ -1,34 +1,33 @@
 import pandas as pd
+import os
 
-df_movimientos = pd.read_excel('input\\Formato Movimientos - Inventario.xlsx')
-df_movimientos['NOMBRE'] = None
-df_movimientos.rename(columns = {'Codigo Articulo ': 'CODIGO', 'Lote': 'LOTE', 'Fecha Vencimiento': 'FECHA VENCIMIENTO', 'Numero Serie': 'SERIE', 'Cantidad Movidad': 'CANTIDAD'}, inplace = True)
-df_movimientos = df_movimientos[['CODIGO', 'NOMBRE', 'CANTIDAD', 'SERIE', 'LOTE', 'FECHA VENCIMIENTO', 'Tipo Movimiento', 'Fecha Movimiento']]
+def limpiar_columnas_identificadoras(df):
+    df['CODIGO'] = df['CODIGO'].astype(str).apply(lambda x: x.strip())
+    df['LOTE'] = df['LOTE'].astype(str).apply(lambda x: x.strip())
+    df['FECHA VENCIMIENTO'] = pd.to_datetime(df['FECHA VENCIMIENTO'], errors = 'coerce')
 
-df_inventario_malo = pd.read_excel('input\\Inventario_A_malo.xlsx')
-df_inventario_malo.rename(columns =  {'NOMBRE ARTICULO': 'NOMBRE', 'STOCK': 'CANTIDAD'}, inplace = True)
+    return df
 
-df_inventario_bueno = pd.read_excel('input\\Inventario_B_bueno.xlsx')
+def hacer_inventario():
+    contenido_input = os.listdir('input')
+    print(list(enumerate(contenido_input)))
 
-# Antes de comparar y ver si están las llaves, CODIGO, LOTE y FECHA DE VENCIMIENTO DEBEN ESTAR EN FORMATOS IGUALES.
-df_movimientos['CODIGO'] = df_movimientos['CODIGO'].astype(str).apply(lambda x: x.strip())
-df_inventario_malo['CODIGO'] = df_inventario_malo['CODIGO'].astype(str).apply(lambda x: x.strip())
-df_inventario_bueno['CODIGO'] = df_inventario_bueno['CODIGO'].astype(str).apply(lambda x: x.strip())
+    archivo_movimientos = contenido_input[int(input(f'¿Cuál archivo de movimientos quieres ocupar? '))]
+    archivo_inventario_inicial = contenido_input[int(input(f'¿Cuál archivo de inventario inicial quieres ocupar? '))]
 
-df_movimientos['LOTE'] = df_movimientos['LOTE'].astype(str).apply(lambda x: x.strip())
-df_inventario_malo['LOTE'] = df_inventario_malo['LOTE'].astype(str).apply(lambda x: x.strip())
-df_inventario_bueno['LOTE'] = df_inventario_bueno['LOTE'].astype(str).apply(lambda x: x.strip())
+    df_movimientos = pd.read_excel(f'input\\{archivo_movimientos}')
+    df_movimientos.rename(columns = {'CODIGO ARTICULO': 'CODIGO', 'NUMERO LOTE': 'LOTE', 'NUMERO SERIE': 'SERIE', 'CANTIDAD MOVIDA': 'CANTIDAD', 'NOMBRE ARTICULO': 'NOMBRE'}, inplace = True)
+    df_movimientos = df_movimientos[['CODIGO', 'NOMBRE', 'CANTIDAD', 'SERIE', 'LOTE', 'FECHA VENCIMIENTO', 'TIPO MOVIMIENTO', 'FECHA MOVIMIENTO']]
 
-df_movimientos['FECHA VENCIMIENTO'] = pd.to_datetime(df_movimientos['FECHA VENCIMIENTO'])
-df_inventario_bueno['FECHA VENCIMIENTO'] = pd.to_datetime(df_inventario_bueno['FECHA VENCIMIENTO'], errors = 'coerce')
-df_inventario_malo['FECHA VENCIMIENTO'] = pd.to_datetime(df_inventario_malo['FECHA VENCIMIENTO'], errors = 'coerce')
+    df_inventario = pd.read_excel(f'input\\{archivo_inventario_inicial}')
 
+    df_movimientos = limpiar_columnas_identificadoras(df_movimientos)
+    df_inventario = limpiar_columnas_identificadoras(df_inventario)
 
-def hacer_inventario(df_movimientos, df_inventario_bueno):
-    df_entradas = df_movimientos[df_movimientos['Tipo Movimiento'] == 'ENTRADA']
-    df_salidas = df_movimientos[df_movimientos['Tipo Movimiento'] == 'SALIDA']
+    df_entradas = df_movimientos[df_movimientos['TIPO MOVIMIENTO'] == 'ENTRADA']
+    df_salidas = df_movimientos[df_movimientos['TIPO MOVIMIENTO'] == 'SALIDA']
 
-    inventario_inicial = df_inventario_bueno.groupby(by = ['CODIGO', 'LOTE']).sum()
+    inventario_inicial = df_inventario.groupby(by = ['CODIGO', 'LOTE']).sum()
     movimientos_entrada = df_entradas.groupby(by = ['CODIGO', 'LOTE']).sum()
     movimientos_salida = df_salidas.groupby(by = ['CODIGO', 'LOTE']).sum()
 
@@ -37,8 +36,16 @@ def hacer_inventario(df_movimientos, df_inventario_bueno):
     # luego, se restan las salidas al inventario
     inventario_total = inventario_mas_entradas.sub(movimientos_salida, fill_value = 0)
 
+    inventario_inicial.reset_index(inplace = True)
+    movimientos_entrada.reset_index(inplace = True)
+    movimientos_salida.reset_index(inplace = True)
+    inventario_total.reset_index(inplace = True)
+
     with pd.ExcelWriter('resumen_inventario.xlsx', 'openpyxl') as writer:
         inventario_total.to_excel(writer, sheet_name = 'Inventario_total')
         inventario_inicial.to_excel(writer, sheet_name = 'Inventario_inicial')
         movimientos_entrada.to_excel(writer, sheet_name = 'Movimientos_entrada')
         movimientos_salida.to_excel(writer, sheet_name = 'Movimientos_salida')
+
+
+hacer_inventario()
