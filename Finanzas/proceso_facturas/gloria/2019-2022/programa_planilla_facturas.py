@@ -57,11 +57,11 @@ class GeneradorPlanillaFinanzas:
                 mask_debe = (df['Debe'] != 0)
                 mask_haber = (df['Haber'] != 0)
 
-                df.loc[mask_debe, 'Folio_interno PAGO'] = df['Folio_interno'][mask_debe]
-                df.loc[mask_debe, 'Fecha PAGO'] = df['Fecha'][mask_debe]
+                df['Folio_interno PAGO'] = df['Folio_interno'][mask_debe]
+                df['Fecha PAGO'] = df['Fecha'][mask_debe]
 
-                df.loc[mask_haber, 'Folio_interno DEVENGO'] = df['Folio_interno'][mask_haber]                
-                df.loc[mask_haber, 'Fecha DEVENGO'] = df['Fecha'][mask_haber]
+                df['Folio_interno DEVENGO'] = df['Folio_interno'][mask_haber]                
+                df['Fecha DEVENGO'] = df['Fecha'][mask_haber]
 
             
             df['RUT Emisor'] = df['RUT Emisor'].str.replace('.', '', regex = False).str.upper().str.strip()
@@ -88,8 +88,8 @@ class GeneradorPlanillaFinanzas:
         mask_no_devengadas = pd.isna(df_izquierda['Fecha DEVENGO SIGFE'])
 
         df_izquierda['Fecha Docto SII'] = pd.to_datetime(df_izquierda['Fecha Docto SII'], dayfirst = True)
-        df_izquierda.loc[mask_no_devengadas, 'tiempo_diferencia SII'] = pd.to_datetime('today') - df_izquierda[mask_no_devengadas]['Fecha Docto SII']
-        df_izquierda.loc[mask_no_devengadas, 'esta_al_dia'] = df_izquierda[mask_no_devengadas]['tiempo_diferencia SII'] <= datetime.timedelta(8)
+        df_izquierda['tiempo_diferencia SII'] = pd.to_datetime('today') - df_izquierda[mask_no_devengadas]['Fecha Docto SII']
+        df_izquierda['esta_al_dia'] = df_izquierda[mask_no_devengadas]['tiempo_diferencia SII'] <= datetime.timedelta(8)
 
         return df_izquierda
     
