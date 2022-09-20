@@ -125,6 +125,7 @@ class GeneradorPlanillaFinanzas:
 
         df_util = df_izquierda[columnas_a_ocupar]
         df_util['Tipo Doc SII'] = df_util['Tipo Doc SII'].astype('category')
+
         df_util['Fecha Docto SII'] = df_util['Fecha Docto SII'].dt.date
         df_util['publicacion ACEPTA'] = df_util['publicacion ACEPTA'].dt.date
         df_util['Fecha DEVENGO SIGFE'] = df_util['Fecha DEVENGO SIGFE'].dt.date
