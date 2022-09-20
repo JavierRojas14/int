@@ -27,8 +27,8 @@ class GeneradorPlanillaFinanzas:
                            'SCI': None,
                            'SIGFE': None}
 
-        for nombre_archivo in os.listdir('input_cortados'):
-            nombre_archivo = os.path.join('input_cortados', nombre_archivo)
+        for nombre_archivo in os.listdir('input_completo'):
+            nombre_archivo = os.path.join('input_completo', nombre_archivo)
             if ('.xlsx' in nombre_archivo) or ('.xls' in nombre_archivo) or ('.csv' in nombre_archivo):
                 for identificador_archivo in list(diccionario_dfs.keys()):
                     if identificador_archivo in nombre_archivo:
@@ -131,6 +131,8 @@ class GeneradorPlanillaFinanzas:
         df_util['publicacion ACEPTA'] = df_util['publicacion ACEPTA'].dt.date
         df_util['Fecha DEVENGO SIGFE'] = df_util['Fecha DEVENGO SIGFE'].dt.date
         df_util['Fecha PAGO SIGFE'] = df_util['Fecha PAGO SIGFE'].dt.date
+
+        df_util = df_util.sort_values(by = ['Fecha Docto SII'])
 
         return df_util
     
