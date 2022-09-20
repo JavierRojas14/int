@@ -92,20 +92,38 @@ class GeneradorPlanillaFinanzas:
 
         return df_izquierda
     
+    def extraer_folios_desde_diccionario(self, diccionario_json):
+        for documento_referencia in diccionario_json:
+            if documento_referencia['Tipo'] == '33':
+                return documento_referencia['Folio']
+        
+        return ''
+    
     def obtener_referencias_nc(self, df_izquierda):
         mask_notas_de_credito = df_izquierda['Tipo Doc SII'] == 61
-        df_izquierda.loc[mask_notas_de_credito, 'Factura que referencia'] = df_izquierda[mask_notas_de_credito]['RUT Emisor SII'] + df_izquierda[mask_notas_de_credito]['referencias ACEPTA'].apply(lambda x: json.loads(x)[0]['Folio'] if type(x) == str else 'NO ESTA EN ACEPTA')
+        df_izquierda.loc[mask_notas_de_credito, 'documento_referencia ACEPTA'] = df_izquierda.loc[mask_notas_de_credito]['referencias ACEPTA'].apply(lambda x: self.extraer_folios_desde_diccionario(json.loads(x)) if type(x) == str else '')
 
-        for referencia in df_izquierda['Factura que referencia']:
-            if type(referencia) == str:
-                if not('NO ESTA EN ACEPTA' in referencia):
-                    nc = df_izquierda[df_izquierda['Factura que referencia'] == referencia].index[0]
-                    df_izquierda.loc[referencia, 'NC Asociada'] = nc
+        df_izquierda.to_excel('Prueba.xlsx')
 
-        df_izquierda['Factura que referencia'] = df_izquierda['Factura que referencia'].apply(lambda x: x.split('-')[1][1:] if type(x) == str else None)
-        df_izquierda['NC Asociada'] = df_izquierda['NC Asociada'].apply(lambda x: x.split('-')[1][1:] if type(x) == str else None)
+        # for referencias in df_notas_de_credito['Facturas electrónicas que referencia']:
+        #     if referencias:
+        #         nc = df_notas_de_credito[df_izquierda['Facturas electrónicas que referencia'] == referencias].index[0]
+        #         for referencia in referencias:
+        #             df_notas_de_credito.loc[referencia, 'NC Asociada'] = nc
 
-        return df_izquierda
+
+        # for referencias in df_izquierda['Facturas electrónicas que referencia']:
+        #     # Si la NC tiene alguna 
+        #     if referencias:
+        #         nc = 
+        #         for referencia in referencias:
+        #             nc = df_izquierda[df_izquierda['Facturas electrónicas que referencia'] == referencia].index[0]
+        #             df_izquierda.loc[referencia, 'NC Asociada'] = nc
+
+        # df_izquierda['Factura que referencia'] = df_izquierda['Factura que referencia'].apply(lambda x: x.split('-')[1][1:] if type(x) == str else None)
+        # df_izquierda['NC Asociada'] = df_izquierda['NC Asociada'].apply(lambda x: x.split('-')[1][1:] if type(x) == str else None)
+
+        # return df_izquierda
     
     def obtener_columnas_necesarias(self, df_izquierda):
         columnas_a_ocupar = ['Tipo Doc SII', 'RUT Emisor SII', 'Razon Social SII', 'Folio SII', 'Fecha Docto SII', 'Monto Exento SII', 'Monto Neto SII', 'Monto IVA Recuperable SII', 'Monto Total SII',
