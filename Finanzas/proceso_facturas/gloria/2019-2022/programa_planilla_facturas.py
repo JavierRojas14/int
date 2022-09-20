@@ -63,7 +63,7 @@ class GeneradorPlanillaFinanzas:
                 df.loc[mask_haber, 'Fecha DEVENGO'] = df['Fecha'][mask_haber]
 
             
-            df['RUT Emisor'] = df['RUT Emisor'].str.replace('.', '').str.upper().str.strip()
+            df['RUT Emisor'] = df['RUT Emisor'].str.replace('.', '', regex = False).str.upper().str.strip()
             
             df.columns = df.columns + f' {nombre_tabla}'
 
