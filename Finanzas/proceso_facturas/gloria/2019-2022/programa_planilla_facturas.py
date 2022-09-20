@@ -1,3 +1,4 @@
+from weakref import ref
 import pandas as pd
 import datetime
 import os
@@ -97,33 +98,23 @@ class GeneradorPlanillaFinanzas:
             if documento_referencia['Tipo'] == '33':
                 return documento_referencia['Folio']
         
-        return ''
+        return None
     
     def obtener_referencias_nc(self, df_izquierda):
         mask_notas_de_credito = df_izquierda['Tipo Doc SII'] == 61
-        df_izquierda.loc[mask_notas_de_credito, 'documento_referencia ACEPTA'] = df_izquierda.loc[mask_notas_de_credito]['referencias ACEPTA'].apply(lambda x: self.extraer_folios_desde_diccionario(json.loads(x)) if type(x) == str else '')
+        df_izquierda.loc[mask_notas_de_credito, 'REFERENCIAS'] = df_izquierda[mask_notas_de_credito]['referencias ACEPTA'].apply(lambda x: self.extraer_folios_desde_diccionario(json.loads(x)) if type(x) == str else None)
 
-        df_izquierda.to_excel('Prueba.xlsx')
+        tienen_referencias_validas = (df_izquierda['REFERENCIAS'].notna())
+        df_izquierda.loc[tienen_referencias_validas, 'LLAVES REFERENCIAS PARA NC'] = df_izquierda.loc[tienen_referencias_validas, 'RUT Emisor SII'] + df_izquierda.loc[tienen_referencias_validas, 'REFERENCIAS']
 
-        # for referencias in df_notas_de_credito['Facturas electrónicas que referencia']:
-        #     if referencias:
-        #         nc = df_notas_de_credito[df_izquierda['Facturas electrónicas que referencia'] == referencias].index[0]
-        #         for referencia in referencias:
-        #             df_notas_de_credito.loc[referencia, 'NC Asociada'] = nc
+        for referencia in df_izquierda['LLAVES REFERENCIAS PARA NC'].unique():
+            if type(referencia) != float:
+                nc = (df_izquierda[df_izquierda['LLAVES REFERENCIAS PARA NC'] == referencia].index[0]).split('-')[1][1:]
+                df_izquierda.loc[referencia, 'REFERENCIAS'] = nc
+        
+        df_izquierda = df_izquierda.drop(columns = 'LLAVES REFERENCIAS PARA NC')
 
-
-        # for referencias in df_izquierda['Facturas electrónicas que referencia']:
-        #     # Si la NC tiene alguna 
-        #     if referencias:
-        #         nc = 
-        #         for referencia in referencias:
-        #             nc = df_izquierda[df_izquierda['Facturas electrónicas que referencia'] == referencia].index[0]
-        #             df_izquierda.loc[referencia, 'NC Asociada'] = nc
-
-        # df_izquierda['Factura que referencia'] = df_izquierda['Factura que referencia'].apply(lambda x: x.split('-')[1][1:] if type(x) == str else None)
-        # df_izquierda['NC Asociada'] = df_izquierda['NC Asociada'].apply(lambda x: x.split('-')[1][1:] if type(x) == str else None)
-
-        # return df_izquierda
+        return df_izquierda
     
     def obtener_columnas_necesarias(self, df_izquierda):
         columnas_a_ocupar = ['Tipo Doc SII', 'RUT Emisor SII', 'Razon Social SII', 'Folio SII', 'Fecha Docto SII', 'Monto Exento SII', 'Monto Neto SII', 'Monto IVA Recuperable SII', 'Monto Total SII',
@@ -131,7 +122,7 @@ class GeneradorPlanillaFinanzas:
                            'Fecha DEVENGO SIGFE', 'Folio_interno DEVENGO SIGFE', 'Fecha PAGO SIGFE', 'Folio_interno PAGO SIGFE', 
                            'Fecha Recepción SCI', 'Registrador SCI', 'Articulo SCI', 'N° Acta SCI', 
                            'Ubic. TURBO', 'NºPresu TURBO', 'Folio_interno TURBO', 'NºPago TURBO',
-                           'tiempo_diferencia SII', 'esta_al_dia', 'Factura que referencia', 'NC Asociada']
+                           'tiempo_diferencia SII', 'esta_al_dia', 'REFERENCIAS']
 
         df_util = df_izquierda[columnas_a_ocupar]
         df_util['Tipo Doc SII'] = df_util['Tipo Doc SII'].astype('category')
@@ -140,9 +131,6 @@ class GeneradorPlanillaFinanzas:
         df_util['publicacion ACEPTA'] = df_util['publicacion ACEPTA'].dt.date
         df_util['Fecha DEVENGO SIGFE'] = df_util['Fecha DEVENGO SIGFE'].dt.date
         df_util['Fecha PAGO SIGFE'] = df_util['Fecha PAGO SIGFE'].dt.date
-
-        df_util['Referencias'] = (df_util['Factura que referencia'].astype(str) + df_util['NC Asociada'].astype(str)).str.replace('None', '', regex = False)
-        df_util = df_util.drop(columns = ['Factura que referencia', 'NC Asociada'])
 
         return df_util
     
