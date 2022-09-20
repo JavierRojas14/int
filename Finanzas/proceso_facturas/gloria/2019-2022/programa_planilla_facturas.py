@@ -107,14 +107,6 @@ class GeneradorPlanillaFinanzas:
 
         return df_izquierda
     
-    def buscador_de_nota_de_credito_asociada(self, llave_id, columna_referencias):
-        try:
-            indice = columna_referencias.index(llave_id)
-        except ValueError:
-            indice = None
-        
-        return indice
-    
     def obtener_columnas_necesarias(self, df_izquierda):
         columnas_a_ocupar = ['Tipo Doc SII', 'RUT Emisor SII', 'Razon Social SII', 'Folio SII', 'Fecha Docto SII', 'Monto Exento SII', 'Monto Neto SII', 'Monto IVA Recuperable SII', 'Monto Total SII',
                            'publicacion ACEPTA', 'estado_acepta ACEPTA', 'estado_sii ACEPTA', 'estado_nar ACEPTA', 'estado_devengo ACEPTA', 'folio_oc ACEPTA', 'folio_rc ACEPTA', 'fecha_ingreso_rc ACEPTA', 'folio_sigfe ACEPTA', 'tarea_actual ACEPTA', 'estado_cesion ACEPTA', 
@@ -131,20 +123,17 @@ class GeneradorPlanillaFinanzas:
         df_util['Fecha DEVENGO SIGFE'] = df_util['Fecha DEVENGO SIGFE'].dt.date
         df_util['Fecha PAGO SIGFE'] = df_util['Fecha PAGO SIGFE'].dt.date
 
+        df_util['Referencias'] = (df_util['Factura que referencia'].astype(str) + df_util['NC Asociada'].astype(str)).str.replace('None', '', regex = False)
+        df_util = df_util.drop(columns = ['Factura que referencia', 'NC Asociada'])
+
         return df_util
     
     def guardar_dfs(self, df_columnas_utiles):
         fecha_actual = str(pd.to_datetime('today')).split(' ')[0]
         nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}.xlsx'
 
-        if nombre_archivo in os.listdir():
-            with pd.ExcelWriter(nombre_archivo, engine = 'openpyxl', mode = 'a', if_sheet_exists = 'overlay') as writer:
+        with pd.ExcelWriter(nombre_archivo, engine = 'openpyxl', mode = 'w') as writer:
                 df_columnas_utiles.to_excel(writer)
-        else:
-            df_columnas_utiles.loc[:, 'Observaciones'] = None
-            with pd.ExcelWriter(nombre_archivo, engine = 'openpyxl', mode = 'w') as writer:
-                df_columnas_utiles.to_excel(writer)
-
 
 programa = GeneradorPlanillaFinanzas()
 programa.correr_programa()
