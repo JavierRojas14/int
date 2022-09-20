@@ -27,8 +27,8 @@ class GeneradorPlanillaFinanzas:
                            'SCI': None,
                            'SIGFE': None}
 
-        for nombre_archivo in os.listdir('input_completo'):
-            nombre_archivo = os.path.join('input_completo', nombre_archivo)
+        for nombre_archivo in os.listdir('input_cortados'):
+            nombre_archivo = os.path.join('input_cortados', nombre_archivo)
             if ('.xlsx' in nombre_archivo) or ('.xls' in nombre_archivo) or ('.csv' in nombre_archivo):
                 for identificador_archivo in list(diccionario_dfs.keys()):
                     if identificador_archivo in nombre_archivo:
@@ -102,10 +102,10 @@ class GeneradorPlanillaFinanzas:
     
     def obtener_referencias_nc(self, df_izquierda):
         mask_notas_de_credito = df_izquierda['Tipo Doc SII'] == 61
-        df_izquierda.loc[mask_notas_de_credito, 'REFERENCIAS'] = df_izquierda[mask_notas_de_credito]['referencias ACEPTA'].apply(lambda x: self.extraer_folios_desde_diccionario(json.loads(x)) if type(x) == str else None)
+        df_izquierda['REFERENCIAS'] = df_izquierda[mask_notas_de_credito]['referencias ACEPTA'].apply(lambda x: self.extraer_folios_desde_diccionario(json.loads(x)) if type(x) == str else None)
 
         tienen_referencias_validas = (df_izquierda['REFERENCIAS'].notna())
-        df_izquierda.loc[tienen_referencias_validas, 'LLAVES REFERENCIAS PARA NC'] = df_izquierda.loc[tienen_referencias_validas, 'RUT Emisor SII'] + df_izquierda.loc[tienen_referencias_validas, 'REFERENCIAS']
+        df_izquierda['LLAVES REFERENCIAS PARA NC'] = df_izquierda[tienen_referencias_validas]['RUT Emisor SII'] + df_izquierda[tienen_referencias_validas]['REFERENCIAS']
 
         for referencia in df_izquierda['LLAVES REFERENCIAS PARA NC'].unique():
             if type(referencia) != float:
