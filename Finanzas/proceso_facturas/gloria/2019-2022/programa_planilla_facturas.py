@@ -77,10 +77,16 @@ class GeneradorPlanillaFinanzas:
         lista_dfs_secuenciales = list(diccionario_dfs_limpias.values())
         df_izquierda = lista_dfs_secuenciales[0]
 
-        for df_derecha in lista_dfs_secuenciales[1:]:
+        for df_derecha in lista_dfs_secuenciales[1: 4]:
             df_izquierda = pd.merge(df_izquierda, df_derecha, how = 'left', left_index = True, right_index = True)
     
         df_izquierda = df_izquierda[~df_izquierda.index.duplicated(keep = 'first')]
+
+        df_izquierda = pd.merge(df_izquierda, lista_dfs_secuenciales[4], how = 'left', left_index = True, right_index = True)
+        df_izquierda = df_izquierda.drop_duplicates(subset = ['RUT Emisor SII', 'Folio SII', 'Folio_interno DEVENGO SIGFE'])
+        df_izquierda = df_izquierda.drop_duplicates(subset = ['RUT Emisor SII', 'Folio SII', 'Folio_interno PAGO SIGFE'])
+
+        df_izquierda = df_izquierda.reset_index()
 
         return df_izquierda
     
@@ -109,15 +115,19 @@ class GeneradorPlanillaFinanzas:
 
         for referencia in df_izquierda['LLAVES REFERENCIAS PARA NC'].unique():
             if type(referencia) != float:
-                nc = (df_izquierda[df_izquierda['LLAVES REFERENCIAS PARA NC'] == referencia].index[0]).split('-')[1][1:]
-                df_izquierda.loc[referencia, 'REFERENCIAS'] = nc
+
+                nc = df_izquierda.query('`LLAVES REFERENCIAS PARA NC` == @referencia')['llave_id'].iloc[0]
+                nc = nc.split('-')[1][1:]
+
+                mask_boletas_referenciadas = df_izquierda['llave_id'] == referencia
+                df_izquierda.loc[mask_boletas_referenciadas, 'REFERENCIAS'] = nc
         
         df_izquierda = df_izquierda.drop(columns = 'LLAVES REFERENCIAS PARA NC')
 
         return df_izquierda
     
     def obtener_columnas_necesarias(self, df_izquierda):
-        columnas_a_ocupar = ['Tipo Doc SII', 'RUT Emisor SII', 'Razon Social SII', 'Folio SII', 'Fecha Docto SII', 'Monto Exento SII', 'Monto Neto SII', 'Monto IVA Recuperable SII', 'Monto Total SII',
+        columnas_a_ocupar = ['llave_id', 'Tipo Doc SII', 'RUT Emisor SII', 'Razon Social SII', 'Folio SII', 'Fecha Docto SII', 'Monto Exento SII', 'Monto Neto SII', 'Monto IVA Recuperable SII', 'Monto Total SII',
                            'publicacion ACEPTA', 'estado_acepta ACEPTA', 'estado_sii ACEPTA', 'estado_nar ACEPTA', 'estado_devengo ACEPTA', 'folio_oc ACEPTA', 'folio_rc ACEPTA', 'fecha_ingreso_rc ACEPTA', 'folio_sigfe ACEPTA', 'tarea_actual ACEPTA', 'estado_cesion ACEPTA', 
                            'Fecha DEVENGO SIGFE', 'Folio_interno DEVENGO SIGFE', 'Fecha PAGO SIGFE', 'Folio_interno PAGO SIGFE', 
                            'Fecha Recepción SCI', 'Registrador SCI', 'Articulo SCI', 'N° Acta SCI', 
@@ -141,7 +151,7 @@ class GeneradorPlanillaFinanzas:
         nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}.xlsx'
 
         with pd.ExcelWriter(nombre_archivo, engine = 'openpyxl', mode = 'w') as writer:
-                df_columnas_utiles.to_excel(writer)
+                df_columnas_utiles.to_excel(writer, index = False)
 
 programa = GeneradorPlanillaFinanzas()
 programa.correr_programa()
