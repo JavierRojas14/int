@@ -141,10 +141,10 @@ class GeneradorPlanillaFinanzas:
         df_util = df_izquierda[columnas_a_ocupar]
         df_util['Tipo Doc SII'] = df_util['Tipo Doc SII'].astype('category')
 
-        df_util['Fecha Docto SII'] = df_util['Fecha Docto SII'].dt.date
-        df_util['publicacion ACEPTA'] = df_util['publicacion ACEPTA'].dt.date
-        df_util['Fecha DEVENGO SIGFE'] = df_util['Fecha DEVENGO SIGFE'].dt.date
-        df_util['Fecha PAGO SIGFE'] = df_util['Fecha PAGO SIGFE'].dt.date
+        # df_util['Fecha Docto SII'] = df_util['Fecha Docto SII'].dt
+        # df_util['publicacion ACEPTA'] = df_util['publicacion ACEPTA'].dt
+        # df_util['Fecha DEVENGO SIGFE'] = df_util['Fecha DEVENGO SIGFE'].dt.date
+        # df_util['Fecha PAGO SIGFE'] = df_util['Fecha PAGO SIGFE'].dt.date
 
         df_util = df_util.sort_values(by = ['Fecha Docto SII'])
 
@@ -154,7 +154,7 @@ class GeneradorPlanillaFinanzas:
         fecha_actual = str(pd.to_datetime('today')).split(' ')[0]
         nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}.xlsx'
 
-        with pd.ExcelWriter(nombre_archivo, engine = 'openpyxl', mode = 'w') as writer:
+        with pd.ExcelWriter(nombre_archivo, datetime_format = 'DD-MM-YYYY') as writer:
                 df_columnas_utiles.to_excel(writer)
 
 programa = GeneradorPlanillaFinanzas()
