@@ -27,8 +27,8 @@ class GeneradorPlanillaFinanzas:
                            'SCI': None,
                            'SIGFE': None}
 
-        for nombre_archivo in os.listdir('input_completo'):
-            nombre_archivo = os.path.join('input_completo', nombre_archivo)
+        for nombre_archivo in os.listdir('input_cortados'):
+            nombre_archivo = os.path.join('input_cortados', nombre_archivo)
             if ('.xlsx' in nombre_archivo) or ('.xls' in nombre_archivo) or ('.csv' in nombre_archivo):
                 for identificador_archivo in list(diccionario_dfs.keys()):
                     if identificador_archivo in nombre_archivo:
@@ -98,6 +98,8 @@ class GeneradorPlanillaFinanzas:
         mask_no_devengadas = pd.isna(df_izquierda['Fecha DEVENGO SIGFE'])
 
         df_izquierda['Fecha Docto SII'] = pd.to_datetime(df_izquierda['Fecha Docto SII'], dayfirst = True)
+        df_izquierda['Fecha Recepcion SII'] = pd.to_datetime(df_izquierda['Fecha Recepcion SII'], dayfirst = True)
+        df_izquierda['Fecha Reclamo SII'] = pd.to_datetime(df_izquierda['Fecha Reclamo SII'], dayfirst = True)
         df_izquierda['tiempo_diferencia SII'] = pd.to_datetime('today') - df_izquierda[mask_no_devengadas]['Fecha Docto SII']
         df_izquierda['esta_al_dia'] = df_izquierda[mask_no_devengadas]['tiempo_diferencia SII'] <= datetime.timedelta(8)
 
@@ -131,7 +133,7 @@ class GeneradorPlanillaFinanzas:
         return df_izquierda
     
     def obtener_columnas_necesarias(self, df_izquierda):
-        columnas_a_ocupar = ['Tipo Doc SII', 'RUT Emisor SII', 'Razon Social SII', 'Folio SII', 'Fecha Docto SII', 'Monto Exento SII', 'Monto Neto SII', 'Monto IVA Recuperable SII', 'Monto Total SII',
+        columnas_a_ocupar = ['Tipo Doc SII', 'RUT Emisor SII', 'Razon Social SII', 'Folio SII', 'Fecha Docto SII','Fecha Recepcion SII', 'Fecha Reclamo SII', 'Monto Exento SII', 'Monto Neto SII', 'Monto IVA Recuperable SII', 'Monto Total SII',
                            'publicacion ACEPTA', 'estado_acepta ACEPTA', 'estado_sii ACEPTA', 'estado_nar ACEPTA', 'estado_devengo ACEPTA', 'folio_oc ACEPTA', 'folio_rc ACEPTA', 'fecha_ingreso_rc ACEPTA', 'folio_sigfe ACEPTA', 'tarea_actual ACEPTA', 'estado_cesion ACEPTA', 
                            'Fecha DEVENGO SIGFE', 'Folio_interno DEVENGO SIGFE', 'Fecha PAGO SIGFE', 'Folio_interno PAGO SIGFE', 
                            'Fecha Recepción SCI', 'Registrador SCI', 'Articulo SCI', 'N° Acta SCI', 
