@@ -9,6 +9,11 @@ def realizar_inventario():
     df_movimientos = pd.read_excel('input\\movimientos.xlsx')
     df_movimientos.set_index('CODIGO ARTICULO', inplace = True)
 
+    mask_entradas = df_movimientos['TIPO MOVIMIENTO'] == 
+
+    df_movimientos.
+
+
     inventario = pd.DataFrame(df_movimientos.groupby(by = ['CODIGO ARTICULO'])['CANTIDAD'].sum())
 
     movimientos_traducidos = pd.merge(df_movimientos, df_traductor, how = 'left', left_index = True, right_index = True)
