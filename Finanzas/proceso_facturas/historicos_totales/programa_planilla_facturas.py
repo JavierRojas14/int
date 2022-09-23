@@ -35,6 +35,7 @@ class GeneradorPlanillaFinanzas:
                 dfs = list(map(lambda x: pd.read_csv(x, delimiter = ','), ruta_dfs))
                 df_sumada = pd.concat(dfs)
                 df_sumada = df_sumada.rename(columns = {'Rut Proveedor': 'RUT Emisor', 'Numero Documento': 'Folio'})
+                df_sumada['Folio'] = df_sumada['Folio'].astype(str).str.replace('.0', '', regex = False)
             
             elif base_de_datos == 'SIGFE':
                 dfs = list(map(lambda x: pd.read_csv(x, delimiter = ',', header = 10), ruta_dfs))
@@ -66,6 +67,7 @@ class GeneradorPlanillaFinanzas:
                 dfs = list(map(lambda x: pd.read_excel(x, header = 3), ruta_dfs))
                 df_sumada = pd.concat(dfs)
                 df_sumada = df_sumada.rename(columns = {'Rut': 'RUT Emisor', 'Folio': 'Folio_interno', 'NºDoc.': 'Folio'})
+                df_sumada['Folio'] = df_sumada['Folio'].astype(str).str.replace('.0', '', regex = False)
             
             df_sumada['RUT Emisor'] = df_sumada['RUT Emisor'].str.replace('.', '', regex = False) \
                                                     .str.upper() \
