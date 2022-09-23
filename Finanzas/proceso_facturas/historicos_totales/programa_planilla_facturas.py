@@ -58,7 +58,7 @@ class GeneradorPlanillaFinanzas:
                           else x, dfs))
 
                 df_sumada = pd.concat(dfs).rename(columns = {'RUT Proveedor': 'RUT Emisor'})
-                df_sumada.to_excel('Lel.xlsx')
+
             
             elif base_de_datos == 'TURBO':
                 dfs = list(map(lambda x: pd.read_excel(x, header = 3), ruta_dfs))
@@ -119,7 +119,7 @@ class GeneradorPlanillaFinanzas:
     
     def obtener_referencias_nc(self, df_izquierda):
         mask_notas_de_credito = df_izquierda['Tipo Doc SII'] == 61
-        df_izquierda['REFERENCIAS'] = df_izquierda[mask_notas_de_credito]['referencias ACEPTA'].apply(lambda x: self.extraer_folios_desde_diccionario(json.loads(x)) if type(x) == str else None)
+        df_izquierda['REFERENCIAS'] = df_izquierda[mask_notas_de_credito]['referencias ACEPTA'].apply(lambda x: self.extraer_folios_desde_diccionario(json.loads(x, strict = False)) if type(x) == str else None)
 
         tienen_referencias_validas = (df_izquierda['REFERENCIAS'].notna())
         df_izquierda['LLAVES REFERENCIAS PARA NC'] = df_izquierda[tienen_referencias_validas]['RUT Emisor SII'] + df_izquierda[tienen_referencias_validas]['REFERENCIAS']
