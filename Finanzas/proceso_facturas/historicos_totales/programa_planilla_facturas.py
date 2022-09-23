@@ -58,7 +58,9 @@ class GeneradorPlanillaFinanzas:
                           else x, dfs))
 
                 df_sumada = pd.concat(dfs).rename(columns = {'RUT Proveedor': 'RUT Emisor'})
+                mask_negativas = (df_sumada['Tipo Doc'] == 61) | (df_sumada['Tipo Doc'] == 56)
 
+                df_sumada.loc[mask_negativas, ['Monto Exento', 'Monto Neto', 'Monto IVA Recuperable', 'Monto Total']] = df_sumada.loc[mask_negativas, ['Monto Exento', 'Monto Neto', 'Monto IVA Recuperable', 'Monto Total']] * -1
             
             elif base_de_datos == 'TURBO':
                 dfs = list(map(lambda x: pd.read_excel(x, header = 3), ruta_dfs))
