@@ -40,14 +40,21 @@ class GeneradorPlanillaFinanzas:
             elif base_de_datos == 'SIGFE':
                 dfs = list(map(lambda x: pd.read_csv(x, delimiter = ',', header = 10), ruta_dfs))
                 df_sumada = pd.concat(dfs)
+                df_sumada = df_sumada.dropna(subset = ['Folio'])
+                df_sumada = df_sumada.query('`Cuenta Contable` != "Cuenta Contable"')
+
                 df_sumada['RUT Emisor'] = df_sumada['Principal'].apply(lambda x: str(x).split(' ')[0])
                 df_sumada = df_sumada.rename(columns = {'Folio': 'Folio_interno', 'Número ': 'Folio'})
+                df_sumada = df_sumada.reset_index()
 
-                mask_debe = (df_sumada['Debe'] != 0)
-                mask_haber = (df_sumada['Haber'] != 0)
+                df_sumada['Fecha'] = pd.to_datetime(df_sumada['Fecha'], dayfirst = True)
+                df_sumada['Folio_interno'] = df_sumada['Folio_interno'].astype('Int32')
 
-                df_sumada['Folio_interno PAGO'] = df_sumada['Folio_interno'][mask_debe]
-                df_sumada['Fecha PAGO'] = df_sumada['Fecha'][mask_debe]
+                mask_debe = (df_sumada['Debe'] != "0")
+                mask_haber = (df_sumada['Haber'] != "0")
+
+                df_sumada['Folio_interno PAGO'] = df_sumada[mask_debe]['Folio_interno']
+                df_sumada['Fecha PAGO'] = df_sumada[mask_debe]['Fecha']
 
                 df_sumada['Folio_interno DEVENGO'] = df_sumada['Folio_interno'][mask_haber]                
                 df_sumada['Fecha DEVENGO'] = df_sumada['Fecha'][mask_haber]
