@@ -18,6 +18,8 @@ class GeneradorPlanillaFinanzas:
         df_izquierda = self.obtener_columnas_necesarias(df_izquierda)
 
         self.guardar_dfs(df_izquierda)
+
+        print(f'Listo! No hubo ningún problema')
     
     def leer_y_limpiar_dfs(self):
         diccionario_dfs = {}
