@@ -78,6 +78,10 @@ class GeneradorPlanillaFinanzas:
                 df_sumada = df_sumada.rename(columns = {'Rut': 'RUT Emisor', 'Folio': 'Folio_interno', 'NºDoc.': 'Folio'})
                 df_sumada['Folio'] = df_sumada['Folio'].astype(str).str.replace('.0', '', regex = False)
             
+            elif base_de_datos == 'OBSERVACIONES':
+                dfs = list(map(lambda x: pd.read_excel(x), ruta_dfs))
+                df_sumada = pd.concat(dfs)
+            
             df_sumada['RUT Emisor'] = df_sumada['RUT Emisor'].str.replace('.', '', regex = False) \
                                                     .str.upper() \
                                                     .str.strip() 
@@ -156,6 +160,7 @@ class GeneradorPlanillaFinanzas:
                            'Fecha DEVENGO SIGFE', 'Folio_interno DEVENGO SIGFE', 'Fecha PAGO SIGFE', 'Folio_interno PAGO SIGFE', 
                            'Fecha Recepción SCI', 'Registrador SCI', 'Articulo SCI', 'N° Acta SCI', 
                            'Ubic. TURBO', 'NºPresu TURBO', 'Folio_interno TURBO', 'NºPago TURBO',
+                           'OBSERVACION OBSERVACIONES',
                            'tiempo_diferencia SII', 'esta_al_dia', 'REFERENCIAS']
 
         df_util = df_izquierda[columnas_a_ocupar]
