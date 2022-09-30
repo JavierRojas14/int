@@ -4,6 +4,8 @@ import datetime
 import os
 import json
 pd.options.mode.chained_assignment = None  # default='warn'
+import time
+
 
 class GeneradorPlanillaFinanzas:
     def __init__(self):
@@ -19,7 +21,7 @@ class GeneradorPlanillaFinanzas:
 
         self.guardar_dfs(df_izquierda)
 
-        print(f'Listo! No hubo ningún problema')
+        print(f'\nListo! No hubo ningún problema')
     
     def leer_y_limpiar_dfs(self):
         diccionario_dfs = {}
@@ -179,5 +181,7 @@ class GeneradorPlanillaFinanzas:
         with pd.ExcelWriter(nombre_archivo, datetime_format = 'DD-MM-YYYY') as writer:
                 df_columnas_utiles.to_excel(writer)
 
+start_time = time.time()
 programa = GeneradorPlanillaFinanzas()
 programa.correr_programa()
+print("--- %s seconds ---" % (time.time() - start_time))
