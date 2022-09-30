@@ -105,9 +105,10 @@ class GeneradorPlanillaFinanzas:
         return diccionario_dfs
     
     def unir_dfs(self, diccionario_dfs_limpias):
-        # El diccionario tiene el siguiente "orden": ACEPTA, SCI, SIGFE, SII, TURBO
+        # El diccionario tiene el siguiente "orden": ACEPTA, OBSERVACIONES, SCI, SIGFE, SII, TURBO
         lista_dfs_secuenciales = list(diccionario_dfs_limpias.values())
-        df_izquierda = lista_dfs_secuenciales.pop(3)
+        df_izquierda = lista_dfs_secuenciales.pop(4)
+
 
         for df_derecha in lista_dfs_secuenciales:
             df_izquierda = pd.merge(df_izquierda, df_derecha, how = 'left', left_index = True, right_index = True)
@@ -141,11 +142,14 @@ class GeneradorPlanillaFinanzas:
         tienen_referencias_validas = (df_izquierda['REFERENCIAS'].notna())
         df_izquierda['LLAVES REFERENCIAS PARA NC'] = df_izquierda[tienen_referencias_validas]['RUT Emisor SII'] + df_izquierda[tienen_referencias_validas]['REFERENCIAS']
 
+        df_izquierda['REFERENCIAS'] = 'FE ' + df_izquierda[mask_notas_de_credito]['REFERENCIAS']
+
         for referencia in df_izquierda['LLAVES REFERENCIAS PARA NC'].unique():
             if type(referencia) != float:
 
                 nc = df_izquierda.query('`LLAVES REFERENCIAS PARA NC` == @referencia').index[0]
                 nc = nc.split('-')[1][1:]
+                nc = f'NC {nc}'
 
                 mask_boletas_referenciadas = df_izquierda.index == referencia
                 df_izquierda.loc[mask_boletas_referenciadas, 'REFERENCIAS'] = nc
@@ -160,8 +164,7 @@ class GeneradorPlanillaFinanzas:
                            'Fecha DEVENGO SIGFE', 'Folio_interno DEVENGO SIGFE', 'Fecha PAGO SIGFE', 'Folio_interno PAGO SIGFE', 
                            'Fecha Recepción SCI', 'Registrador SCI', 'Articulo SCI', 'N° Acta SCI', 
                            'Ubic. TURBO', 'NºPresu TURBO', 'Folio_interno TURBO', 'NºPago TURBO',
-                           'OBSERVACION OBSERVACIONES',
-                           'tiempo_diferencia SII', 'esta_al_dia', 'REFERENCIAS']
+                           'tiempo_diferencia SII', 'esta_al_dia', 'REFERENCIAS', 'OBSERVACION OBSERVACIONES']
 
         df_util = df_izquierda[columnas_a_ocupar]
         df_util['Tipo Doc SII'] = df_util['Tipo Doc SII'].astype('category')
