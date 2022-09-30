@@ -1,6 +1,7 @@
 # INT
 
 Este es el repositorio para el código que generé en el Instituo Nacional del Torax (Que empecé a trabajar desde el 01/07/2022).
+# 01/07/2022 Unidad de Laboratorio.
 
 # **22/07/2022:**  El programa se terminó en totalidad, tiene las siguientes funcionalidades:
 
@@ -39,9 +40,8 @@ UCI y de muestras AE/LB (Aspirados Endotraqueales/Lavados Broncoalveolares).
 # Unidad de Finanzas
 # **01/09/2022:** Inicié mis trabajos en la unidad de finanzas en el INT.
 
-# **30/09/2022:**: Terminé los siguientes proyectos a la fecha.
+# **30/09/2022:** Terminé los siguientes proyectos a la fecha.
 
 - Realicé el diccionario traductor de los artículos de bodega e ítem presupuestario/SIGCOM.
 - Realicé el programa para obtener la **planilla de control de facturas de devengado.** Además, esta planilla se implementará en la unidad. **(Es el más importante hasta ahora)**.
 - Realicé un mini programa para realizar el inventario de bodega.
-- 
