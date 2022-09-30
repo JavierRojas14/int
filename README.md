@@ -1,7 +1,7 @@
 # INT
 
 Este es el repositorio para el código que generé en el Instituo Nacional del Torax (Que empecé a trabajar desde el 01/07/2022).
-# 01/07/2022 Unidad de Laboratorio.
+# Unidad de Laboratorio ~ 01/07/2022.
 
 # **22/07/2022:**  El programa se terminó en totalidad, tiene las siguientes funcionalidades:
 
@@ -37,8 +37,7 @@ UCI y de muestras AE/LB (Aspirados Endotraqueales/Lavados Broncoalveolares).
 - Es innecesaria la presencia de una archivo .xlsx Data Only.
 
 
-# Unidad de Finanzas
-# **01/09/2022:** Inicié mis trabajos en la unidad de finanzas en el INT.
+# Unidad de Finanzas ~ 01/09/2022
 
 # **30/09/2022:** Terminé los siguientes proyectos a la fecha.
 
