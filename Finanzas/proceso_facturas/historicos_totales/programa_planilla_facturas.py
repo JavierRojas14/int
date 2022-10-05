@@ -125,7 +125,7 @@ class GeneradorPlanillaFinanzas:
         df_izquierda['Fecha Docto SII'] = pd.to_datetime(df_izquierda['Fecha Docto SII'], dayfirst = True)
         df_izquierda['Fecha Recepcion SII'] = pd.to_datetime(df_izquierda['Fecha Recepcion SII'], dayfirst = True)
         df_izquierda['Fecha Reclamo SII'] = pd.to_datetime(df_izquierda['Fecha Reclamo SII'], dayfirst = True)
-        df_izquierda['tiempo_diferencia SII'] = pd.to_datetime('today') - df_izquierda[mask_no_devengadas]['Fecha Docto SII']
+        df_izquierda['tiempo_diferencia SII'] = (pd.to_datetime('today') - df_izquierda[mask_no_devengadas]['Fecha Docto SII']) + pd.Timedelta(days = 1)
         df_izquierda['esta_al_dia'] = df_izquierda[mask_no_devengadas]['tiempo_diferencia SII'] <= datetime.timedelta(8)
 
         return df_izquierda
