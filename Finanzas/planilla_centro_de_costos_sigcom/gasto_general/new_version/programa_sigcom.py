@@ -6,10 +6,8 @@ import numpy as np
 import pandas as pd
 import requests
 
-from constantes import (CODIGOS_CENTRO_DE_COSTO, NOMBRES_CENTRO_DE_COSTO,
+from constantes import (CENTROS_DE_COSTO, CODIGOS_CENTRO_DE_COSTO, NOMBRES_CENTRO_DE_COSTO,
                         EXCEPCIONES_SIGFE, TICKET_MERCADO_PUBLICO)
-
-codigos_cc = map()
 
 pd.set_option('display.max_colwidth', None)
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -215,6 +213,8 @@ class AnalizadorSIGCOM:
             facturas_a_gg['detalle_oc'] = facturas_a_buscar['oc'] \
                                         .apply(self.funcion_obtener_requests_mercado_publico)
 
+            facturas_a_buscar['centro_de_costo_asociado'] = None
+
             facturas_a_gg.to_excel('input\\facturas_gg_con_detalle.xlsx')
 
         return facturas_a_gg
@@ -241,12 +241,33 @@ class AnalizadorSIGCOM:
     def rellenar_centros_de_costos(self, facturas_a_gg):
         print('\n- Se rellenarán los centros de costo asociados a cada factura - \n')
 
-
         for factura in facturas_a_gg.itertuples():
-            detalle_formateado = json.dumps(factura.detalle_oc, indent = 2, ensure_ascii = False)
-            print(f'La factura {factura.Titulo} tiene el siguiente detalle: \n\n'
-                  f'{detalle_formateado}')
-            cc = input('¿Qué centro de costo crees que es?: ')
+            detalle_formateado = json.dumps(factura.detalle_oc, indent = 1, ensure_ascii = False)
+            print('------------------------------------------------')
+            print('------------------------------------------------')
+
+            print(f'La factura {factura.Titulo} tiene el siguiente detalle: \n'
+                  f'CODIGO SIGFE: {factura._7} - {factura._9}\n'
+                  f'CODIGO SIGCOM: {factura._10} - {factura._11} \n\n'
+                  f'{detalle_formateado} \n')
+            
+            while True:
+                cc = input('¿Qué centro de costo crees que es? (Ingresar sólo el N° de código. '
+                        'Los códigos están en constantes.py): ')
+
+                if cc in CODIGOS_CENTRO_DE_COSTO:
+                    break
+
+                else:
+                    print('Debes ingresar un código válido.')
+            
+            facturas_a_gg.loc[factura.Index, 'centro_de_costo_asignado'] = cc
+            print('------------------------------------------------')
+            print('------------------------------------------------\n\n')
+        
+        facturas_a_gg.to_excel('prueba.xlsx')
+        
+        return facturas_a_gg
 
     def obtener_formato_rrhh(self, facturas_rrhh):
         facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
