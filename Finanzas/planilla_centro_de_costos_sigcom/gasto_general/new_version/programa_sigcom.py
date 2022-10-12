@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 from time import sleep
+import numpy as np
 
 pd.set_option('display.max_colwidth', None)
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -37,49 +38,55 @@ class AnalizadorSIGCOM:
         disponibilidad_devengo, \
         formato_gg_sigcom = self.cargar_archivos_y_tratar_df()
 
-        suma_gastos_ej_presup = self.obtener_suma_ej_presup_total(estado_ej_presup)
+        # suma_gastos_ej_presup = self.obtener_suma_ej_presup_total(estado_ej_presup)
 
-        suma_desglosada_por_sigfe, \
-        suma_desglosada_por_sigcom, \
-        facturas_gg, \
-        facturas_rrhh = self.desglosar_gastos_generales_y_rrhh(suma_gastos_ej_presup, \
-                                                               disponibilidad_devengo)
+        # suma_desglosada_por_sigfe, \
+        # suma_desglosada_por_sigcom, \
+        # facturas_gg, \
+        # facturas_rrhh = self.desglosar_gastos_generales_y_rrhh(suma_gastos_ej_presup, \
+        #                                                        disponibilidad_devengo)
 
-        detalle_facturas = self.obtener_detalle_facturas(facturas_gg)
+        # detalle_facturas = self.obtener_detalle_facturas(facturas_gg)
 
-        formato_rellenado = self.rellenar_formato(suma_desglosada_por_sigcom, \
-                                                  formato_gg_sigcom)
+        # formato_rellenado = self.rellenar_formato(suma_desglosada_por_sigcom, \
+        #                                           formato_gg_sigcom)
 
-        self.guardar_archivos(suma_desglosada_por_sigfe, suma_desglosada_por_sigcom, \
-                              facturas_gg, facturas_rrhh, \
-                              detalle_facturas, \
-                              formato_rellenado)
+        # self.guardar_archivos(suma_desglosada_por_sigfe, suma_desglosada_por_sigcom, \
+        #                       facturas_gg, facturas_rrhh, \
+        #                       detalle_facturas, \
+        #                       formato_rellenado)
 
     def cargar_archivos_y_tratar_df(self):
         '''
         Esta función permite cargar los archivos "Ejecución presupuestaria", "Disponibilidad
         Devengo" y "Formato Gasto General".
 
+        - El archivo ejecución presupuestaria lo carga, filtra por las columnas útiles ("Concepto
+        Presupuestario" y "Devengado"), filtra los headers de las subtablas presentes y finalmente
+        asigna los dtypes correctos (object, int64 y object; Concepto Presupuestario, Devengado
+        y COD SIGFE).
+
         - Agrega la columna "COD SIGFE" a los dos primeros archivos. Además, los COD SIGFE
         están en formato str.
         '''
         estado_ej_presup = pd.read_excel('input\\SA_EstadoEjecucionPresupuestaria.xls', header = 6)
-        disponibilidad_devengo = pd.read_excel('input\\SA_DisponibilidadDevengoPresupuestario.xls',\
-                                               header = 5)
-        formato_gg_sigcom = pd.read_excel('input\\Formato 3_Gasto General 2022-10.xlsx')
-
-        columnas_utiles_ej_presup = ['Nivel', 'Concepto Presupuestario', 'Devengado']
-        columnas_utiles_disponibilidad_devengo = ['Titulo', 'Principal', 'Número Documento', \
-                                                  'Concepto Presupuestario', 'Monto Vigente']
-
-        estado_ej_presup = estado_ej_presup[columnas_utiles_ej_presup]
-        disponibilidad_devengo = disponibilidad_devengo[columnas_utiles_disponibilidad_devengo]
-
+        estado_ej_presup = estado_ej_presup[['Concepto Presupuestario', 'Devengado']]
+        estado_ej_presup = estado_ej_presup.query('`Devengado` != "Devengado"')
+        estado_ej_presup['Devengado'] = estado_ej_presup['Devengado'].astype(np.int64)
         estado_ej_presup['COD SIGFE'] = estado_ej_presup['Concepto Presupuestario'].str.split()\
                                                                                    .str[0]
 
+        disponibilidad_devengo = pd.read_excel('input\\SA_DisponibilidadDevengoPresupuestario.xls',\
+                                               header = 5)
+        disponibilidad_devengo = disponibilidad_devengo[['Titulo', 'Principal', 'Número Documento',\
+                                                        'Concepto Presupuestario', 'Monto Vigente']]        
+
         disponibilidad_devengo['COD SIGFE'] = disponibilidad_devengo['Concepto Presupuestario'].str\
                                               .split().str[0]
+        
+        disponibilidad_devengo['oc'] = disponibilidad_devengo['Titulo'].str.split('/').str[3]
+
+        print(disponibilidad_devengo.info())
 
         estado_ej_presup = pd.merge(estado_ej_presup, TRADUCTOR_SIGFE_SIGCOM, how = 'inner', \
                                     on = 'COD SIGFE')
@@ -198,7 +205,7 @@ class AnalizadorSIGCOM:
 
         mask_con_oc = facturas_gg['Titulo'].str.contains('/')
 
-        facturas_gg['folio_oc'] = facturas_gg[mask_con_oc]['Titulo'].str.split('/').str[3]
+        
 
         print('\n\n------ Buscando las ordenes de compra... ------ \n\n')
         facturas_gg['detalle_oc'] = facturas_gg[mask_con_oc]['folio_oc'].apply(self.funcion_obtener_requests_mercado_publico)
