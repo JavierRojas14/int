@@ -2,6 +2,7 @@ import pandas as pd
 import requests
 from time import sleep
 import numpy as np
+import os
 
 pd.set_option('display.max_colwidth', None)
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -31,12 +32,14 @@ class AnalizadorSIGCOM:
         '''
         estado_ej_presup, disponibilidad_devengo = self.cargar_archivos_y_tratar_df()
 
+        estado_ej_presup, \
         facturas_a_gg, \
         facturas_a_rrhh, \
         facturas_a_fondos_fijos = self.desglosar_gastos_generales_rrhh_fondo_fijo(estado_ej_presup,\
                                                                         disponibilidad_devengo)
 
         facturas_a_gg = self.obtener_detalle_facturas(facturas_a_gg)
+        facturas_a_gg = self.rellenar_centros_de_costos(facturas_a_gg)
 
         # formato_rellenado = self.rellenar_formato(suma_desglosada_por_sigcom, \
         #                                           formato_gg_sigcom)
@@ -120,7 +123,7 @@ class AnalizadorSIGCOM:
 
         facturas_a_gg = facturas_a_gg.drop(facturas_a_fondos_fijos.index)
 
-        return facturas_a_gg, facturas_a_rrhh, facturas_a_fondos_fijos
+        return estado_ej_presup, facturas_a_gg, facturas_a_rrhh, facturas_a_fondos_fijos
 
     def obtener_excepciones_a_rrhh(self, facturas_a_analizar, estado_ej_presup):
         facturas_a_rrhh = pd.DataFrame()
@@ -188,27 +191,34 @@ class AnalizadorSIGCOM:
             resta_fondo = (estado_ej_presup.loc[mask_fondo_fijo, 'Devengado_merge']- monto)
 
             estado_ej_presup.loc[mask_fondo_fijo, 'Devengado_merge'] = resta_fondo
-        
+
         return facturas_a_fondos_fijos, estado_ej_presup
 
     def obtener_detalle_facturas(self, facturas_a_gg):
         '''
-        Esta función permite obtener el detalle de cada factura involucrada en el gasto general 
+        Esta función permite obtener el detalle de cada factura involucrada en el gasto general
         del item SIGCOM.
 
-        Para esto, toma los items presupuestarios involucrados en el gasto general y busca las 
+        Para esto, toma los items presupuestarios involucrados en el gasto general y busca las
         facturas en la disponibilidad de devengo.
         '''
         print('- Se buscarán las ordenes de compra en marcado público -\n')
 
-        mask_con_oc = facturas_a_gg['oc'].str.contains('-')
-        facturas_a_buscar = facturas_a_gg[mask_con_oc]
+        if 'facturas_gg_con_detalle.xlsx' in os.listdir('input'):
+            print('Ya existe un archivo con el detalle de las facturas, se leerá ese archivo.')
+            facturas_a_gg = pd.read_excel('input\\facturas_gg_con_detalle.xlsx')
 
-        cols_a_mostrar = ['Titulo', 'Número Documento','COD SIGCOM', 'COD SIGFE']
-        print(facturas_a_buscar[cols_a_mostrar].to_markdown())
+        else:
+            mask_con_oc = facturas_a_gg['oc'].str.contains('-')
+            facturas_a_buscar = facturas_a_gg[mask_con_oc]
 
-        facturas_a_gg['detalle_oc'] = facturas_a_buscar['oc'] \
-                                      .apply(self.funcion_obtener_requests_mercado_publico)
+            cols_a_mostrar = ['Titulo', 'Número Documento','COD SIGCOM', 'COD SIGFE']
+            print(facturas_a_buscar[cols_a_mostrar].to_markdown())
+
+            facturas_a_gg['detalle_oc'] = facturas_a_buscar['oc'] \
+                                        .apply(self.funcion_obtener_requests_mercado_publico)
+
+            facturas_a_gg.to_excel('input\\facturas_gg_con_detalle.xlsx')
 
         return facturas_a_gg
 
@@ -219,15 +229,21 @@ class AnalizadorSIGCOM:
                       f"json?codigo={orden_de_compra}&ticket={TICKET_MERCADO_PUBLICO}"
 
 
-        response = requests.get(url_request, timeout = 20)
-        detalle_oc = response.json()['Listado'][0]['Items']
+        try:
+            response = requests.get(url_request, timeout = 20)
+            detalle_oc = response.json()['Listado'][0]['Items']
 
-        if response.status_code == 200:
-            print('200: Si se encontró la orden de compra!')
+            sleep(2.0)
 
-        sleep(1.9)
+        except Exception as excepcion:
+            print(type(excepcion), excepcion)
+            detalle_oc = excepcion
 
         return detalle_oc
+
+    def rellenar_centros_de_costos(self, facturas_a_gg):
+        for factura in facturas_a_gg:
+            print(factura)
 
     def obtener_formato_rrhh(self, facturas_rrhh):
         facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
