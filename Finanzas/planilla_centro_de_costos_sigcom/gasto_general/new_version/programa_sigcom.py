@@ -260,13 +260,13 @@ class AnalizadorSIGCOM:
 
                 else:
                     print('Debes ingresar un código válido.')
-            
+
             facturas_a_gg.loc[factura.Index, 'centro_de_costo_asignado'] = cc
             print('------------------------------------------------')
             print('------------------------------------------------\n\n')
-        
+
         facturas_a_gg.to_excel('prueba.xlsx')
-        
+
         return facturas_a_gg
 
     def obtener_formato_rrhh(self, facturas_rrhh):
