@@ -171,23 +171,26 @@ class AnalizadorSIGCOM:
         return facturas_a_rrhh, estado_ej_presup
 
     def obtener_fondos_fijos(self, facturas_a_analizar, estado_ej_presup):
+        print(f'\n - Analizando fondos fijos -\n')
         mask_fondos_fijos = facturas_a_analizar['Titulo'].str.upper() \
                                                             .str.contains('FIJO')
 
         facturas_a_fondos_fijos = facturas_a_analizar[mask_fondos_fijos]
-        facturas_a_fondos_fijos = facturas_a_fondos_fijos.groupby('COD SIGFE').sum()
+        print(f'Las facturas que van a fondos fijos son: \n{facturas_a_fondos_fijos[["Titulo", "Principal", "COD SIGFE", "COD SIGCOM"]].to_markdown()}')
+        suma_fondos_fijos = facturas_a_fondos_fijos.groupby('COD SIGFE').sum()
+        print(f'\nY suman lo siguiente (esto se va a descontar): \n{suma_fondos_fijos.to_markdown()}')
 
-        for codigo_sigfe in facturas_a_fondos_fijos.index:
-            monto = facturas_a_fondos_fijos.loc[codigo_sigfe][0]
+
+        for codigo_sigfe in suma_fondos_fijos.index:
+            monto = suma_fondos_fijos.loc[codigo_sigfe][0]
 
             mask_fondo_fijo = (estado_ej_presup['COD SIGFE'] == codigo_sigfe)
             estado_ej_presup.loc[mask_fondo_fijo, 'Descuento_fondo_fijo'] = monto
             resta_fondo = (estado_ej_presup.loc[mask_fondo_fijo, 'Devengado_merge']- monto)
 
             estado_ej_presup.loc[mask_fondo_fijo, 'Devengado_merge'] = resta_fondo
-                  
         
-        
+        return facturas_a_fondos_fijos, estado_ej_presup
 
 
     def obtener_formato_rrhh(self, facturas_rrhh):
