@@ -1,21 +1,18 @@
+import json
+import os
+from time import sleep
+
+import numpy as np
 import pandas as pd
 import requests
-from time import sleep
-import numpy as np
-import os
+
+from constantes import (CODIGOS_CENTRO_DE_COSTO, NOMBRES_CENTRO_DE_COSTO,
+                        EXCEPCIONES_SIGFE, TICKET_MERCADO_PUBLICO)
+
+codigos_cc = map()
 
 pd.set_option('display.max_colwidth', None)
 pd.options.mode.chained_assignment = None  # default='warn'
-
-TICKET_MERCADO_PUBLICO = '7CA7E3D8-361B-415F-84EB-88C0B89838B5'
-
-EXCEPCIONES_SIGFE = {
-    '221299901601': 'FERNANDO BARAONA EN RRHH. ANEDIN EN GASTO GENERAL',
-    '221299901602': 'Todo en RRHH',
-    '221299900902': 'Cardiologia y Cardiocirugia en RRHH. UC Christus en gastos generales',
-    '221299900201': 'M Meneses cargado en RRHH',
-    '221299900202': 'J Andueza y Cardiocirugia en RRHH'
-}
 
 class AnalizadorSIGCOM:
     '''Esta es la definición de la clase AnalizadorSIGCOM, que permite:
@@ -242,8 +239,14 @@ class AnalizadorSIGCOM:
         return detalle_oc
 
     def rellenar_centros_de_costos(self, facturas_a_gg):
-        for factura in facturas_a_gg:
-            print(factura)
+        print('\n- Se rellenarán los centros de costo asociados a cada factura - \n')
+
+
+        for factura in facturas_a_gg.itertuples():
+            detalle_formateado = json.dumps(factura.detalle_oc, indent = 2, ensure_ascii = False)
+            print(f'La factura {factura.Titulo} tiene el siguiente detalle: \n\n'
+                  f'{detalle_formateado}')
+            cc = input('¿Qué centro de costo crees que es?: ')
 
     def obtener_formato_rrhh(self, facturas_rrhh):
         facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
