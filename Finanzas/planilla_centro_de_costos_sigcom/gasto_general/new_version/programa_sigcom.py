@@ -31,13 +31,12 @@ class AnalizadorSIGCOM:
         '''
         estado_ej_presup, disponibilidad_devengo = self.cargar_archivos_y_tratar_df()
 
-        suma_desglosada_por_sigfe, \
-        suma_desglosada_por_sigcom, \
-        facturas_gg, \
-        facturas_rrhh = self.desglosar_gastos_generales_y_rrhh(estado_ej_presup, \
-                                                               disponibilidad_devengo)
+        facturas_a_gg, \
+        facturas_a_rrhh, \
+        facturas_a_fondos_fijos = self.desglosar_gastos_generales_rrhh_fondo_fijo(estado_ej_presup,\
+                                                                        disponibilidad_devengo)
 
-        # detalle_facturas = self.obtener_detalle_facturas(facturas_gg)
+        facturas_a_gg = self.obtener_detalle_facturas(facturas_a_gg)
 
         # formato_rellenado = self.rellenar_formato(suma_desglosada_por_sigcom, \
         #                                           formato_gg_sigcom)
@@ -91,7 +90,7 @@ class AnalizadorSIGCOM:
 
         return estado_ej_presup, disponibilidad_devengo
 
-    def desglosar_gastos_generales_y_rrhh(self, estado_ej_presup, disponibilidad_devengo):
+    def desglosar_gastos_generales_rrhh_fondo_fijo(self, estado_ej_presup, disponibilidad_devengo):
         '''
         Esta función permite desglosar el detalle de cada ítem SIGFE, y sus facturas asociadas.
 
@@ -103,8 +102,8 @@ class AnalizadorSIGCOM:
         cepciones.
 
         - Después, se guardan las facturas que van asociadas a FONDOS FIJOS, y se guardan.
-    
-        - Finalmente, se sacan las facturas de los últimos dos apartados, y se obtienen las 
+
+        - Finalmente, se sacan las facturas de los últimos dos apartados, y se obtienen las
         facturas asociadas a GG.
         '''
 
@@ -120,9 +119,9 @@ class AnalizadorSIGCOM:
                                                                             estado_ej_presup)
 
         facturas_a_gg = facturas_a_gg.drop(facturas_a_fondos_fijos.index)
-        
+
         return facturas_a_gg, facturas_a_rrhh, facturas_a_fondos_fijos
-    
+
     def obtener_excepciones_a_rrhh(self, facturas_a_analizar, estado_ej_presup):
         facturas_a_rrhh = pd.DataFrame()
 
@@ -171,15 +170,15 @@ class AnalizadorSIGCOM:
         return facturas_a_rrhh, estado_ej_presup
 
     def obtener_fondos_fijos(self, facturas_a_analizar, estado_ej_presup):
-        print(f'\n - Analizando fondos fijos -\n')
+        print('\n - Analizando fondos fijos -\n')
         mask_fondos_fijos = facturas_a_analizar['Titulo'].str.upper() \
                                                             .str.contains('FIJO')
 
         facturas_a_fondos_fijos = facturas_a_analizar[mask_fondos_fijos]
-        print(f'Las facturas que van a fondos fijos son: \n{facturas_a_fondos_fijos[["Titulo", "Principal", "COD SIGFE", "COD SIGCOM"]].to_markdown()}')
+        print(f'Las facturas que van a fondos fijos son: \n'
+              f'{facturas_a_fondos_fijos[["Titulo", "Principal", "COD SIGFE", "COD SIGCOM"]].to_markdown()}')
         suma_fondos_fijos = facturas_a_fondos_fijos.groupby('COD SIGFE').sum()
         print(f'\nY suman lo siguiente (esto se va a descontar): \n{suma_fondos_fijos.to_markdown()}')
-
 
         for codigo_sigfe in suma_fondos_fijos.index:
             monto = suma_fondos_fijos.loc[codigo_sigfe][0]
@@ -192,9 +191,45 @@ class AnalizadorSIGCOM:
         
         return facturas_a_fondos_fijos, estado_ej_presup
 
+    def obtener_detalle_facturas(self, facturas_a_gg):
+        '''
+        Esta función permite obtener el detalle de cada factura involucrada en el gasto general 
+        del item SIGCOM.
+
+        Para esto, toma los items presupuestarios involucrados en el gasto general y busca las 
+        facturas en la disponibilidad de devengo.
+        '''
+        print('- Se buscarán las ordenes de compra en marcado público -\n')
+
+        mask_con_oc = facturas_a_gg['oc'].str.contains('-')
+        facturas_a_buscar = facturas_a_gg[mask_con_oc]
+
+        cols_a_mostrar = ['Titulo', 'Número Documento','COD SIGCOM', 'COD SIGFE']
+        print(facturas_a_buscar[cols_a_mostrar].to_markdown())
+
+        facturas_a_gg['detalle_oc'] = facturas_a_buscar['oc'] \
+                                      .apply(self.funcion_obtener_requests_mercado_publico)
+
+        return facturas_a_gg
+
+    def funcion_obtener_requests_mercado_publico(self, orden_de_compra):
+        print(f'Pidiendo la orden de compra: {orden_de_compra}')
+        orden_de_compra = orden_de_compra.strip()
+        url_request = f"https://api.mercadopublico.cl/servicios/v1/publico/ordenesdecompra." \
+                      f"json?codigo={orden_de_compra}&ticket={TICKET_MERCADO_PUBLICO}"
+
+
+        response = requests.get(url_request, timeout = 20)
+        detalle_oc = response.json()['Listado'][0]['Items']
+
+        if response.status_code == 200:
+            print('200: Si se encontró la orden de compra!')
+
+        sleep(1.9)
+
+        return detalle_oc
 
     def obtener_formato_rrhh(self, facturas_rrhh):
-    
         facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
                                     .sum() \
                                     .reset_index()
@@ -211,50 +246,6 @@ class AnalizadorSIGCOM:
                                         .sum() \
                                         .reset_index()
 
-            
-
-    def obtener_detalle_facturas(self, facturas_gg):
-        '''
-        Esta función permite obtener el detalle de cada factura involucrada en el gasto general del item SIGCOM.
-        Para esto, toma los items presupuestarios involucrados en el gasto general y busca las facturas en la disponibilidad de devengo.
-        '''
-        print('BUSCANDO ORDENES DE COMPRA DE LAS SIGUIENTES FACTURAS: \n\n')
-
-        cols_a_mostrar = ["Titulo", "Número Documento", \
-                          "COD SIGCOM", "COD SIGFE"]
-        print(facturas_gg)
-        facturas_formateadas = facturas_gg[cols_a_mostrar].to_markdown()
-        print(facturas_formateadas)
-
-        mask_con_oc = facturas_gg['Titulo'].str.contains('/')
-
-        
-
-        print('\n\n------ Buscando las ordenes de compra... ------ \n\n')
-        facturas_gg['detalle_oc'] = facturas_gg[mask_con_oc]['folio_oc'].apply(self.funcion_obtener_requests_mercado_publico)
-        
-        return facturas_gg
-
-    def funcion_obtener_requests_mercado_publico(self, orden_de_compra):
-        
-        orden_de_compra = orden_de_compra.strip()
-
-        if orden_de_compra and '-' in orden_de_compra:
-            print(f'Pidiendo la orden de compra: {orden_de_compra}')
-            url_request = f"https://api.mercadopublico.cl/servicios/v1/publico/ordenesdecompra.json?codigo={orden_de_compra}&ticket={TICKET_MERCADO_PUBLICO}"
-
-            try:
-                response = requests.get(url_request, timeout = 20)
-                print(response.status_code)
-                response = response.json()['Listado'][0]['Items']
-                sleep(1.9)
-            
-            except Exception as e:
-                print(e)
-                response = None
-
-            return response
-    
     def rellenar_formato(self, suma_desglosada_por_sigcom, formato_sigcom_gg):
         print('--------------------------------\n\n'
               'Rellenando la planilla formato')
