@@ -8,7 +8,9 @@ pd.options.mode.chained_assignment = None  # default='warn'
 TRADUCTOR_SIGFE_SIGCOM = pd.read_excel('input\\relacion_sigfe_sigcom_cristian_GG.xlsx')
 TRADUCTOR_SIGFE_SIGCOM['COD SIGFE'] = TRADUCTOR_SIGFE_SIGCOM['COD SIGFE'].str.replace("'", "", \
                                                                                       regex = False)
-TRADUCTOR_SIGFE_SIGCOM['COD SIGCOM'] = TRADUCTOR_SIGFE_SIGCOM['COD SIGCOM'].astype('object')
+TRADUCTOR_SIGFE_SIGCOM['COD SIGCOM'] = TRADUCTOR_SIGFE_SIGCOM['COD SIGCOM'].astype(str)
+
+print(TRADUCTOR_SIGFE_SIGCOM.info())
 
 TICKET_MERCADO_PUBLICO = '7CA7E3D8-361B-415F-84EB-88C0B89838B5'
 
@@ -23,7 +25,7 @@ EXCEPCIONES_SIGFE = {
 class AnalizadorSIGCOM:
     '''Esta es la definición de la clase AnalizadorSIGCOM, que permite:
 
-    1) Leer los archivos de estado de ejecución presupuestaria, estado de devengo, 
+    1) Leer los archivos de estado de ejecución presupuestaria, estado de devengo,
     planilla PERC y el formato SIGOM para los gastos generales.
     '''
     def __init__(self):
@@ -31,7 +33,7 @@ class AnalizadorSIGCOM:
 
     def correr_programa(self):
         '''
-        Esta es la función principal del programa, permite correrlo de forma general. 
+        Esta es la función principal del programa, permite correrlo de forma general.
         '''
         estado_ej_presup, \
         disponibilidad_devengo, \
@@ -59,8 +61,8 @@ class AnalizadorSIGCOM:
         '''
         Esta función permite cargar los archivos "Ejecución presupuestaria", "Disponibilidad
         Devengo" y "Formato Gasto General".
-        
-        - Agrega la columna "COD SIGFE" a los dos primeros archivos. Además, los COD SIGFE 
+
+        - Agrega la columna "COD SIGFE" a los dos primeros archivos. Además, los COD SIGFE
         están en formato str.
         '''
         estado_ej_presup = pd.read_excel('input\\SA_EstadoEjecucionPresupuestaria.xls', header = 6)
@@ -93,6 +95,10 @@ class AnalizadorSIGCOM:
         return estado_ej_presup, disponibilidad_devengo, formato_gg_sigcom
 
     def obtener_suma_ej_presup_total(self, estado_ej_presup):
+        '''
+        Permite obtener la suma de la ejecución presupuestaria, tanto por COD SIGFE, como
+        COD SIGCOM.
+        '''
 
         suma_ej_presup = estado_ej_presup.groupby(['COD SIGCOM', 'ITEM SIGCOM', 'COD SIGFE'], \
                                                   dropna = False)['Devengado'].sum().to_frame()
@@ -102,7 +108,9 @@ class AnalizadorSIGCOM:
         suma_ej_presup = suma_ej_presup.rename(columns = {'Devengado': 'Devengado_ej_presup'})
         suma_ej_presup = suma_ej_presup.reset_index()
 
-        suma_ej_presup['Devengado_ej_presup'] = suma_ej_presup['Devengado_ej_presup'].astype('Int32')
+        suma_ej_presup['Devengado_ej_presup'] = suma_ej_presup['Devengado_ej_presup'] \
+                                                .astype('Int32')
+
         suma_ej_presup['Devengado_ej_presup_y_estado_devengo'] = suma_ej_presup['Devengado_ej_presup_y_estado_devengo'].astype('Int32')
 
         return suma_ej_presup
@@ -126,13 +134,15 @@ class AnalizadorSIGCOM:
                 mask_a_rrhh = query_excepcion['Principal'].notna()
 
             elif codigo_sigfe_excepcion == '221299900902':
-                mask_a_rrhh = query_excepcion['Principal'].str.contains('CARDIOLOGIA') | (query_excepcion['Principal'].str.contains('CARDIOCIRUGIA'))
+                mask_a_rrhh = query_excepcion['Principal'].str.contains('CARDIOLOGIA') | \
+                              (query_excepcion['Principal'].str.contains('CARDIOCIRUGIA'))
 
             elif codigo_sigfe_excepcion == '221299900201':
                 mask_a_rrhh = query_excepcion['Principal'].str.contains('MANUEL MENESES')
-                
+
             elif codigo_sigfe_excepcion == '221299900202':
-                mask_a_rrhh = query_excepcion['Principal'].str.contains('ANDUEZA') | query_excepcion['Principal'].str.contains('CARDIOCIRUGIA')
+                mask_a_rrhh = query_excepcion['Principal'].str.contains('ANDUEZA') | \
+                              query_excepcion['Principal'].str.contains('CARDIOCIRUGIA')
 
             df_a_rrhh = query_excepcion[mask_a_rrhh]
             df_a_gg = query_excepcion[~mask_a_rrhh]
@@ -145,7 +155,7 @@ class AnalizadorSIGCOM:
 
             print(f'El monto destinado a RRHH será de: {valor_a_rrhh} \n'
                   f'El monto destinado a GG será de: {valor_a_gg}\n')
-    
+
             facturas_rrhh = pd.concat([facturas_rrhh, df_a_rrhh])
             facturas_globales = facturas_globales.drop(df_a_rrhh.index)
 
@@ -158,8 +168,7 @@ class AnalizadorSIGCOM:
         facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
                                      .sum() \
                                      .reset_index()
-        
-        
+
         facturas_rrhh['Principal'] = facturas_rrhh['Principal'].str \
                                                                .split(n = 1)
 
