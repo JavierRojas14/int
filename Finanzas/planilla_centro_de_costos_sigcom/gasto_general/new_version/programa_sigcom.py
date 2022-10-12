@@ -6,11 +6,6 @@ import numpy as np
 pd.set_option('display.max_colwidth', None)
 pd.options.mode.chained_assignment = None  # default='warn'
 
-TRADUCTOR_SIGFE_SIGCOM = pd.read_excel('input\\relacion_sigfe_sigcom_cristian_GG.xlsx')
-TRADUCTOR_SIGFE_SIGCOM['COD SIGFE'] = TRADUCTOR_SIGFE_SIGCOM['COD SIGFE'].str.replace("'", "", \
-                                                                                      regex = False)
-TRADUCTOR_SIGFE_SIGCOM['COD SIGCOM'] = TRADUCTOR_SIGFE_SIGCOM['COD SIGCOM'].astype(str)
-
 TICKET_MERCADO_PUBLICO = '7CA7E3D8-361B-415F-84EB-88C0B89838B5'
 
 EXCEPCIONES_SIGFE = {
@@ -79,19 +74,24 @@ class AnalizadorSIGCOM:
         disponibilidad_devengo = pd.read_excel('input\\SA_DisponibilidadDevengoPresupuestario.xls',\
                                                header = 5)
         disponibilidad_devengo = disponibilidad_devengo[['Titulo', 'Principal', 'Número Documento',\
-                                                        'Concepto Presupuestario', 'Monto Vigente']]        
-
+                                                        'Concepto Presupuestario', 'Monto Vigente']]
         disponibilidad_devengo['COD SIGFE'] = disponibilidad_devengo['Concepto Presupuestario'].str\
                                               .split().str[0]
-        
         disponibilidad_devengo['oc'] = disponibilidad_devengo['Titulo'].str.split('/').str[3]
 
-        print(disponibilidad_devengo.info())
+ 
+        traductor_sigfe_sigcom = pd.read_excel('input\\relacion_sigfe_sigcom_cristian_GG.xlsx')
 
-        estado_ej_presup = pd.merge(estado_ej_presup, TRADUCTOR_SIGFE_SIGCOM, how = 'inner', \
-                                    on = 'COD SIGFE')
+        traductor_sigfe_sigcom['COD SIGFE'] = traductor_sigfe_sigcom['COD SIGFE'] \
+                                              .str.replace("'", "", regex = False)
 
-        disponibilidad_devengo = pd.merge(disponibilidad_devengo, TRADUCTOR_SIGFE_SIGCOM, \
+        traductor_sigfe_sigcom['COD SIGCOM'] = traductor_sigfe_sigcom['COD SIGCOM'] \
+                                              .str.replace("'", "", regex = False)
+
+        estado_ej_presup = pd.merge(estado_ej_presup, traductor_sigfe_sigcom, how = 'inner', \
+                                            on = 'COD SIGFE')
+
+        disponibilidad_devengo = pd.merge(disponibilidad_devengo, traductor_sigfe_sigcom, \
                                           how = 'inner', on = 'COD SIGFE')
 
         formato_gg_sigcom = formato_gg_sigcom.rename(columns = {'Unnamed: 0': 'Centros de costo'})
