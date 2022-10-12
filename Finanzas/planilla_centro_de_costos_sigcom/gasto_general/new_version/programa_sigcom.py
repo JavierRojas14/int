@@ -29,16 +29,12 @@ class AnalizadorSIGCOM:
         '''
         Esta es la función principal del programa, permite correrlo de forma general.
         '''
-        estado_ej_presup, \
-        disponibilidad_devengo, \
-        formato_gg_sigcom = self.cargar_archivos_y_tratar_df()
-
-        # suma_gastos_ej_presup = self.obtener_suma_ej_presup_total(estado_ej_presup)
+        estado_ej_presup, disponibilidad_devengo = self.cargar_archivos_y_tratar_df()
 
         # suma_desglosada_por_sigfe, \
         # suma_desglosada_por_sigcom, \
         # facturas_gg, \
-        # facturas_rrhh = self.desglosar_gastos_generales_y_rrhh(suma_gastos_ej_presup, \
+        # facturas_rrhh = self.desglosar_gastos_generales_y_rrhh(estado_ej_presup, \
         #                                                        disponibilidad_devengo)
 
         # detalle_facturas = self.obtener_detalle_facturas(facturas_gg)
@@ -53,8 +49,8 @@ class AnalizadorSIGCOM:
 
     def cargar_archivos_y_tratar_df(self):
         '''
-        Esta función permite cargar los archivos "Ejecución presupuestaria", "Disponibilidad
-        Devengo" y "Formato Gasto General".
+        Esta función permite cargar los archivos necesarios para calcular los Gastos Generales
+        (EjecuciónPresupuestaria y DisponbilidadDevengo)
 
         - El archivo ejecución presupuestaria lo carga, filtra por las columnas útiles ("Concepto
         Presupuestario" y "Devengado"), filtra los headers de las subtablas presentes y finalmente
@@ -64,10 +60,12 @@ class AnalizadorSIGCOM:
         - Agrega la columna "COD SIGFE" a los dos primeros archivos. Además, los COD SIGFE
         están en formato str.
         '''
+        print('- Cargando los archivos -')
         estado_ej_presup = pd.read_excel('input\\SA_EstadoEjecucionPresupuestaria.xls', header = 6)
         estado_ej_presup = estado_ej_presup[['Concepto Presupuestario', 'Devengado']]
         estado_ej_presup = estado_ej_presup.query('`Devengado` != "Devengado"')
         estado_ej_presup['Devengado'] = estado_ej_presup['Devengado'].astype(np.int64)
+        estado_ej_presup['Devengado_merge'] = estado_ej_presup['Devengado'].astype(np.int64)
         estado_ej_presup['COD SIGFE'] = estado_ej_presup['Concepto Presupuestario'].str.split()\
                                                                                    .str[0]
 
@@ -79,58 +77,55 @@ class AnalizadorSIGCOM:
                                               .split().str[0]
         disponibilidad_devengo['oc'] = disponibilidad_devengo['Titulo'].str.split('/').str[3]
 
- 
-        traductor_sigfe_sigcom = pd.read_excel('input\\relacion_sigfe_sigcom_cristian_GG.xlsx')
 
+        traductor_sigfe_sigcom = pd.read_excel('input\\relacion_sigfe_sigcom_cristian_GG.xlsx')
         traductor_sigfe_sigcom['COD SIGFE'] = traductor_sigfe_sigcom['COD SIGFE'] \
                                               .str.replace("'", "", regex = False)
-
         traductor_sigfe_sigcom['COD SIGCOM'] = traductor_sigfe_sigcom['COD SIGCOM'] \
                                               .str.replace("'", "", regex = False)
 
         estado_ej_presup = pd.merge(estado_ej_presup, traductor_sigfe_sigcom, how = 'inner', \
                                             on = 'COD SIGFE')
-
         disponibilidad_devengo = pd.merge(disponibilidad_devengo, traductor_sigfe_sigcom, \
                                           how = 'inner', on = 'COD SIGFE')
 
-        formato_gg_sigcom = formato_gg_sigcom.rename(columns = {'Unnamed: 0': 'Centros de costo'})
-        formato_gg_sigcom = formato_gg_sigcom.set_index('Centros de costo')
+        return estado_ej_presup, disponibilidad_devengo
 
-        return estado_ej_presup, disponibilidad_devengo, formato_gg_sigcom
-
-    def obtener_suma_ej_presup_total(self, estado_ej_presup):
+    def desglosar_gastos_generales_y_rrhh(self, estado_ej_presup, disponibilidad_devengo):
         '''
-        Permite obtener la suma de la ejecución presupuestaria, tanto por COD SIGFE, como
-        COD SIGCOM.
+        Esta función permite desglosar el detalle de cada ítem SIGFE, y sus facturas asociadas.
+
+        - En este caso, se filtran las facturas asociadas a gastos por m2 (COD SIGCOM
+        92, 93, 100, 133 y 170), ya que no es necesario analizarlas (Sin embargo, se podrían
+        dejar para ver si los gastos coinciden con los de la ejecución presupuestaria
+
+        - Luego, se guardan las facturas que van asociadas a gastos de RRHH, analizando las ex
+        cepciones.
+
+        - Después, se guardan las facturas que van asociadas a FONDOS FIJOS, y se guardan.
+    
+        - Finalmente, se sacan las facturas de los últimos dos apartados, y se obtienen las 
+        facturas asociadas a GG.
         '''
 
-        suma_ej_presup = estado_ej_presup.groupby(['COD SIGCOM', 'ITEM SIGCOM', 'COD SIGFE'], \
-                                                  dropna = False)['Devengado'].sum().to_frame()
-
-        suma_ej_presup['Devengado_ej_presup_y_estado_devengo'] = suma_ej_presup['Devengado']
-
-        suma_ej_presup = suma_ej_presup.rename(columns = {'Devengado': 'Devengado_ej_presup'})
-        suma_ej_presup = suma_ej_presup.reset_index()
-
-        suma_ej_presup['Devengado_ej_presup'] = suma_ej_presup['Devengado_ej_presup'] \
-                                                .astype('Int32')
-
-        suma_ej_presup['Devengado_ej_presup_y_estado_devengo'] = suma_ej_presup['Devengado_ej_presup_y_estado_devengo'].astype('Int32')
-
-        return suma_ej_presup
-
-    def desglosar_gastos_generales_y_rrhh(self, suma_gastos_ej_presup_por_sigfe, disponibilidad_devengo):
-        print('ANALIZANDO EL ESTADO DE DEVENGO \n')
-        facturas_rrhh = pd.DataFrame()
+        print('- Analizando la disponbilidad de devengo y sus facturas - \n')
+        facturas_de_fondos_fijos = pd.DataFrame()
 
         filtro_metros_cuadrados = disponibilidad_devengo['COD SIGCOM'].isin([92, 93, 100, 133, 170])
-        facturas_globales = disponibilidad_devengo[~filtro_metros_cuadrados]
+        facturas_a_analizar = disponibilidad_devengo[~filtro_metros_cuadrados]
+
+        facturas_a_rrhh, estado_ej_presup = self.obtener_excepciones_a_rrhh(facturas_a_analizar,
+                                                                            estado_ej_presup)
+        
+        facturas_fondos_fijos, estado_ej_presup = self.obtener_fondos_fijos(facturas_a_analizar,
+                                                                            estado_ej_presup)
+    
+    def obtener_excepciones_a_rrhh(self, facturas_a_analizar, estado_ej_presup):
+        facturas_a_rrhh = pd.DataFrame()
 
         for codigo_sigfe_excepcion in EXCEPCIONES_SIGFE:
-            print('------------------------------------------------------\n')
-            print(f'Analizando la excepcion: {codigo_sigfe_excepcion} \n')
-            query_excepcion = facturas_globales.query('`COD SIGFE` == @codigo_sigfe_excepcion')
+            print(f'\n Analizando la excepcion: {codigo_sigfe_excepcion} \n')
+            query_excepcion = facturas_a_analizar.query('`COD SIGFE` == @codigo_sigfe_excepcion')
 
             if codigo_sigfe_excepcion == '221299901601':
                 mask_a_rrhh = query_excepcion['Principal'].str.contains('BARAONA')
@@ -155,40 +150,52 @@ class AnalizadorSIGCOM:
             valor_a_rrhh = df_a_rrhh['Monto Vigente'].sum()
             valor_a_gg = df_a_gg['Monto Vigente'].sum()
 
-            print(f'Las siguientes facturas irán a RRHH:\n{df_a_rrhh[["Titulo", "Monto Vigente"]].to_markdown()} \n\n'
-                  f'Las siguientes facturas irán a GG:\n{df_a_gg[["Titulo", "Monto Vigente"]].to_markdown()}\n')
+            print(f'Las siguientes facturas irán a RRHH: \n'
+                  f'{df_a_rrhh[["Titulo", "Monto Vigente"]].to_markdown()} \n'
+                  f'El monto destinado a RRHH será de: {valor_a_rrhh} \n')
+            
+            print(f'Las siguientes facturas irán a GG: \n'
+                  f'{df_a_gg[["Titulo", "Monto Vigente"]].to_markdown()} \n'
+                  f'El monto destinado a GG será de: {valor_a_gg} \n')
 
-            print(f'El monto destinado a RRHH será de: {valor_a_rrhh} \n'
-                  f'El monto destinado a GG será de: {valor_a_gg}\n')
+            facturas_a_rrhh = pd.concat([facturas_a_rrhh, df_a_rrhh])
+            mask_excepcion = (estado_ej_presup['COD SIGFE'] == codigo_sigfe_excepcion)
 
-            facturas_rrhh = pd.concat([facturas_rrhh, df_a_rrhh])
-            facturas_globales = facturas_globales.drop(df_a_rrhh.index)
-
-            mask_excepcion = (suma_gastos_ej_presup_por_sigfe['COD SIGFE'] == codigo_sigfe_excepcion)
-
-            suma_gastos_ej_presup_por_sigfe.loc[mask_excepcion, 'Devengado_ej_presup_y_estado_devengo'] = valor_a_gg
-            suma_gastos_ej_presup_por_sigfe.loc[mask_excepcion, 'Devengado_desglosado_a_gg_estado_devengo'] = valor_a_gg
-            suma_gastos_ej_presup_por_sigfe.loc[mask_excepcion, 'Devengado_desglosado_a_rrhh_estado_devengo'] = valor_a_rrhh
+            estado_ej_presup.loc[mask_excepcion, 'Devengado_merge'] = valor_a_gg
+            estado_ej_presup.loc[mask_excepcion, 'Costo_a_gg'] = valor_a_gg
+            estado_ej_presup.loc[mask_excepcion, 'Costo_a_rrhh'] = valor_a_rrhh
         
-        facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
-                                     .sum() \
-                                     .reset_index()
+        return facturas_a_rrhh, estado_ej_presup
 
-        facturas_rrhh['Principal'] = facturas_rrhh['Principal'].str \
-                                                               .split(n = 1)
+        def obtener_fondos_fijos(self, facturas_a_analizar, estado_ej_presup):
+            facturas_a_fondos_fijos = pd.DataFrame()
+            mask_fondos_fijos = facturas_a_analizar['Principal'].str.upper() \
+                                                                .str.contains('FIJO')
 
-        facturas_rrhh['Rut'] = facturas_rrhh['Principal'].str[0]
-        facturas_rrhh['Nombre'] = facturas_rrhh['Principal'].str[1]
-        facturas_rrhh = facturas_rrhh[['Rut', 'Nombre', 'Monto Vigente']]
+            query_fondos_fijos = facturas_a_analizar.query('@`Principal`')
 
-        suma_gastos_ej_presup_por_sigcom = suma_gastos_ej_presup_por_sigfe \
-                                           .groupby('COD SIGCOM') \
-                                           .sum() \
-                                           .reset_index()
 
-        return suma_gastos_ej_presup_por_sigfe, \
-               suma_gastos_ej_presup_por_sigcom, \
-               facturas_globales, facturas_rrhh
+        def obtener_formato_rrhh(self, facturas_rrhh):
+        
+            facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
+                                        .sum() \
+                                        .reset_index()
+
+            facturas_rrhh['Principal'] = facturas_rrhh['Principal'].str \
+                                                                .split(n = 1)
+
+            facturas_rrhh['Rut'] = facturas_rrhh['Principal'].str[0]
+            facturas_rrhh['Nombre'] = facturas_rrhh['Principal'].str[1]
+            facturas_rrhh = facturas_rrhh[['Rut', 'Nombre', 'Monto Vigente']]
+
+            suma_gastos_ej_presup_por_sigcom = suma_gastos_ej_presup_por_sigfe \
+                                            .groupby('COD SIGCOM') \
+                                            .sum() \
+                                            .reset_index()
+
+            return suma_gastos_ej_presup_por_sigfe, \
+                suma_gastos_ej_presup_por_sigcom, \
+                facturas_globales, facturas_rrhh
 
     def obtener_detalle_facturas(self, facturas_gg):
         '''
