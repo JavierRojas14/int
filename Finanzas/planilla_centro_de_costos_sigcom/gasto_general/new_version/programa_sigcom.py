@@ -31,11 +31,11 @@ class AnalizadorSIGCOM:
         '''
         estado_ej_presup, disponibilidad_devengo = self.cargar_archivos_y_tratar_df()
 
-        # suma_desglosada_por_sigfe, \
-        # suma_desglosada_por_sigcom, \
-        # facturas_gg, \
-        # facturas_rrhh = self.desglosar_gastos_generales_y_rrhh(estado_ej_presup, \
-        #                                                        disponibilidad_devengo)
+        suma_desglosada_por_sigfe, \
+        suma_desglosada_por_sigcom, \
+        facturas_gg, \
+        facturas_rrhh = self.desglosar_gastos_generales_y_rrhh(estado_ej_presup, \
+                                                               disponibilidad_devengo)
 
         # detalle_facturas = self.obtener_detalle_facturas(facturas_gg)
 
@@ -109,16 +109,19 @@ class AnalizadorSIGCOM:
         '''
 
         print('- Analizando la disponbilidad de devengo y sus facturas - \n')
-        facturas_de_fondos_fijos = pd.DataFrame()
-
         filtro_metros_cuadrados = disponibilidad_devengo['COD SIGCOM'].isin([92, 93, 100, 133, 170])
-        facturas_a_analizar = disponibilidad_devengo[~filtro_metros_cuadrados]
+        facturas_a_gg = disponibilidad_devengo[~filtro_metros_cuadrados]
 
-        facturas_a_rrhh, estado_ej_presup = self.obtener_excepciones_a_rrhh(facturas_a_analizar,
+        facturas_a_rrhh, estado_ej_presup = self.obtener_excepciones_a_rrhh(facturas_a_gg, \
                                                                             estado_ej_presup)
+        facturas_a_gg = facturas_a_gg.drop(facturas_a_rrhh.index)
+
+        facturas_a_fondos_fijos, estado_ej_presup = self.obtener_fondos_fijos(facturas_a_gg, \
+                                                                            estado_ej_presup)
+
+        facturas_a_gg = facturas_a_gg.drop(facturas_a_fondos_fijos.index)
         
-        facturas_fondos_fijos, estado_ej_presup = self.obtener_fondos_fijos(facturas_a_analizar,
-                                                                            estado_ej_presup)
+        return facturas_a_gg, facturas_a_rrhh, facturas_a_fondos_fijos
     
     def obtener_excepciones_a_rrhh(self, facturas_a_analizar, estado_ej_presup):
         facturas_a_rrhh = pd.DataFrame()
@@ -153,7 +156,7 @@ class AnalizadorSIGCOM:
             print(f'Las siguientes facturas irán a RRHH: \n'
                   f'{df_a_rrhh[["Titulo", "Monto Vigente"]].to_markdown()} \n'
                   f'El monto destinado a RRHH será de: {valor_a_rrhh} \n')
-            
+
             print(f'Las siguientes facturas irán a GG: \n'
                   f'{df_a_gg[["Titulo", "Monto Vigente"]].to_markdown()} \n'
                   f'El monto destinado a GG será de: {valor_a_gg} \n')
@@ -164,38 +167,48 @@ class AnalizadorSIGCOM:
             estado_ej_presup.loc[mask_excepcion, 'Devengado_merge'] = valor_a_gg
             estado_ej_presup.loc[mask_excepcion, 'Costo_a_gg'] = valor_a_gg
             estado_ej_presup.loc[mask_excepcion, 'Costo_a_rrhh'] = valor_a_rrhh
-        
+
         return facturas_a_rrhh, estado_ej_presup
 
-        def obtener_fondos_fijos(self, facturas_a_analizar, estado_ej_presup):
-            facturas_a_fondos_fijos = pd.DataFrame()
-            mask_fondos_fijos = facturas_a_analizar['Principal'].str.upper() \
-                                                                .str.contains('FIJO')
+    def obtener_fondos_fijos(self, facturas_a_analizar, estado_ej_presup):
+        mask_fondos_fijos = facturas_a_analizar['Titulo'].str.upper() \
+                                                            .str.contains('FIJO')
 
-            query_fondos_fijos = facturas_a_analizar.query('@`Principal`')
+        facturas_a_fondos_fijos = facturas_a_analizar[mask_fondos_fijos]
+        facturas_a_fondos_fijos = facturas_a_fondos_fijos.groupby('COD SIGFE').sum()
 
+        for codigo_sigfe in facturas_a_fondos_fijos.index:
+            monto = facturas_a_fondos_fijos.loc[codigo_sigfe][0]
 
-        def obtener_formato_rrhh(self, facturas_rrhh):
+            mask_fondo_fijo = (estado_ej_presup['COD SIGFE'] == codigo_sigfe)
+            estado_ej_presup.loc[mask_fondo_fijo, 'Descuento_fondo_fijo'] = monto
+            resta_fondo = (estado_ej_presup.loc[mask_fondo_fijo, 'Devengado_merge']- monto)
+
+            estado_ej_presup.loc[mask_fondo_fijo, 'Devengado_merge'] = resta_fondo
+                  
         
-            facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
+        
+
+
+    def obtener_formato_rrhh(self, facturas_rrhh):
+    
+        facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
+                                    .sum() \
+                                    .reset_index()
+
+        facturas_rrhh['Principal'] = facturas_rrhh['Principal'].str \
+                                                            .split(n = 1)
+
+        facturas_rrhh['Rut'] = facturas_rrhh['Principal'].str[0]
+        facturas_rrhh['Nombre'] = facturas_rrhh['Principal'].str[1]
+        facturas_rrhh = facturas_rrhh[['Rut', 'Nombre', 'Monto Vigente']]
+
+        suma_gastos_ej_presup_por_sigcom = suma_gastos_ej_presup_por_sigfe \
+                                        .groupby('COD SIGCOM') \
                                         .sum() \
                                         .reset_index()
 
-            facturas_rrhh['Principal'] = facturas_rrhh['Principal'].str \
-                                                                .split(n = 1)
-
-            facturas_rrhh['Rut'] = facturas_rrhh['Principal'].str[0]
-            facturas_rrhh['Nombre'] = facturas_rrhh['Principal'].str[1]
-            facturas_rrhh = facturas_rrhh[['Rut', 'Nombre', 'Monto Vigente']]
-
-            suma_gastos_ej_presup_por_sigcom = suma_gastos_ej_presup_por_sigfe \
-                                            .groupby('COD SIGCOM') \
-                                            .sum() \
-                                            .reset_index()
-
-            return suma_gastos_ej_presup_por_sigfe, \
-                suma_gastos_ej_presup_por_sigcom, \
-                facturas_globales, facturas_rrhh
+            
 
     def obtener_detalle_facturas(self, facturas_gg):
         '''
