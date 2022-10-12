@@ -10,8 +10,6 @@ TRADUCTOR_SIGFE_SIGCOM['COD SIGFE'] = TRADUCTOR_SIGFE_SIGCOM['COD SIGFE'].str.re
                                                                                       regex = False)
 TRADUCTOR_SIGFE_SIGCOM['COD SIGCOM'] = TRADUCTOR_SIGFE_SIGCOM['COD SIGCOM'].astype(str)
 
-print(TRADUCTOR_SIGFE_SIGCOM.info())
-
 TICKET_MERCADO_PUBLICO = '7CA7E3D8-361B-415F-84EB-88C0B89838B5'
 
 EXCEPCIONES_SIGFE = {
