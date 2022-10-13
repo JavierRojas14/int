@@ -38,10 +38,9 @@ class AnalizadorSIGCOM:
         formato_rellenado_gg = self.rellenar_formato_gg(estado_ej_presup, facturas_a_gg)
         formato_rrhh = self.obtener_formato_rrhh(facturas_a_rrhh)
 
-        # self.guardar_archivos(suma_desglosada_por_sigfe, suma_desglosada_por_sigcom, \
-        #                       facturas_gg, facturas_rrhh, \
-        #                       detalle_facturas, \
-        #                       formato_rellenado)
+        self.guardar_archivos(formato_rellenado_gg, formato_rrhh, \
+                              estado_ej_presup, facturas_a_gg, \
+                              facturas_a_rrhh, facturas_a_fondos_fijos)
 
     def cargar_archivos_y_tratar_df(self):
         '''
@@ -271,24 +270,6 @@ class AnalizadorSIGCOM:
 
         return facturas_a_gg
 
-    def obtener_formato_rrhh(self, facturas_a_rrhh):
-        print('- Obteniendo el formato para RRHH -')
-        facturas_a_rrhh_agrupadas = facturas_a_rrhh.groupby('Principal')['Monto Vigente'] \
-                                         .sum() \
-                                         .reset_index()
-
-        facturas_a_rrhh_agrupadas['Principal'] = facturas_a_rrhh_agrupadas['Principal'].str \
-                                                                                       .split(n = 1)
-
-        facturas_a_rrhh_agrupadas['Rut'] = facturas_a_rrhh_agrupadas['Principal'].str[0]
-        facturas_a_rrhh_agrupadas['Nombre'] = facturas_a_rrhh_agrupadas['Principal'].str[1]
-        facturas_a_rrhh_agrupadas = facturas_a_rrhh_agrupadas[['Rut', 'Nombre', 'Monto Vigente']]
-
-        print(f'Se obtuvo el siguiente formato:\n{facturas_a_rrhh_agrupadas.to_markdown()}')
-
-        return facturas_a_rrhh_agrupadas
-
-
     def rellenar_formato_gg(self, estado_ej_presup, facturas_a_gg):
         print('- Rellenando la planilla formato -')
         formato_gg, indice_original, columnas_originales = self.obtener_formato_gastos_generales()
@@ -325,34 +306,41 @@ class AnalizadorSIGCOM:
         formato_sigcom_gg.columns = formato_sigcom_gg.columns.str.split('-').str[0]
 
         return formato_sigcom_gg, indice_original, columnas_originales
-
     
-    def guardar_archivos(self, suma_desglosada_por_sigfe, suma_desglosada_por_sigcom, \
-                              facturas_gg, facturas_rrhh, \
-                              detalle_facturas, \
-                              formato_rellenado):
+    def obtener_formato_rrhh(self, facturas_a_rrhh):
+        print('\n- Obteniendo el formato para RRHH -')
+        facturas_a_rrhh_agrupadas = facturas_a_rrhh.groupby('Principal')['Monto Vigente'] \
+                                         .sum() \
+                                         .reset_index()
+
+        facturas_a_rrhh_agrupadas['Principal'] = facturas_a_rrhh_agrupadas['Principal'].str \
+                                                                                       .split(n = 1)
+
+        facturas_a_rrhh_agrupadas['Rut'] = facturas_a_rrhh_agrupadas['Principal'].str[0]
+        facturas_a_rrhh_agrupadas['Nombre'] = facturas_a_rrhh_agrupadas['Principal'].str[1]
+        facturas_a_rrhh_agrupadas = facturas_a_rrhh_agrupadas[['Rut', 'Nombre', 'Monto Vigente']]
+
+        print(f'\n\n{facturas_a_rrhh_agrupadas.to_markdown()}')
+
+        return facturas_a_rrhh_agrupadas
+
+    def guardar_archivos(self, formato_rellenado_gg, formato_rrhh, \
+                               estado_ej_presup, facturas_a_gg, \
+                               facturas_a_rrhh, facturas_a_fondos_fijos):
 
         with pd.ExcelWriter('output.xlsx') as writer:
-            formato_rellenado.to_excel(writer, sheet_name = 'formato_rellenado', \
-                                     index = False)
+            formato_rellenado_gg.to_excel(writer, sheet_name = 'formato_rellenado_gg', \
+                                          index = False)
 
-            suma_desglosada_por_sigfe.to_excel(writer, sheet_name = 'suma_desglosada_por_sigfe', \
-                                     index = False)
-                                    
-            suma_desglosada_por_sigcom.to_excel(writer, sheet_name = 'suma_desglosada_por_sigcom', \
-                                     index = False)
-            
-            facturas_gg.to_excel(writer, sheet_name = 'facturas_gg', \
-                                     index = False)
-            
-            facturas_rrhh.to_excel(writer, sheet_name = 'facturas_rrhh', \
-                                     index = False)
-            
-            detalle_facturas.to_excel(writer, sheet_name = 'detalle_facturas', \
+            formato_rrhh.to_excel(writer, sheet_name = 'formato_rrhh', index = False) 
+            estado_ej_presup.to_excel(writer, sheet_name = 'estado_ej_presup', index = False)
+            facturas_a_gg.to_excel(writer, sheet_name = 'facturas_a_gg', index = False)
+            facturas_a_rrhh.to_excel(writer, sheet_name = 'facturas_a_rrhh', index = False)
+            facturas_a_fondos_fijos.to_excel(writer, sheet_name = 'facturas_a_fondos_fijos', \
                                      index = False)
 
 
 objeto = AnalizadorSIGCOM()
 objeto.correr_programa()
-            
+ 
                 
