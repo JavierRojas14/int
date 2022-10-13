@@ -35,9 +35,7 @@ class AnalizadorSIGCOM:
 
         facturas_a_gg = self.obtener_detalle_facturas(facturas_a_gg)
         facturas_a_gg = self.rellenar_centros_de_costos(facturas_a_gg)
-
-        # formato_rellenado = self.rellenar_formato(suma_desglosada_por_sigcom, \
-        #                                           formato_gg_sigcom)
+        formato_rellenado = self.rellenar_formato(estado_ej_presup, facturas_a_gg)
 
         # self.guardar_archivos(suma_desglosada_por_sigfe, suma_desglosada_por_sigcom, \
         #                       facturas_gg, facturas_rrhh, \
@@ -215,7 +213,7 @@ class AnalizadorSIGCOM:
             facturas_a_gg['detalle_oc'] = facturas_a_buscar['oc'] \
                                         .apply(self.funcion_obtener_requests_mercado_publico)
 
-            facturas_a_gg['centro_de_costo_asociado'] = None
+            facturas_a_gg['centro_de_costo_asignado'] = None
 
             facturas_a_gg.to_excel('input\\facturas_gg_con_detalle_de_oc.xlsx', index = False)
 
@@ -240,8 +238,8 @@ class AnalizadorSIGCOM:
         return detalle_oc
 
     def rellenar_centros_de_costos(self, facturas_a_gg):
-        print('\n- Se rellenarán los centros de costo asociados a cada factura - \n')
-        mask_no_rellenadas = facturas_a_gg['centro_de_costo_asociado'].isna()
+        print('\n- Se rellenarán los centros de costo NO ASIGNADOS asociados a cada factura - \n')
+        mask_no_rellenadas = facturas_a_gg['centro_de_costo_asignado'].isna()
         facturas_no_rellenadas = facturas_a_gg[mask_no_rellenadas]
 
         for factura in facturas_no_rellenadas.itertuples():
@@ -256,7 +254,7 @@ class AnalizadorSIGCOM:
 
             while True:
                 cc = input('¿Qué centro de costo crees que es? (Ingresar sólo el N° de código. '
-                        'Los códigos están en constantes.py): ')
+                           'Los códigos están en constantes.py): ')
 
                 if cc in CODIGOS_CENTRO_DE_COSTO:
                     break
@@ -271,10 +269,6 @@ class AnalizadorSIGCOM:
         facturas_a_gg.to_excel('input\\facturas_gg_con_detalle_de_oc.xlsx', index = False)
 
         return facturas_a_gg
-    
-    def agrupar_por_centro_de_costo(self, facturas_a_gg):
-        pass
-
 
     def obtener_formato_rrhh(self, facturas_rrhh):
         facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
@@ -293,25 +287,43 @@ class AnalizadorSIGCOM:
                                         .sum() \
                                         .reset_index()
 
-    def rellenar_formato(self, suma_desglosada_por_sigcom, formato_sigcom_gg):
-        print('--------------------------------\n\n'
-              'Rellenando la planilla formato')
-        columnas_antiguas = formato_sigcom_gg.columns
-        formato_sigcom_gg.columns = formato_sigcom_gg.columns.str.split('-').str[0].astype(int)
+    def rellenar_formato(self, estado_ej_presup, facturas_a_gg):
+        print('- Rellenando la planilla formato -')
+        formato_gg, indice_original, columnas_originales = self.obtener_formato_gastos_generales()
+        estado_ej_presup_agrupado = estado_ej_presup.groupby('COD SIGCOM')['Devengado_merge'].sum()
+        facturas_a_gg_agrupado = facturas_a_gg.groupby(by = ['COD SIGCOM', 
+                                                             'centro_de_costo_asignado'])\
+                                                             ['Monto Vigente'].sum()
 
-        for codigo_gasto in suma_desglosada_por_sigcom['COD SIGCOM']:
-            if codigo_gasto in formato_sigcom_gg.columns:
-                valor_a_ingresar = suma_desglosada_por_sigcom.loc[codigo_gasto, 'Devengado_ej_presup_y_estado_devengo']
-                formato_sigcom_gg.loc['Valor General', codigo_gasto] = valor_a_ingresar
+        for tipo_de_gasto, monto in estado_ej_presup_agrupado.items():
+            formato_gg.loc['Valor General', tipo_de_gasto] = monto
 
-                print(f'El codigo {codigo_gasto} se ingresó a la planilla \n'
-                      f'Se ingresó con el monto: {valor_a_ingresar} \n'
-                      f'--------------------------------------------')
+        for indice, monto in facturas_a_gg_agrupado.items():
+            tipo_de_gasto, centro_de_costo = indice
+            tipo_de_gasto = str(tipo_de_gasto)
+            centro_de_costo = str(centro_de_costo)
+            formato_gg.loc[centro_de_costo, tipo_de_gasto] = monto
 
-        formato_sigcom_gg.columns = columnas_antiguas
-        formato_sigcom_gg = formato_sigcom_gg.reset_index()
-        
-        return formato_sigcom_gg
+        formato_gg.index = indice_original
+        formato_gg = formato_gg.reset_index()
+        formato_gg.columns = columnas_originales
+
+        return formato_gg
+
+    def obtener_formato_gastos_generales(self):
+        formato_sigcom_gg = pd.read_excel('input\\Formato 3_Gasto General 2022-10.xlsx')
+        indice_original = formato_sigcom_gg['Unnamed: 0']
+        columnas_originales = formato_sigcom_gg.columns
+
+        formato_sigcom_gg['Unnamed: 0'] = formato_sigcom_gg['Unnamed: 0'].str.split('-').str[0]
+        formato_sigcom_gg = formato_sigcom_gg.rename(columns = {'Unnamed: 0': \
+                                                                'centro_de_costo_asignado'})
+        formato_sigcom_gg = formato_sigcom_gg.set_index('centro_de_costo_asignado')
+
+        formato_sigcom_gg.columns = formato_sigcom_gg.columns.str.split('-').str[0]
+
+        return formato_sigcom_gg, indice_original, columnas_originales
+
     
     def guardar_archivos(self, suma_desglosada_por_sigfe, suma_desglosada_por_sigcom, \
                               facturas_gg, facturas_rrhh, \
