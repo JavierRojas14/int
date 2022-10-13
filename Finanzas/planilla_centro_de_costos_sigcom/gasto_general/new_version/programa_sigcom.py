@@ -35,7 +35,8 @@ class AnalizadorSIGCOM:
 
         facturas_a_gg = self.obtener_detalle_facturas(facturas_a_gg)
         facturas_a_gg = self.rellenar_centros_de_costos(facturas_a_gg)
-        formato_rellenado = self.rellenar_formato(estado_ej_presup, facturas_a_gg)
+        formato_rellenado_gg = self.rellenar_formato_gg(estado_ej_presup, facturas_a_gg)
+        formato_rrhh = self.obtener_formato_rrhh(facturas_a_rrhh)
 
         # self.guardar_archivos(suma_desglosada_por_sigfe, suma_desglosada_por_sigcom, \
         #                       facturas_gg, facturas_rrhh, \
@@ -270,24 +271,25 @@ class AnalizadorSIGCOM:
 
         return facturas_a_gg
 
-    def obtener_formato_rrhh(self, facturas_rrhh):
-        facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \
-                                    .sum() \
-                                    .reset_index()
+    def obtener_formato_rrhh(self, facturas_a_rrhh):
+        print('- Obteniendo el formato para RRHH -')
+        facturas_a_rrhh_agrupadas = facturas_a_rrhh.groupby('Principal')['Monto Vigente'] \
+                                         .sum() \
+                                         .reset_index()
 
-        facturas_rrhh['Principal'] = facturas_rrhh['Principal'].str \
-                                                            .split(n = 1)
+        facturas_a_rrhh_agrupadas['Principal'] = facturas_a_rrhh_agrupadas['Principal'].str \
+                                                                                       .split(n = 1)
 
-        facturas_rrhh['Rut'] = facturas_rrhh['Principal'].str[0]
-        facturas_rrhh['Nombre'] = facturas_rrhh['Principal'].str[1]
-        facturas_rrhh = facturas_rrhh[['Rut', 'Nombre', 'Monto Vigente']]
+        facturas_a_rrhh_agrupadas['Rut'] = facturas_a_rrhh_agrupadas['Principal'].str[0]
+        facturas_a_rrhh_agrupadas['Nombre'] = facturas_a_rrhh_agrupadas['Principal'].str[1]
+        facturas_a_rrhh_agrupadas = facturas_a_rrhh_agrupadas[['Rut', 'Nombre', 'Monto Vigente']]
 
-        suma_gastos_ej_presup_por_sigcom = suma_gastos_ej_presup_por_sigfe \
-                                        .groupby('COD SIGCOM') \
-                                        .sum() \
-                                        .reset_index()
+        print(f'Se obtuvo el siguiente formato:\n{facturas_a_rrhh_agrupadas.to_markdown()}')
 
-    def rellenar_formato(self, estado_ej_presup, facturas_a_gg):
+        return facturas_a_rrhh_agrupadas
+
+
+    def rellenar_formato_gg(self, estado_ej_presup, facturas_a_gg):
         print('- Rellenando la planilla formato -')
         formato_gg, indice_original, columnas_originales = self.obtener_formato_gastos_generales()
         estado_ej_presup_agrupado = estado_ej_presup.groupby('COD SIGCOM')['Devengado_merge'].sum()
