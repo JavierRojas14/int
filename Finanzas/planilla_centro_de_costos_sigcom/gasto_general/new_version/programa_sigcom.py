@@ -199,9 +199,9 @@ class AnalizadorSIGCOM:
         '''
         print('- Se buscarán las ordenes de compra en marcado público -\n')
 
-        if 'facturas_gg_con_detalle.xlsx' in os.listdir('input'):
+        if 'facturas_gg_con_detalle_de_oc.xlsx' in os.listdir('input'):
             print('Ya existe un archivo con el detalle de las facturas, se leerá ese archivo.')
-            facturas_a_gg = pd.read_excel('input\\facturas_gg_con_detalle.xlsx')
+            facturas_a_gg = pd.read_excel('input\\facturas_gg_con_detalle_de_oc.xlsx')
 
         else:
             mask_con_oc = facturas_a_gg['oc'].str.contains('-')
@@ -215,7 +215,7 @@ class AnalizadorSIGCOM:
 
             facturas_a_buscar['centro_de_costo_asociado'] = None
 
-            facturas_a_gg.to_excel('input\\facturas_gg_con_detalle.xlsx')
+            facturas_a_gg.to_excel('input\\facturas_gg_con_detalle_de_oc.xlsx')
 
         return facturas_a_gg
 
@@ -224,7 +224,6 @@ class AnalizadorSIGCOM:
         orden_de_compra = orden_de_compra.strip()
         url_request = f"https://api.mercadopublico.cl/servicios/v1/publico/ordenesdecompra." \
                       f"json?codigo={orden_de_compra}&ticket={TICKET_MERCADO_PUBLICO}"
-
 
         try:
             response = requests.get(url_request, timeout = 20)
@@ -240,8 +239,12 @@ class AnalizadorSIGCOM:
 
     def rellenar_centros_de_costos(self, facturas_a_gg):
         print('\n- Se rellenarán los centros de costo asociados a cada factura - \n')
+        mask_no_rellenadas = facturas_a_gg['centro_de_costo_asociado'].isna()
+        facturas_no_rellenadas = facturas_a_gg[mask_no_rellenadas]
+        print(facturas_no_rellenadas)
 
-        for factura in facturas_a_gg.itertuples():
+        for factura in facturas_no_rellenadas.itertuples():
+            print(factura)
             detalle_formateado = json.dumps(factura.detalle_oc, indent = 1, ensure_ascii = False)
             print('------------------------------------------------')
             print('------------------------------------------------')
@@ -250,7 +253,7 @@ class AnalizadorSIGCOM:
                   f'CODIGO SIGFE: {factura._7} - {factura._9}\n'
                   f'CODIGO SIGCOM: {factura._10} - {factura._11} \n\n'
                   f'{detalle_formateado} \n')
-            
+
             while True:
                 cc = input('¿Qué centro de costo crees que es? (Ingresar sólo el N° de código. '
                         'Los códigos están en constantes.py): ')
@@ -265,9 +268,13 @@ class AnalizadorSIGCOM:
             print('------------------------------------------------')
             print('------------------------------------------------\n\n')
 
-        facturas_a_gg.to_excel('prueba.xlsx')
+        facturas_a_gg.to_excel('input\\facturas_gg_con_detalle_de_oc.xlsx')
 
         return facturas_a_gg
+    
+    def agrupar_por_centro_de_costo(self, facturas_a_gg):
+        pass
+
 
     def obtener_formato_rrhh(self, facturas_rrhh):
         facturas_rrhh = facturas_rrhh.groupby('Principal')['Monto Vigente'] \

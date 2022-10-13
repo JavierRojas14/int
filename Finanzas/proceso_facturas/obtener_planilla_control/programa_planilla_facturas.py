@@ -1,8 +1,10 @@
-from weakref import ref
-import pandas as pd
+
 import datetime
-import os
 import json
+import os
+
+import pandas as pd
+
 pd.options.mode.chained_assignment = None  # default='warn'
 import time
 
@@ -21,7 +23,7 @@ class GeneradorPlanillaFinanzas:
 
         self.guardar_dfs(df_izquierda)
 
-        print(f'\nListo! No hubo ningún problema')
+        print('\nListo! No hubo ningún problema')
     
     def leer_y_limpiar_dfs(self):
         diccionario_dfs = {}
@@ -125,7 +127,7 @@ class GeneradorPlanillaFinanzas:
         df_izquierda['Fecha Docto SII'] = pd.to_datetime(df_izquierda['Fecha Docto SII'], dayfirst = True)
         df_izquierda['Fecha Recepcion SII'] = pd.to_datetime(df_izquierda['Fecha Recepcion SII'], dayfirst = True)
         df_izquierda['Fecha Reclamo SII'] = pd.to_datetime(df_izquierda['Fecha Reclamo SII'], dayfirst = True)
-        df_izquierda['tiempo_diferencia SII'] = (pd.to_datetime('today') - df_izquierda[mask_no_devengadas]['Fecha Docto SII']) + pd.Timedelta(days = 1)
+        df_izquierda['tiempo_diferencia SII'] = (pd.to_datetime('today') - df_izquierda[mask_no_devengadas]['Fecha Recepcion SII']) + pd.Timedelta(days = 1)
         df_izquierda['esta_al_dia'] = df_izquierda[mask_no_devengadas]['tiempo_diferencia SII'] <= datetime.timedelta(8)
 
         return df_izquierda
@@ -173,13 +175,13 @@ class GeneradorPlanillaFinanzas:
         df_util = df_util.sort_values(by = ['Fecha Docto SII'])
 
         return df_util
-    
+
     def guardar_dfs(self, df_columnas_utiles):
         fecha_actual = str(pd.to_datetime('today')).split(' ')[0]
         nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}.xlsx'
 
         with pd.ExcelWriter(nombre_archivo, datetime_format = 'DD-MM-YYYY') as writer:
-                df_columnas_utiles.to_excel(writer)
+            df_columnas_utiles.to_excel(writer)
 
 start_time = time.time()
 programa = GeneradorPlanillaFinanzas()
