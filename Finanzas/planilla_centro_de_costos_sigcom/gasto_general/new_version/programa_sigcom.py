@@ -106,7 +106,9 @@ class AnalizadorSIGCOM:
         '''
 
         print('- Analizando la disponbilidad de devengo y sus facturas - \n')
-        filtro_metros_cuadrados = disponibilidad_devengo['COD SIGCOM'].isin([92, 93, 100, 133, 170])
+        filtro_metros_cuadrados = disponibilidad_devengo['COD SIGCOM'].isin( \
+                                            ['92', '93', '100', '133', '170'])
+
         facturas_a_gg = disponibilidad_devengo[~filtro_metros_cuadrados]
 
         facturas_a_rrhh, estado_ej_presup = self.obtener_excepciones_a_rrhh(facturas_a_gg, \
@@ -213,9 +215,9 @@ class AnalizadorSIGCOM:
             facturas_a_gg['detalle_oc'] = facturas_a_buscar['oc'] \
                                         .apply(self.funcion_obtener_requests_mercado_publico)
 
-            facturas_a_buscar['centro_de_costo_asociado'] = None
+            facturas_a_gg['centro_de_costo_asociado'] = None
 
-            facturas_a_gg.to_excel('input\\facturas_gg_con_detalle_de_oc.xlsx')
+            facturas_a_gg.to_excel('input\\facturas_gg_con_detalle_de_oc.xlsx', index = False)
 
         return facturas_a_gg
 
@@ -241,17 +243,15 @@ class AnalizadorSIGCOM:
         print('\n- Se rellenarán los centros de costo asociados a cada factura - \n')
         mask_no_rellenadas = facturas_a_gg['centro_de_costo_asociado'].isna()
         facturas_no_rellenadas = facturas_a_gg[mask_no_rellenadas]
-        print(facturas_no_rellenadas)
 
         for factura in facturas_no_rellenadas.itertuples():
-            print(factura)
             detalle_formateado = json.dumps(factura.detalle_oc, indent = 1, ensure_ascii = False)
             print('------------------------------------------------')
             print('------------------------------------------------')
 
             print(f'La factura {factura.Titulo} tiene el siguiente detalle: \n'
-                  f'CODIGO SIGFE: {factura._7} - {factura._9}\n'
-                  f'CODIGO SIGCOM: {factura._10} - {factura._11} \n\n'
+                  f'CODIGO SIGFE: {factura._6} - {factura._8}\n'
+                  f'CODIGO SIGCOM: {factura._9} - {factura._10} \n\n'
                   f'{detalle_formateado} \n')
 
             while True:
@@ -268,7 +268,7 @@ class AnalizadorSIGCOM:
             print('------------------------------------------------')
             print('------------------------------------------------\n\n')
 
-        facturas_a_gg.to_excel('input\\facturas_gg_con_detalle_de_oc.xlsx')
+        facturas_a_gg.to_excel('input\\facturas_gg_con_detalle_de_oc.xlsx', index = False)
 
         return facturas_a_gg
     
