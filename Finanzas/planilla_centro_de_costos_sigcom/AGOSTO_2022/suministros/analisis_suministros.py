@@ -1,5 +1,6 @@
 import pandas as pd
 from constantes import TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON, TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM_JSON
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 class AnalizadorSuministros:
@@ -15,7 +16,7 @@ class AnalizadorSuministros:
 
         df_final = self.filtrar_salidas_farmacia(unidas_destino)
         df_final = self.filtrar_motivos(df_final)
-        self.rellenar_cc(df_final)
+        self.rellenar_destinos(df_final)
 
     def leer_archivos(self):
         df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
@@ -73,27 +74,26 @@ class AnalizadorSuministros:
 
         return df_final
     
-    def rellenar_cc(self, df_final):
+    def rellenar_destinos(self, df_final):
         sin_cc = df_final[df_final['CC SIGCOM'].isna()]
         print(f'Las siguientes filas NO tienen CC SIGCOM:\n{sin_cc}')
         print('- Se procederá a rellenarlas -')
 
         for tupla in sin_cc.itertuples():
-            print(tupla)
+            print('\n', tupla)
             while True:
                 destino = input('Qué destino crees que es? (están en constantes.py) ')
 
                 if destino in TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON:
-                    sin_cc.loc[tupla.Index, 'Destino'] = destino
                     cc = TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON[destino]
+                    sin_cc.loc[tupla.Index, 'Destino'] = destino
                     sin_cc.loc[tupla.Index, 'CC SIGCOM'] = cc
                     break
 
                 else:
                     print('Debes ingresar un destino válido.')
 
-            print(sin_cc.loc[tupla.Index])
-    
+    def rellenar_
 
 analizador = AnalizadorSuministros()
 analizador.correr_programa()
