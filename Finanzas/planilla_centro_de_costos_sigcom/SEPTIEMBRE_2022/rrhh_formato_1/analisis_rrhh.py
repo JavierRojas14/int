@@ -18,14 +18,14 @@ def hacer_cambiador_de_caracteristica_redundante(df_con_duplicados, caracteristi
 
 def cambiar_redundancias(df, caracteristica_a_cambiar):
     df_con_redundancias = identificar_redundancias(df, [caracteristica_a_cambiar])
-    print(f'Estos son los "{caracteristica_a_cambiar}" redundantes: \n'
-          f'{df_con_redundancias.to_markdown()}')
+    print(f'\nEstos son los "{caracteristica_a_cambiar}" redundantes: \n'
+          f'{df_con_redundancias.to_markdown()}\n')
 
     dict_cambiador = hacer_cambiador_de_caracteristica_redundante(df_con_redundancias, 
                                                                   caracteristica_a_cambiar)
 
-    print(f'Los ruts quedarán de la siguiente forma:\n'
-          f'{json.dumps(dict_cambiador, indent = 1)}')
+    print(f'\nLos ruts quedarán de la siguiente forma:\n'
+          f'{json.dumps(dict_cambiador, indent = 1)}\n')
 
     for rut, caracteristica in dict_cambiador.items():
         df.loc[rut, caracteristica_a_cambiar] = caracteristica
@@ -52,8 +52,6 @@ def cargar_archivos_y_formatearlos():
     df_19664 = df_19664[columnas_contrato]
 
     df_leyes_juntas = pd.concat([df_15076, df_18834, df_19664])
-    df_leyes_juntas['TIPO CONTRATA'] = 1
-
     ##################################################################################
 
     honorarios = pd.read_excel('input\\PERC AGOSTO.xlsx')
@@ -64,15 +62,22 @@ def cargar_archivos_y_formatearlos():
                  columns = {'UNIDAD O SERVICIO DONDE SE DESEMPEÑA': 'UNIDAD',
                             'VALOR TOTAL O BRUTO': 'TOTAL HABER'})
 
-    honorarios['TIPO CONTRATA'] = 2
-
     df_leyes_juntas = formatear_df(df_leyes_juntas)
     honorarios = formatear_df(honorarios)
 
     return df_leyes_juntas, honorarios
 
-juntas_contrato = cambiar_redundancias(juntas_contrato, 'NOMBRE')
-juntas_contrato = cambiar_redundancias(juntas_contrato, 'CARGO')
+
+df_leyes_juntas, honorarios = cargar_archivos_y_formatearlos()
+
+df_leyes_juntas = cambiar_redundancias(df_leyes_juntas, 'NOMBRE')
+df_leyes_juntas = cambiar_redundancias(df_leyes_juntas, 'CARGO')
+df_suma_leyes_juntas = df_leyes_juntas.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum()
+df_suma_leyes_juntas['TIPO CONTRATA'] = '1'
+df_suma_leyes_juntas.to_excel('leyes_juntas_suma.xlsx')
 
 honorarios = cambiar_redundancias(honorarios, 'NOMBRE')
 honorarios = cambiar_redundancias(honorarios, 'CARGO')
+honorarios_suma = honorarios.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum()
+honorarios_suma['TIPO CONTRATA'] = '2'
+honorarios_suma.to_excel('honorarios_suma.xlsx')
