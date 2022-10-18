@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from time import sleep
 
 import numpy as np
@@ -243,7 +244,7 @@ class AnalizadorSIGCOM:
         facturas_no_rellenadas = facturas_a_gg[mask_no_rellenadas]
 
         for factura in facturas_no_rellenadas.itertuples():
-            detalle_formateado = json.dumps(factura.detalle_oc, indent = 1, ensure_ascii = False)
+            detalle_formateado = json.dumps(factura.detalle_oc, indent = 2, ensure_ascii = False)
             print('------------------------------------------------')
             print('------------------------------------------------')
 

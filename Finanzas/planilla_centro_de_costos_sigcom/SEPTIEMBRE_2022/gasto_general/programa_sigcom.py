@@ -56,7 +56,8 @@ class AnalizadorSIGCOM:
         están en formato str.
         '''
         print('- Cargando los archivos -')
-        estado_ej_presup = pd.read_excel('input\\SA_EstadoEjecucionPresupuestaria.xls', header = 6)
+        estado_ej_presup = pd.read_excel('input\\SA_EstadoEjecucionPresupuestaria_SEPTIEMBRE.xls',
+                                         header = 6)
         estado_ej_presup = estado_ej_presup[['Concepto Presupuestario', 'Devengado']]
         estado_ej_presup = estado_ej_presup.query('`Devengado` != "Devengado"')
         estado_ej_presup['Devengado'] = estado_ej_presup['Devengado'].astype(np.int64)
@@ -64,7 +65,7 @@ class AnalizadorSIGCOM:
         estado_ej_presup['COD SIGFE'] = estado_ej_presup['Concepto Presupuestario'].str.split()\
                                                                                    .str[0]
 
-        disponibilidad_devengo = pd.read_excel('input\\SA_DisponibilidadDevengoPresupuestario.xls',\
+        disponibilidad_devengo = pd.read_excel('input\\SA_DisponibilidadDevengoPresupuestario_SEPTIEMBRE.xls',
                                                header = 5)
         disponibilidad_devengo = disponibilidad_devengo[['Titulo', 'Principal', 'Número Documento',\
                                                         'Concepto Presupuestario', 'Monto Vigente']]
