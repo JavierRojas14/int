@@ -73,7 +73,6 @@ def cargar_archivos_y_formatearlos():
     return df_leyes_juntas, honorarios
 
 def consolidar_informacion_dfs(df, consolidar_por, consolidar_contratos):
-    df = df.sort_values('TOTAL HABER', ascending = False)
     if consolidar_por == 'funcionario':
         df = cambiar_redundancias(df, 'NOMBRE')
         df = cambiar_redundancias(df, 'CARGO')
@@ -91,55 +90,48 @@ def consolidar_informacion_dfs(df, consolidar_por, consolidar_contratos):
 
         if consolidar_contratos:
             df = cambiar_redundancias(df, 'TIPO_CONTRATA')
-
+        
         df = cambiar_redundancias(df, 'UNIDAD')
-
         df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO', 'UNIDAD']).sum().reset_index()
 
         return df_suma
 
+def agrupar_dfs(df_leyes_juntas, honorarios, tipo_agrupacion):
+    print(f"{'ANALIZANDO LEYES':-^40}")
+    print(df_leyes_juntas.index)
+    print(honorarios.index)
+    suma_leyes_por_tipo_agrupacion = consolidar_informacion_dfs(df_leyes_juntas, tipo_agrupacion,
+                                                                False)
+    suma_leyes_por_tipo_agrupacion['TIPO_CONTRATA'] = '1'
 
-    return df_suma
+    print(f"{'ANALIZANDO HONORARIOS':-^40}")
+    suma_honorarios_por_tipo_agrupacion = consolidar_informacion_dfs(honorarios, tipo_agrupacion,
+                                                                     False)
+    suma_honorarios_por_tipo_agrupacion['TIPO_CONTRATA'] = '2'
 
-df_leyes_juntas, honorarios = cargar_archivos_y_formatearlos()
-df_leyes_juntas.to_excel('leyes_juntas.xlsx')
+    print(f"{'ANALIZANDO LEYES Y HONORARIOS JUNTOS':-^40}")
+    juntos_por_tipo_agrupacion = pd.concat([suma_leyes_por_tipo_agrupacion,
+                                                suma_honorarios_por_tipo_agrupacion])
+    
+    juntos_por_tipo_agrupacion = juntos_por_tipo_agrupacion.set_index('RUT-DV')
 
-suma_leyes_por_funcionario = consolidar_informacion_dfs(df_leyes_juntas, 'funcionario', False)
-suma_leyes_por_funcionario['TIPO_CONTRATA'] = '1'
-
-# suma_honorarios_por_funcionario = consolidar_informacion_dfs(honorarios, 'funcionario', False)
-# suma_honorarios_por_funcionario['TIPO_CONTRATA'] = '2'
-
-# ley_y_honorarios_por_funcionario = pd.concat([suma_leyes_por_funcionario,
-#                                               suma_honorarios_por_funcionario])
-
-# suma_ley_y_honorarios_por_funcionario = consolidar_informacion_dfs(ley_y_honorarios_por_funcionario,
-#                                                               'funcionario', True)
-
-# print(f'Hay {suma_leyes_por_funcionario.shape[0]} funcionarios por Ley')
-# print(f'Hay {suma_honorarios_por_funcionario.shape[0]} funcionarios por Honorarios')
-# print(f'Todos los funcionarios juntos suman {ley_y_honorarios_por_funcionario.shape[0]} juntos')
-# print(f'Al consolidar todos los campos, quedaron {suma_ley_y_honorarios_por_funcionario.shape[0]} '
-#       f'funcionarios')
+    suma_juntos_por_tipo_agrupacion = consolidar_informacion_dfs(juntos_por_tipo_agrupacion,
+                                                                tipo_agrupacion, True)
 
 
-# print('-Analizando Leyes- \n\n')
-# suma_leyes_por_unidad = consolidar_informacion_dfs(df_leyes_juntas, 'unidad', False)
-# suma_leyes_por_unidad['TIPO_CONTRATA'] = '1'
+    print(f"{'RESUMEN':-^40}")
+    print(f'Hay {suma_leyes_por_tipo_agrupacion.shape[0]} funcionarios por Ley')
+    print(f'Hay {suma_honorarios_por_tipo_agrupacion.shape[0]} funcionarios por Honorarios')
+    print(f'Todos los funcionarios juntos suman {juntos_por_tipo_agrupacion.shape[0]} juntos')
+    print(f'Al consolidar todos los campos, quedaron'
+          f' {suma_juntos_por_tipo_agrupacion.shape[0]} funcionarios')
 
-# print('-Analizando Honorarios- \n\n')
-# suma_honorarios_por_unidad = consolidar_informacion_dfs(honorarios, 'unidad', False)
-# suma_honorarios_por_unidad['TIPO_CONTRATA'] = '2'
+    suma_juntos_por_tipo_agrupacion.to_excel(f'por_{tipo_agrupacion}.xlsx')
+    return suma_juntos_por_tipo_agrupacion
 
-# ley_y_honorarios_por_unidad = pd.concat([suma_leyes_por_unidad,
-#                                               suma_honorarios_por_unidad])
+def correr_programa():
+    df_leyes_juntas, honorarios = cargar_archivos_y_formatearlos()
+    suma_por_funcionario = agrupar_dfs(df_leyes_juntas, honorarios, 'funcionario')
+    # suma_por_unidad = agrupar_dfs(df_leyes_juntas, honorarios, 'unidad')
 
-# print('-Analizando Leyes y Honorarios juntos- \n\n')
-# suma_ley_y_honorarios_por_unidad = consolidar_informacion_dfs(ley_y_honorarios_por_unidad,
-#                                                               'unidad', True)
-
-# print(f'Hay {suma_leyes_por_unidad.shape[0]} unidads por Ley')
-# print(f'Hay {suma_honorarios_por_unidad.shape[0]} unidads por Honorarios')
-# print(f'Todos los unidads juntos suman {ley_y_honorarios_por_unidad.shape[0]} juntos')
-# print(f'Al consolidar todos los campos, quedaron {suma_ley_y_honorarios_por_unidad.shape[0]} '
-#       f'unidads')
+correr_programa()
