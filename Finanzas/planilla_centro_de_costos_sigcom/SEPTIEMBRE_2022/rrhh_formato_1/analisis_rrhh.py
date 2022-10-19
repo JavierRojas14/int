@@ -54,7 +54,8 @@ def cargar_archivos_y_formatearlos():
     df_leyes_juntas = pd.concat([df_15076, df_18834, df_19664])
     ##################################################################################
 
-    honorarios = pd.read_excel('input\\PERC AGOSTO.xlsx')
+    honorarios = pd.read_excel('input\\PERC SEPTIEMBRE.xlsx')
+    honorarios['RUT-DV'] = honorarios['RUT'].astype(str) + '-' + honorarios['DV'].astype(str)
     columnas_honorario = ['RUT-DV', 'NOMBRE', 'UNIDAD O SERVICIO DONDE SE DESEMPEÑA',
                           'CARGO', 'VALOR TOTAL O BRUTO']
 
