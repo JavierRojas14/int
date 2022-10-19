@@ -1,0 +1,99 @@
+Estos son los "NOMBRE" redundantes:
+| RUT-DV   | NOMBRE   | TOTAL HABER   |
+|----------|----------|---------------|
+
+
+Estos son los "CARGO" redundantes:
+| RUT-DV   | CARGO   | TOTAL HABER   |
+|----------|---------|---------------|
+
+
+Estos son los "UNIDAD" redundantes:
+|    | RUT-DV     | UNIDAD                                       |   TOTAL HABER |
+|---:|:-----------|:---------------------------------------------|--------------:|
+| 47 | 9457009-3  | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       4499442 |
+| 46 | 9457009-3  | 3361_UNIDAD DE TRANSPLANTE TORAXICO          |       2689303 |
+| 44 | 9381872-5  | 3312_UNIDAD DE MEDICINA INTERMEDIA           |       4725712 |
+| 45 | 9381872-5  | 3364_SERVICIO DE MEDICINA BRONCOPULMONAR     |       2410163 |
+| 42 | 9381699-4  | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       4800577 |
+| 43 | 9381699-4  | 4007_UTI- UCI                                |       2678567 |
+| 40 | 9356279-8  | 3364_SERVICIO DE MEDICINA BRONCOPULMONAR     |       4758644 |
+| 41 | 9356279-8  | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       3688443 |
+| 39 | 8666237-K  | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       4623057 |
+| 38 | 8666237-K  | 3321_SERVICIO CLINICO CIRUGIA CARDIOVASCULAR |       2818136 |
+| 36 | 7877320-0  | 3312_UNIDAD DE MEDICINA INTERMEDIA           |       4569345 |
+| 37 | 7877320-0  | 3364_SERVICIO DE MEDICINA BRONCOPULMONAR     |       2904025 |
+| 35 | 7259175-5  | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       4116736 |
+| 34 | 7259175-5  | 3530_UNIDAD APOYO ANESTESIA Y PABELLON       |       1392964 |
+| 33 | 6012866-9  | 3323_UNIDAD POST OPERADOS CARDIOCIRUGIA      |       4618446 |
+| 32 | 6012866-9  | 3321_SERVICIO CLINICO CIRUGIA CARDIOVASCULAR |       2560469 |
+| 31 | 6004926-2  | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       5039186 |
+| 30 | 6004926-2  | 3364_SERVICIO DE MEDICINA BRONCOPULMONAR     |       3204638 |
+| 29 | 24591684-1 | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       2811182 |
+| 28 | 24591684-1 | 3530_UNIDAD APOYO ANESTESIA Y PABELLON       |       2184703 |
+| 26 | 22955669-K | 3361_UNIDAD DE TRANSPLANTE TORAXICO          |        896417 |
+| 27 | 22955669-K | 3364_SERVICIO DE MEDICINA BRONCOPULMONAR     |        840052 |
+| 24 | 18615318-9 | 3956_CONSULTORIO EXTERNO                     |        238465 |
+| 25 | 18615318-9 | 4055_UNIDAD DE COMPRAS                       |        224274 |
+| 22 | 18018768-5 | 3312_UNIDAD DE MEDICINA INTERMEDIA           |       2702465 |
+| 23 | 18018768-5 | 3956_CONSULTORIO EXTERNO                     |        950045 |
+| 20 | 17269121-8 | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       3181265 |
+| 21 | 17269121-8 | 4007_UTI- UCI                                |       2077342 |
+| 19 | 16653286-8 | 4007_UTI- UCI                                |       3181265 |
+| 18 | 16653286-8 | 3366_SERVICIO DE CARDIOLOGIA                 |        797107 |
+| 17 | 16172330-4 | 3323_UNIDAD POST OPERADOS CARDIOCIRUGIA      |       3651906 |
+| 16 | 16172330-4 | 3321_SERVICIO CLINICO CIRUGIA CARDIOVASCULAR |       2093446 |
+| 14 | 16093747-5 | 3312_UNIDAD DE MEDICINA INTERMEDIA           |       2811182 |
+| 15 | 16093747-5 | 3321_SERVICIO CLINICO CIRUGIA CARDIOVASCULAR |       1862619 |
+| 13 | 15956991-8 | 3323_UNIDAD POST OPERADOS CARDIOCIRUGIA      |       3651906 |
+| 12 | 15956991-8 | 3143_U. INFECC. ASOC. ATENCION SALUD (IAAS)  |       2093446 |
+| 11 | 15413864-1 | 3323_UNIDAD POST OPERADOS CARDIOCIRUGIA      |       2811182 |
+| 10 | 15413864-1 | 3321_SERVICIO CLINICO CIRUGIA CARDIOVASCULAR |       1036764 |
+|  9 | 15188820-8 | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       2978487 |
+|  8 | 15188820-8 | 3321_SERVICIO CLINICO CIRUGIA CARDIOVASCULAR |       2093446 |
+|  6 | 13507846-8 | 3312_UNIDAD DE MEDICINA INTERMEDIA           |       3795655 |
+|  7 | 13507846-8 | 3364_SERVICIO DE MEDICINA BRONCOPULMONAR     |       2109550 |
+|  5 | 12736759-0 | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       4573957 |
+|  4 | 12736759-0 | 3530_UNIDAD APOYO ANESTESIA Y PABELLON       |       3134854 |
+|  2 | 12470454-5 | 3321_SERVICIO CLINICO CIRUGIA CARDIOVASCULAR |       1038672 |
+|  3 | 12470454-5 | 3361_UNIDAD DE TRANSPLANTE TORAXICO          |        987675 |
+|  1 | 10976333-0 | 3577_UNIDAD DE CUIDADOS INTENSIVOS           |       3877341 |
+|  0 | 10976333-0 | 3366_SERVICIO DE CARDIOLOGIA                 |       2673199 |
+
+---------ANALIZANDO HONORARIOS----------
+
+Estos son los "NOMBRE" redundantes:
+| RUT-DV   | NOMBRE   | TOTAL HABER   |
+|----------|----------|---------------|
+
+
+Estos son los "CARGO" redundantes:
+| RUT-DV   | CARGO   | TOTAL HABER   |
+|----------|---------|---------------|
+
+
+Estos son los "UNIDAD" redundantes:
+| RUT-DV   | UNIDAD   | TOTAL HABER   |
+|----------|----------|---------------|
+
+--ANALIZANDO LEYES Y HONORARIOS JUNTOS--
+
+Estos son los "NOMBRE" redundantes:
+| RUT-DV   | NOMBRE   | TOTAL HABER   |
+|----------|----------|---------------|
+
+
+
+
+Estos son los "UNIDAD" redundantes:
+|    | RUT-DV     | UNIDAD                                    |   TOTAL HABER |
+|---:|:-----------|:------------------------------------------|--------------:|
+|  0 | 17074428-4 | 3577_UNIDAD DE CUIDADOS INTENSIVOS        |       1693797 |
+|  1 | 17074428-4 | SERVICIO MEDICO QUIRURGICO CARDIOVASCULAR |        204000 |
+
+
+Estos son los "TIPO_CONTRATA" redundantes:
+|    | RUT-DV     |   TIPO_CONTRATA |   TOTAL HABER |
+|---:|:-----------|----------------:|--------------:|
+|  0 | 17074428-4 |               1 |       1693797 |
+|  1 | 17074428-4 |               2 |        204000 |

@@ -136,4 +136,11 @@ def correr_programa():
     suma_por_funcionario = agrupar_dfs(df_leyes_juntas, honorarios, 'funcionario')
     suma_por_unidad = agrupar_dfs(df_leyes_juntas, honorarios, 'unidad')
 
+    guardar_archivos(suma_por_funcionario, suma_por_unidad)
+
+def guardar_archivos(suma_por_funcionario, suma_por_unidad):
+    with pd.ExcelWriter('output.xlsx') as writer:
+        suma_por_funcionario.to_excel(writer, index = False, sheet_name = 'suma_por_funcionario')
+        suma_por_unidad.to_excel(writer, index = False, sheet_name = 'suma_por_unidad')
+
 correr_programa()
