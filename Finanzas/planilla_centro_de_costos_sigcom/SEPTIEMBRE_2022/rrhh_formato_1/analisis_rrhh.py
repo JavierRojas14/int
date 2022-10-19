@@ -67,17 +67,29 @@ def cargar_archivos_y_formatearlos():
 
     return df_leyes_juntas, honorarios
 
+def tratar_dfs(df, cambiar_tipo_contrato):
+    df = cambiar_redundancias(df, 'NOMBRE')
+    df = cambiar_redundancias(df, 'CARGO')
+    if cambiar_tipo_contrato:
+        df = cambiar_redundancias(df, 'TIPO_CONTRATA')
+
+    df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum().reset_index()
+
+    return df_suma
 
 df_leyes_juntas, honorarios = cargar_archivos_y_formatearlos()
 
-df_leyes_juntas = cambiar_redundancias(df_leyes_juntas, 'NOMBRE')
-df_leyes_juntas = cambiar_redundancias(df_leyes_juntas, 'CARGO')
-df_suma_leyes_juntas = df_leyes_juntas.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum()
-df_suma_leyes_juntas['TIPO CONTRATA'] = '1'
-df_suma_leyes_juntas.to_excel('leyes_juntas_suma.xlsx')
+suma_leyes_juntas = tratar_dfs(df_leyes_juntas, False)
+suma_leyes_juntas['TIPO_CONTRATA'] = '1'
+print(f'Hay {suma_leyes_juntas.shape[0]} funcionarios por Ley')
 
-honorarios = cambiar_redundancias(honorarios, 'NOMBRE')
-honorarios = cambiar_redundancias(honorarios, 'CARGO')
-honorarios_suma = honorarios.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum()
-honorarios_suma['TIPO CONTRATA'] = '2'
-honorarios_suma.to_excel('honorarios_suma.xlsx')
+suma_honorarios = tratar_dfs(honorarios, False)
+suma_honorarios['TIPO_CONTRATA'] = '2'
+print(f'Hay {suma_honorarios.shape[0]} funcionarios por Honorarios')
+
+funcionarios_juntos = pd.concat([suma_leyes_juntas, suma_honorarios])
+print(f'Todos los funcionarios juntos suman {funcionarios_juntos.shape[0]} juntos')
+
+suma_funcionarios_juntos = tratar_dfs(funcionarios_juntos, True)
+print(f'Al consolidar todos los campos, quedaron {suma_funcionarios_juntos.shape[0]} '
+      f'funcionarios')
