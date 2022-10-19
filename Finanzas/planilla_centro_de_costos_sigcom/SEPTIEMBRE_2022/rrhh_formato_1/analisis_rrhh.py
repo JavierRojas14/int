@@ -112,8 +112,8 @@ def agrupar_dfs(df_leyes_juntas, honorarios, tipo_agrupacion):
     print(f"{'ANALIZANDO LEYES Y HONORARIOS JUNTOS':-^40}")
     juntos_por_tipo_agrupacion = pd.concat([suma_leyes_por_tipo_agrupacion,
                                                 suma_honorarios_por_tipo_agrupacion])
-    
-    juntos_por_tipo_agrupacion = juntos_por_tipo_agrupacion.set_index('RUT-DV')
+
+    juntos_por_tipo_agrupacion = formatear_df(juntos_por_tipo_agrupacion)
 
     suma_juntos_por_tipo_agrupacion = consolidar_informacion_dfs(juntos_por_tipo_agrupacion,
                                                                 tipo_agrupacion, True)
