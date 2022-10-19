@@ -5,14 +5,18 @@ def identificar_redundancias(df, caracteristica_a_identificar):
     agrupar_por = ['RUT-DV'] + caracteristica_a_identificar
     agrupado = df.groupby(by = agrupar_por).sum()
     duplicados = agrupado[agrupado.index.get_level_values(0).duplicated(keep = False)]
-    return duplicados
+    duplicados_ordenados = duplicados.reset_index().sort_values(by = ['RUT-DV', 'TOTAL HABER'],
+                                                                ascending = False)
+    return duplicados_ordenados
 
 def hacer_cambiador_de_caracteristica_redundante(df_con_duplicados, caracteristica):
+    a_dejar = df_con_duplicados.iloc[::2]
     if caracteristica == 'CONTRATO':
-        diccionario = {rut[0]: '1' for rut in df_con_duplicados.index[::2]}
+        contratos_1 = ['1' for _ in range(a_dejar.shape[0])]
+        diccionario = dict(zip(a_dejar['RUT-DV'], contratos_1))
 
     else:
-        diccionario = dict(df_con_duplicados.index[::2])
+        diccionario = dict(zip(a_dejar['RUT-DV'], a_dejar[caracteristica]))
 
     return diccionario
 
@@ -68,29 +72,74 @@ def cargar_archivos_y_formatearlos():
 
     return df_leyes_juntas, honorarios
 
-def tratar_dfs(df, cambiar_tipo_contrato):
-    df = cambiar_redundancias(df, 'NOMBRE')
-    df = cambiar_redundancias(df, 'CARGO')
-    if cambiar_tipo_contrato:
-        df = cambiar_redundancias(df, 'TIPO_CONTRATA')
+def consolidar_informacion_dfs(df, consolidar_por, consolidar_contratos):
+    df = df.sort_values('TOTAL HABER', ascending = False)
+    if consolidar_por == 'funcionario':
+        df = cambiar_redundancias(df, 'NOMBRE')
+        df = cambiar_redundancias(df, 'CARGO')
 
-    df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum().reset_index()
+        if consolidar_contratos:
+            df = cambiar_redundancias(df, 'TIPO_CONTRATA')
+
+        df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum().reset_index()
+
+        return df_suma
+
+    elif consolidar_por == 'unidad':
+        df = cambiar_redundancias(df, 'NOMBRE')
+        df = cambiar_redundancias(df, 'CARGO')
+
+        if consolidar_contratos:
+            df = cambiar_redundancias(df, 'TIPO_CONTRATA')
+
+        df = cambiar_redundancias(df, 'UNIDAD')
+
+        df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO', 'UNIDAD']).sum().reset_index()
+
+        return df_suma
+
 
     return df_suma
 
 df_leyes_juntas, honorarios = cargar_archivos_y_formatearlos()
+df_leyes_juntas.to_excel('leyes_juntas.xlsx')
 
-suma_leyes_juntas = tratar_dfs(df_leyes_juntas, False)
-suma_leyes_juntas['TIPO_CONTRATA'] = '1'
-print(f'Hay {suma_leyes_juntas.shape[0]} funcionarios por Ley')
+suma_leyes_por_funcionario = consolidar_informacion_dfs(df_leyes_juntas, 'funcionario', False)
+suma_leyes_por_funcionario['TIPO_CONTRATA'] = '1'
 
-suma_honorarios = tratar_dfs(honorarios, False)
-suma_honorarios['TIPO_CONTRATA'] = '2'
-print(f'Hay {suma_honorarios.shape[0]} funcionarios por Honorarios')
+# suma_honorarios_por_funcionario = consolidar_informacion_dfs(honorarios, 'funcionario', False)
+# suma_honorarios_por_funcionario['TIPO_CONTRATA'] = '2'
 
-funcionarios_juntos = pd.concat([suma_leyes_juntas, suma_honorarios])
-print(f'Todos los funcionarios juntos suman {funcionarios_juntos.shape[0]} juntos')
+# ley_y_honorarios_por_funcionario = pd.concat([suma_leyes_por_funcionario,
+#                                               suma_honorarios_por_funcionario])
 
-suma_funcionarios_juntos = tratar_dfs(funcionarios_juntos, True)
-print(f'Al consolidar todos los campos, quedaron {suma_funcionarios_juntos.shape[0]} '
-      f'funcionarios')
+# suma_ley_y_honorarios_por_funcionario = consolidar_informacion_dfs(ley_y_honorarios_por_funcionario,
+#                                                               'funcionario', True)
+
+# print(f'Hay {suma_leyes_por_funcionario.shape[0]} funcionarios por Ley')
+# print(f'Hay {suma_honorarios_por_funcionario.shape[0]} funcionarios por Honorarios')
+# print(f'Todos los funcionarios juntos suman {ley_y_honorarios_por_funcionario.shape[0]} juntos')
+# print(f'Al consolidar todos los campos, quedaron {suma_ley_y_honorarios_por_funcionario.shape[0]} '
+#       f'funcionarios')
+
+
+# print('-Analizando Leyes- \n\n')
+# suma_leyes_por_unidad = consolidar_informacion_dfs(df_leyes_juntas, 'unidad', False)
+# suma_leyes_por_unidad['TIPO_CONTRATA'] = '1'
+
+# print('-Analizando Honorarios- \n\n')
+# suma_honorarios_por_unidad = consolidar_informacion_dfs(honorarios, 'unidad', False)
+# suma_honorarios_por_unidad['TIPO_CONTRATA'] = '2'
+
+# ley_y_honorarios_por_unidad = pd.concat([suma_leyes_por_unidad,
+#                                               suma_honorarios_por_unidad])
+
+# print('-Analizando Leyes y Honorarios juntos- \n\n')
+# suma_ley_y_honorarios_por_unidad = consolidar_informacion_dfs(ley_y_honorarios_por_unidad,
+#                                                               'unidad', True)
+
+# print(f'Hay {suma_leyes_por_unidad.shape[0]} unidads por Ley')
+# print(f'Hay {suma_honorarios_por_unidad.shape[0]} unidads por Honorarios')
+# print(f'Todos los unidads juntos suman {ley_y_honorarios_por_unidad.shape[0]} juntos')
+# print(f'Al consolidar todos los campos, quedaron {suma_ley_y_honorarios_por_unidad.shape[0]} '
+#       f'unidads')
