@@ -79,20 +79,24 @@ def consolidar_informacion_dfs(df, consolidar_por, consolidar_contratos):
 
         if consolidar_contratos:
             df = cambiar_redundancias(df, 'TIPO_CONTRATA')
-
-        df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum().reset_index()
+            df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO', 'TIPO_CONTRATA']).sum() \
+                                                                                     .reset_index()
+        else:
+            df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum().reset_index()
 
         return df_suma
 
     elif consolidar_por == 'unidad':
         df = cambiar_redundancias(df, 'NOMBRE')
         df = cambiar_redundancias(df, 'CARGO')
+        df = cambiar_redundancias(df, 'UNIDAD')
 
         if consolidar_contratos:
             df = cambiar_redundancias(df, 'TIPO_CONTRATA')
-        
-        df = cambiar_redundancias(df, 'UNIDAD')
-        df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO', 'UNIDAD']).sum().reset_index()
+            df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO', 'TIPO_CONTRATA','UNIDAD']).sum().reset_index()
+
+        else:
+            df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO', 'UNIDAD']).sum().reset_index()
 
         return df_suma
 
@@ -132,6 +136,6 @@ def agrupar_dfs(df_leyes_juntas, honorarios, tipo_agrupacion):
 def correr_programa():
     df_leyes_juntas, honorarios = cargar_archivos_y_formatearlos()
     suma_por_funcionario = agrupar_dfs(df_leyes_juntas, honorarios, 'funcionario')
-    # suma_por_unidad = agrupar_dfs(df_leyes_juntas, honorarios, 'unidad')
+    suma_por_unidad = agrupar_dfs(df_leyes_juntas, honorarios, 'unidad')
 
 correr_programa()
