@@ -28,8 +28,8 @@ def cambiar_redundancias(df, caracteristica_a_cambiar):
     dict_cambiador = hacer_cambiador_de_caracteristica_redundante(df_con_redundancias, 
                                                                   caracteristica_a_cambiar)
 
-    print(f'\nLos ruts quedarán de la siguiente forma:\n'
-          f'{json.dumps(dict_cambiador, indent = 1)}\n')
+    # print(f'\nLos ruts quedarán de la siguiente forma:\n'
+    #       f'{json.dumps(dict_cambiador, indent = 1)}\n')
 
     for rut, caracteristica in dict_cambiador.items():
         df.loc[rut, caracteristica_a_cambiar] = caracteristica
@@ -102,8 +102,6 @@ def consolidar_informacion_dfs(df, consolidar_por, consolidar_contratos):
 
 def agrupar_dfs(df_leyes_juntas, honorarios, tipo_agrupacion):
     print(f"{'ANALIZANDO LEYES':-^40}")
-    print(df_leyes_juntas.index)
-    print(honorarios.index)
     suma_leyes_por_tipo_agrupacion = consolidar_informacion_dfs(df_leyes_juntas, tipo_agrupacion,
                                                                 False)
     suma_leyes_por_tipo_agrupacion['TIPO_CONTRATA'] = '1'
