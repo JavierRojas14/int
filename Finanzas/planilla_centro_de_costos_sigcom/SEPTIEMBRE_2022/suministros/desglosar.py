@@ -34,12 +34,13 @@ for item_desglose, a_desglosar in diccionario_todos_los_desgloses.items():
         for desglose in a_desglosar:
             print(f'El item {item_desglose} lo estamos desglosando en {desglose}')
             porcentaje = input('¿Qué porcentaje tiene este item?: ')
+            porcentaje = porcentaje.replace(',', '.')
             porcentaje = float(porcentaje)
             porcentaje_cantidad = valores_antiguos * porcentaje
             porcentaje_cantidad.name = desglose
 
             filas_a_agregar.append(porcentaje_cantidad)
-    
+
         valores_antiguos.name = 'Total'
         filas_a_agregar.append(valores_antiguos)
         df_super = pd.DataFrame(filas_a_agregar)

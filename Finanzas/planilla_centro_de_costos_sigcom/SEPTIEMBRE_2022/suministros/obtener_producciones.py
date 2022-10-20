@@ -44,7 +44,7 @@ for mask in todas_las_masks:
     produccion_desgl = obtener_porcentaje_de_produccion(mask, produccion_septiembre).reset_index()\
                                                                         .groupby('EGRESOS')\
                                                                         .sum()
-    
+
     total = pd.concat([total, produccion_desgl])
     print('\n\n')
 

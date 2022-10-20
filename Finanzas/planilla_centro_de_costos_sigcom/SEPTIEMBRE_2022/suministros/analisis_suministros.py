@@ -1,6 +1,8 @@
 import pandas as pd
 from constantes import TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON, TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM_JSON
 pd.options.mode.chained_assignment = None  # default='warn'
+import os
+import numpy as np
 
 
 class AnalizadorSuministros:
@@ -11,12 +13,35 @@ class AnalizadorSuministros:
         df_cartola, df_traductor_bodega_sigfe, \
         TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, TRADUCTOR_DESTINO_INT_CC_SIGCOM = self.leer_archivos()
 
-        unidas_destino = self.unir_archivos(df_cartola, df_traductor_bodega_sigfe, TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, \
-                      TRADUCTOR_DESTINO_INT_CC_SIGCOM)
+        unidas_destino = self.unir_archivos(df_cartola, df_traductor_bodega_sigfe, 
+                                            TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, \
+                                            TRADUCTOR_DESTINO_INT_CC_SIGCOM)
 
         df_final = self.filtrar_salidas_farmacia(unidas_destino)
         df_final = self.filtrar_motivos(df_final)
-        self.rellenar_destinos(df_final)
+
+        if not 'item_cc_rellenados_completos.xlsx' in os.listdir():
+            df_sin_cc_rellenados = self.rellenar_destinos(df_final)
+
+        else:
+            df_consolidada = pd.read_excel('item_cc_rellenados_completos.xlsx')
+
+        formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(df_consolidada)
+        formato_relleno.to_excel('output.xlsx')
+
+    def convertir_a_tabla_din_y_rellenar_formato(self, df_consolidada):
+        tabla_dinamica = pd.pivot_table(df_consolidada, values = 'Neto Total', index = 'CC SIGCOM',
+                                        columns = 'Item SIGCOM', aggfunc = np.sum)
+        
+        formato = pd.read_excel('input\\Formato 4_Distribución Suministro 2022-10.xlsx')
+        formato = formato.set_index('Centro de Costo')
+
+        for cc in tabla_dinamica.index:
+            for item_sigcom in tabla_dinamica.columns:
+                formato.loc[cc, item_sigcom] = tabla_dinamica.loc[cc, item_sigcom]
+
+        return formato
+
 
     def leer_archivos(self):
         df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
@@ -28,18 +53,19 @@ class AnalizadorSuministros:
         df_traductor_bodega_sigfe = df_traductor_bodega_sigfe.rename(columns = {'Nombre Items': \
                                                                                 'Item SIGFE'})
         TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM = df_traductor_sigfe_sigcom_cristian.iloc[66:83, [0, 1]]
-        TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM = TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM.rename(columns = 
-                                                                        {'Destino INT': 'Item SIGFE',
-                                                                        'Unnamed: 1': 'Item SIGCOM'})
+        TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM = TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM.rename(columns =
+                                                                    {'Destino INT': 'Item SIGFE',
+                                                                    'Unnamed: 1': 'Item SIGCOM'})
 
         TRADUCTOR_DESTINO_INT_CC_SIGCOM = df_traductor_sigfe_sigcom_cristian.iloc[0:63, [0, 1]]\
                                                 .rename(columns = {'Unnamed: 1': 'CC SIGCOM',
                                                                     'Destino INT': 'Destino'})
-        
+
         return df_cartola, df_traductor_bodega_sigfe, \
                TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, TRADUCTOR_DESTINO_INT_CC_SIGCOM
-    
-    def unir_archivos(self, df_cartola, df_traductor_bodega_sigfe, TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, \
+
+    def unir_archivos(self, df_cartola, df_traductor_bodega_sigfe,
+                      TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, \
                       TRADUCTOR_DESTINO_INT_CC_SIGCOM):
 
         unidas = pd.merge(df_cartola, df_traductor_bodega_sigfe, how = 'left', left_on = 'Codigo Articulo',
@@ -51,7 +77,6 @@ class AnalizadorSuministros:
         unidas_destino = pd.merge(unidas_concepto_presup, TRADUCTOR_DESTINO_INT_CC_SIGCOM, how = 'left',
                                                                                         on = 'Destino')
 
-        print(unidas_destino.columns)
         unidas_destino = unidas_destino[['Codigo Articulo', 'Nombre', 'Movimiento', 'Destino', 'Motivo',
                                         'Neto Total', 'Familia', 'Item SIGFE', 'Item SIGCOM', 'CC SIGCOM']]
         
@@ -76,7 +101,7 @@ class AnalizadorSuministros:
         df_final.to_excel('Filtrado.xlsx', index = False)
 
         return df_final
-    
+
     def rellenar_destinos(self, df_final):
         sin_cc = df_final[df_final['CC SIGCOM'].isna()]
         print(f'Las siguientes filas NO tienen CC SIGCOM:\n{sin_cc}')
@@ -95,6 +120,8 @@ class AnalizadorSuministros:
 
                 else:
                     print('Debes ingresar un destino válido.')
+        
+        return sin_cc
 
 analizador = AnalizadorSuministros()
 analizador.correr_programa()
