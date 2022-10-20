@@ -105,8 +105,9 @@ class ModuloRecursosHumanosSIGCOM:
         return df_funcionarios
 
 ############################################################################################
-    def agrupar_dfs(self, df_leyes_juntas, honorarios, tipo_agrupacion):
-        print(f"{'ANALIZANDO LEYES':-^40}")
+    def juntar_leyes_y_honorarios(self, df_leyes_juntas, honorarios, tipo_agrupacion):
+        print(f'{"SE ESTÁN JUNTANDO LEYES Y HONORARIOS":-^40}')
+
         suma_leyes_por_tipo_agrupacion = consolidar_informacion_dfs(df_leyes_juntas, tipo_agrupacion,
                                                                     False)
         suma_leyes_por_tipo_agrupacion['TIPO_CONTRATA'] = '1'
@@ -125,79 +126,93 @@ class ModuloRecursosHumanosSIGCOM:
         suma_juntos_por_tipo_agrupacion = consolidar_informacion_dfs(juntos_por_tipo_agrupacion,
                                                                     tipo_agrupacion, True)
 
-        print(f"{'RESUMEN':-^40}")
-        print(f'Hay {suma_leyes_por_tipo_agrupacion.shape[0]} funcionarios por Ley')
-        print(f'Hay {suma_honorarios_por_tipo_agrupacion.shape[0]} funcionarios por Honorarios')
-        print(f'Todos los funcionarios juntos suman {juntos_por_tipo_agrupacion.shape[0]} juntos')
-        print(f'Al consolidar todos los campos, quedaron'
-            f' {suma_juntos_por_tipo_agrupacion.shape[0]} funcionarios')
+
 
         suma_juntos_por_tipo_agrupacion.to_excel(f'por_{tipo_agrupacion}.xlsx')
         return suma_juntos_por_tipo_agrupacion
 
-    def consolidar_informacion_dfs(self, df, consolidar_por, consolidar_contratos):
-        if consolidar_por == 'funcionario':
-            df = cambiar_redundancias(df, 'NOMBRE')
-            df = cambiar_redundancias(df, 'CARGO')
+    def juntar_leyes_y_honorarios(self, df_leyes_juntas, honorarios):
+        '''
+        Esta función permite unir los funcionarios por leyes y los por honorario.
 
-            if consolidar_contratos:
-                df = cambiar_redundancias(df, 'TIPO_CONTRATA')
-                df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO', 'TIPO_CONTRATA']).sum() \
-                                                                                     .reset_index()
-            else:
-                df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO']).sum().reset_index()
+        '''
+        informacion_a_consolidar = ['NOMBRE', 'CARGO', 'UNIDAD']
+        leyes_modificada = df_leyes_juntas.copy()
+        honorarios_modificada = honorarios.copy()
 
-            return df_suma
+        for info in informacion_a_consolidar:
+            leyes_modificada = self.unificar_redundancias(leyes_modificada, info)
+            honorarios_modificada = self.unificar_redundancias(honorarios_modificada, info)
+        
+        leyes_modificada['TIPO_CONTRATA'] = '1'
+        honorarios_modificada['TIPO_CONTRATA'] = '2'
 
-        elif consolidar_por == 'unidad':
-            df = cambiar_redundancias(df, 'NOMBRE')
-            df = cambiar_redundancias(df, 'CARGO')
-            df = cambiar_redundancias(df, 'UNIDAD')
+        ley_honorario = pd.concat([leyes_modificada, honorarios_modificada])
+    
 
-            if consolidar_contratos:
-                df = cambiar_redundancias(df, 'TIPO_CONTRATA')
-                df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO', 'TIPO_CONTRATA','UNIDAD']).sum().reset_index()
+    def unificar_redundancias(self, df_funcionarios, redundancia_a_identificar):
+        '''
+        Esta función permite identificar, crear un cambiador y unificar una característica
+        de un df.
 
-            else:
-                df_suma = df.groupby(by = ['RUT-DV', 'NOMBRE', 'CARGO', 'UNIDAD']).sum().reset_index()
+        - Retorna el df con la característica unificada!
+        '''
+        df_repetidos = self.identificar_redundancias(df_funcionarios, redundancia_a_identificar)
+        caract_seleccionadas = self.seleccionar_caract_a_unificar(df_repetidos,
+                                                                  redundancia_a_identificar)
 
-            return df_suma
+        df_funcionarios_unificados = self.cambiar_redundancias(df_funcionarios,
+                                                               caract_seleccionadas,
+                                                               redundancia_a_identificar)
 
+        return df_funcionarios_unificados
 
-    def identificar_redundancias(self, df, caracteristica_a_identificar):
-        agrupar_por = ['RUT-DV'] + caracteristica_a_identificar
-        agrupado = df.groupby(by = agrupar_por).sum()
+    def identificar_redundancias(self, df_funcionarios, caracteristica_a_identificar):
+        '''
+        Esta función permite identificar las redundancias en la caracteristica señalada
+
+        - Retorna un DataFrame con el formato RUT-DV; caracteristica_a_identificar; TOTAL HABER
+        - Los grupos están ordenados de forma descendente (La caract que gana más al principio).
+        '''
+
+        agrupado = df_funcionarios.groupby(by = ['RUT-DV', caracteristica_a_identificar]).sum()
+
         duplicados = agrupado[agrupado.index.get_level_values(0).duplicated(keep = False)]
         duplicados_ordenados = duplicados.reset_index().sort_values(by = ['RUT-DV', 'TOTAL HABER'],
                                                                     ascending = False)
         return duplicados_ordenados
 
-    def hacer_cambiador_de_caracteristica_redundante(self, df_con_duplicados, caracteristica):
+    def seleccionar_caract_a_unificar(self, df_con_duplicados, caracteristica):
+        '''
+        - Esta función permite seleccionar las características que se dejarán finalmente para
+        ese funcionario.
+        - Esta función asume que el df proporcionado solamente tiene 2 registros por funcionario.
+        - Selecciona la primera característica del funcionario (o sea, en donde gana más).
+        - Si la característica a seleccionar es CONTRATO, entonces para ese funcionario siempre
+        se dejará el tipo de contrato 1 (por ley).
+
+        '''
         a_dejar = df_con_duplicados.iloc[::2]
-        if caracteristica == 'CONTRATO':
-            contratos_1 = ['1' for _ in range(a_dejar.shape[0])]
-            diccionario = dict(zip(a_dejar['RUT-DV'], contratos_1))
+        if caracteristica != 'CONTRATO':
+            diccionario = dict(zip(a_dejar['RUT-DV'], a_dejar[caracteristica]))
 
         else:
-            diccionario = dict(zip(a_dejar['RUT-DV'], a_dejar[caracteristica]))
+            diccionario = dict(map(lambda x: (x, '1'), a_dejar['RUT-DV']))
 
         return diccionario
 
-    def cambiar_redundancias(self, df, caracteristica_a_cambiar):
-        df_con_redundancias = identificar_redundancias(df, [caracteristica_a_cambiar])
-        print(f'\nEstos son los "{caracteristica_a_cambiar}" redundantes: \n'
-            f'{df_con_redundancias.to_markdown()}\n')
 
-        dict_cambiador = hacer_cambiador_de_caracteristica_redundante(df_con_redundancias, 
-                                                                    caracteristica_a_cambiar)
+    def cambiar_redundancias(self, df_funcionarios, dict_a_cambiar, caracteristica_a_cambiar):
+        '''
+        - Esta función toma el DataFrame original de los funcionarios y aplica la consolidación
+        a cada funcionario presente en el diccionario.
+        '''
 
-        # print(f'\nLos ruts quedarán de la siguiente forma:\n'
-        #       f'{json.dumps(dict_cambiador, indent = 1)}\n')
+        df_funcionarios_unificados = df_funcionarios.copy()
+        for rut, caracteristica in dict_a_cambiar.items():
+            df_funcionarios_unificados.loc[rut, caracteristica_a_cambiar] = caracteristica
 
-        for rut, caracteristica in dict_cambiador.items():
-            df.loc[rut, caracteristica_a_cambiar] = caracteristica
-
-        return df
+        return df_funcionarios_unificados
 
     def guardar_archivos(self, suma_por_funcionario, suma_por_unidad):
         with pd.ExcelWriter('output.xlsx') as writer:
