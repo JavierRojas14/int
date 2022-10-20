@@ -19,6 +19,16 @@ class ModuloRecursosHumanosSIGCOM:
         guardar_archivos(suma_por_funcionario, suma_por_unidad)
 
     def cargar_archivos_y_formatearlos(self):
+        '''
+        Este función permite obtener los archivos de RRHH, tanto para los funcionarios contratados
+        por Leyes, como los funcionarios que prestan servicios por Honorarios.
+
+        En este caso, las 3 leyes del Hospital son juntadas en una única tabla.
+
+        Las Columnas que se dejan tanto en Leyes, como Honorario, son:
+         - ['RUT-DV', 'NOMBRE', 'UNIDAD', 'CARGO', 'TOTAL HABER']'''
+
+        print(f'{"SE ESTÁN CARGANDO LOS ARCHIVOS":-^40}')
         leyes = self.cargar_leyes()
         honorarios = self.cargar_honorarios()
         leyes_procesada, honorarios_procesada = self.unificar_formatos(leyes, honorarios)
@@ -26,6 +36,17 @@ class ModuloRecursosHumanosSIGCOM:
         return leyes_procesada, honorarios_procesada
 
     def cargar_leyes(self):
+        '''
+        Esta función permite cargar los archivos de funcionarios contratados por Leyes.
+        - Los archivos considerados como leyes, son todos los que tengan el string "TODOS" en su
+        nombre.
+
+        - En esta función, primero se cargan todas las leyes a un DataFrame. Luego, se filtran
+        sus columnas por las columnas útiles (además, entre archivos tienen distintas cantidades
+        de columnas). Finalmente, se concatenan entre sí a lo largo.
+        '''
+
+        print(f'{"SE ESTÁN CARGANDO LAS LEYES":^40}')
         nombres_leyes = [os.path.join('input', nombre) \
                         for nombre in os.listdir('input') if 'TODOS' in nombre]
 
@@ -39,33 +60,51 @@ class ModuloRecursosHumanosSIGCOM:
         return leyes_juntas
 
     def cargar_honorarios(self):
-        ##################################################################################
+        '''
+        Esta función carga el archivo de funcionarios que trabajan por honorarios.
+
+        - Se agrega la columna RUT-DV, ya que esta ausente en el archivo original
+        - Se cambian los nombres de las columnas para que tengan el mismo nombre que las columnas
+        de leyes.
+        '''
+
+        print(f'{"SE ESTÁN CARGANDO LOS HONORARIOS":^40}')
         nombre_archivo_honorarios = [nom for nom in os.listdir('input') if 'PERC' in nom][0]
+        nombre_archivo_honorarios = os.path.join('input', nombre_archivo_honorarios)
         honorarios = pd.read_excel(nombre_archivo_honorarios)
 
         honorarios['RUT-DV'] = honorarios['RUT'].astype(str) + '-' + honorarios['DV'].astype(str)
         columnas_honorario = ['RUT-DV', 'NOMBRE', 'UNIDAD O SERVICIO DONDE SE DESEMPEÑA',
-                            'CARGO', 'VALOR TOTAL O BRUTO']
+                              'CARGO', 'VALOR TOTAL O BRUTO']
 
         honorarios = honorarios[columnas_honorario].rename(
-                    columns = {'UNIDAD O SERVICIO DONDE SE DESEMPEÑA': 'UNIDAD',
-                                'VALOR TOTAL O BRUTO': 'TOTAL HABER'})
+                                columns = {'UNIDAD O SERVICIO DONDE SE DESEMPEÑA': 'UNIDAD',
+                                            'VALOR TOTAL O BRUTO': 'TOTAL HABER'})
         return honorarios
 
-    def unificar_formatos(self, leyes, honorarios):
-        leyes_formateada = self.formatear_df(leyes)
-        honorarios_formateada = self.formatear_df(honorarios)
+    def unificar_formatos(self, *args):
+        '''
+        Esta función es un pasador para aplicar la funcion self.formatear_df() a los argumentos
+        de la función.
+        '''
 
-        return leyes_formateada, honorarios_formateada
+        lista_dfs_formateadas = list(map(self.formatear_df, args))
+        return lista_dfs_formateadas
 
-    def formatear_df(self, df):
-        df['NOMBRE'] = df['NOMBRE'].str.strip()
-        df['RUT-DV'] = df['RUT-DV'].str.strip().str.upper()
+    def formatear_df(self, df_funcionarios):
+        '''
+        Esta función unifica las columnas "NOMBRE" y "RUT-DV" de la DataFrame que le llegue.
+        Además, pone a la columna RUT-DV como índice.
+        '''
 
-        df = df.set_index('RUT-DV')
+        df_funcionarios['NOMBRE'] = df_funcionarios['NOMBRE'].str.strip().str.upper()
+        df_funcionarios['RUT-DV'] = df_funcionarios['RUT-DV'].str.strip().str.upper()
 
-        return df
+        df_funcionarios = df_funcionarios.set_index('RUT-DV')
 
+        return df_funcionarios
+
+############################################################################################
     def agrupar_dfs(self, df_leyes_juntas, honorarios, tipo_agrupacion):
         print(f"{'ANALIZANDO LEYES':-^40}")
         suma_leyes_por_tipo_agrupacion = consolidar_informacion_dfs(df_leyes_juntas, tipo_agrupacion,
