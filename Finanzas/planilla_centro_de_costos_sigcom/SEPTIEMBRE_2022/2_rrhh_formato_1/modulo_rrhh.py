@@ -105,35 +105,22 @@ class ModuloRecursosHumanosSIGCOM:
         return df_funcionarios
 
 ############################################################################################
-    def juntar_leyes_y_honorarios(self, df_leyes_juntas, honorarios, tipo_agrupacion):
-        print(f'{"SE ESTÁN JUNTANDO LEYES Y HONORARIOS":-^40}')
-
-        suma_leyes_por_tipo_agrupacion = consolidar_informacion_dfs(df_leyes_juntas, tipo_agrupacion,
-                                                                    False)
-        suma_leyes_por_tipo_agrupacion['TIPO_CONTRATA'] = '1'
-
-        print(f"{'ANALIZANDO HONORARIOS':-^40}")
-        suma_honorarios_por_tipo_agrupacion = consolidar_informacion_dfs(honorarios, tipo_agrupacion,
-                                                                        False)
-        suma_honorarios_por_tipo_agrupacion['TIPO_CONTRATA'] = '2'
-
-        print(f"{'ANALIZANDO LEYES Y HONORARIOS JUNTOS':-^40}")
-        juntos_por_tipo_agrupacion = pd.concat([suma_leyes_por_tipo_agrupacion,
-                                                    suma_honorarios_por_tipo_agrupacion])
-
-        juntos_por_tipo_agrupacion = formatear_df(juntos_por_tipo_agrupacion)
-
-        suma_juntos_por_tipo_agrupacion = consolidar_informacion_dfs(juntos_por_tipo_agrupacion,
-                                                                    tipo_agrupacion, True)
-
-
-
-        suma_juntos_por_tipo_agrupacion.to_excel(f'por_{tipo_agrupacion}.xlsx')
-        return suma_juntos_por_tipo_agrupacion
-
     def juntar_leyes_y_honorarios(self, df_leyes_juntas, honorarios):
         '''
         Esta función permite unir los funcionarios por leyes y los por honorario.
+
+        1. En primer lugar, la tabla de leyes y la de honorario se deben consolidar por NOMBRE,
+        CARGO y UNIDAD.
+
+        2. Una vez esos campos consolidados, se agrupan para obtener la suma total de haberes
+        para ese funcionario
+
+        3. Luego, a cada suma se le agrega un identificador de TIPO_CONTRATA (1 ley - 2 honorario)
+
+        4. Posteriormente, se concatenan los funcionarios consolidados de leyes y honorarios.
+
+        5. Luego, nuevamente se consolida NOMBRE, CARGO, UNIDAD, y en este caso TIPO_CONTRATA
+        también.
 
         '''
         informacion_a_consolidar = ['NOMBRE', 'CARGO', 'UNIDAD']
@@ -143,12 +130,25 @@ class ModuloRecursosHumanosSIGCOM:
         for info in informacion_a_consolidar:
             leyes_modificada = self.unificar_redundancias(leyes_modificada, info)
             honorarios_modificada = self.unificar_redundancias(honorarios_modificada, info)
-        
-        leyes_modificada['TIPO_CONTRATA'] = '1'
-        honorarios_modificada['TIPO_CONTRATA'] = '2'
 
-        ley_honorario = pd.concat([leyes_modificada, honorarios_modificada])
-    
+        suma_leyes = leyes_modificada.groupby(informacion_a_consolidar).sum()
+        suma_honorarios = honorarios_modificada.groupby(informacion_a_consolidar).sum()
+
+        suma_leyes['TIPO_CONTRATA'] = '1'
+        suma_honorarios['TIPO_CONTRATA'] = '2'
+
+        ley_honorario = pd.concat([suma_leyes, suma_honorarios])
+        ley_honorario = ley_honorario.set_index('RUT-DV')
+
+        ley_honorario_modificada = ley_honorario.copy()
+        informacion_a_consolidar_juntos = ['NOMBRE', 'CARGO', 'UNIDAD', 'TIPO_CONTRATA']
+
+        for info in informacion_a_consolidar:
+            ley_honorario_modificada = self.unificar_redundancias(ley_honorario_modificada, info)
+
+        suma_ley_honorario = ley_honorario_modificada.groupby(informacion_a_consolidar_juntos)
+
+        return suma_ley_honorario
 
     def unificar_redundancias(self, df_funcionarios, redundancia_a_identificar):
         '''
