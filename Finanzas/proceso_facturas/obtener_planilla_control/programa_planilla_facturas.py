@@ -64,7 +64,7 @@ class GeneradorPlanillaFinanzas:
 
                 df_sumada['Folio_interno DEVENGO'] = df_sumada['Folio_interno'][mask_haber]                
                 df_sumada['Fecha DEVENGO'] = df_sumada['Fecha'][mask_haber]
-            
+
             elif base_de_datos == 'SII':
                 dfs = list(map(lambda x: pd.read_csv(x, delimiter = ';', index_col = False), ruta_dfs))
                 dfs = list(map(lambda x: x.drop(columns = ['Tabacos Puros', 'Tabacos Cigarrillos', 'Tabacos Elaborados']) \
@@ -75,17 +75,21 @@ class GeneradorPlanillaFinanzas:
                 mask_negativas = (df_sumada['Tipo Doc'] == 61) | (df_sumada['Tipo Doc'] == 56)
 
                 df_sumada.loc[mask_negativas, ['Monto Exento', 'Monto Neto', 'Monto IVA Recuperable', 'Monto Total']] = df_sumada.loc[mask_negativas, ['Monto Exento', 'Monto Neto', 'Monto IVA Recuperable', 'Monto Total']] * -1
-            
+
             elif base_de_datos == 'TURBO':
                 dfs = list(map(lambda x: pd.read_excel(x, header = 3), ruta_dfs))
                 df_sumada = pd.concat(dfs)
                 df_sumada = df_sumada.rename(columns = {'Rut': 'RUT Emisor', 'Folio': 'Folio_interno', 'NºDoc.': 'Folio'})
                 df_sumada['Folio'] = df_sumada['Folio'].astype(str).str.replace('.0', '', regex = False)
-            
+
             elif base_de_datos == 'OBSERVACIONES':
                 dfs = list(map(lambda x: pd.read_excel(x), ruta_dfs))
                 df_sumada = pd.concat(dfs)
-            
+                df_sumada = df_sumada[['RUT Emisor SII', 'Folio SII', 'OBSERVACION OBSERVACIONES']]
+                df_sumada = df_sumada.rename(columns = {'RUT Emisor SII': 'RUT Emisor',
+                                                        'Folio SII': 'Folio',
+                                                        'OBSERVACION OBSERVACIONES': 'OBSERVACION'})
+
             df_sumada['RUT Emisor'] = df_sumada['RUT Emisor'].str.replace('.', '', regex = False) \
                                                     .str.upper() \
                                                     .str.strip() 
