@@ -15,8 +15,8 @@ from constantes import (CODIGOS_CENTRO_DE_COSTO, EXCEPCIONES_SIGFE, TICKET_MERCA
 pd.set_option('display.max_colwidth', None)
 pd.options.mode.chained_assignment = None  # default='warn'
 
-class AnalizadorSIGCOM:
-    '''Esta es la definición de la clase AnalizadorSIGCOM, que permite:
+class ModuloGastosGeneralesSIGCOM:
+    '''Esta es la definición de la clase ModuloGastosGeneralesSIGCOM, que permite:
 
     1) Leer los archivos de estado de ejecución presupuestaria, estado de devengo,
     planilla PERC y el formato SIGOM para los gastos generales.
@@ -378,6 +378,6 @@ class AnalizadorSIGCOM:
                                      index = False)
 
 
-objeto = AnalizadorSIGCOM()
+objeto = ModuloGastosGeneralesSIGCOM()
 objeto.correr_programa()
                 
