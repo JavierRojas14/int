@@ -79,9 +79,9 @@ class AnalizadorSuministros:
 
         unidas_destino = unidas_destino[['Codigo Articulo', 'Nombre', 'Movimiento', 'Destino', 'Motivo',
                                         'Neto Total', 'Familia', 'Item SIGFE', 'Item SIGCOM', 'CC SIGCOM']]
-        
+
         return unidas_destino
-    
+
     def filtrar_salidas_farmacia(self, unidas_destino):
         df_final = unidas_destino.copy()
         df_final = df_final.query('Movimiento == "Salida"')
@@ -91,9 +91,9 @@ class AnalizadorSuministros:
 
         df_final = df_final[mask_farmacia]
         df_final = df_final.query('`Item SIGFE` != "Farmacia"')
-        
+
         return df_final
-    
+
     def filtrar_motivos(self, df_final):
         motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
         df_final = df_final[~df_final['Motivo'].isin(motivos_a_filtrar)]
@@ -120,7 +120,7 @@ class AnalizadorSuministros:
 
                 else:
                     print('Debes ingresar un destino válido.')
-        
+
         return sin_cc
 
 analizador = AnalizadorSuministros()
