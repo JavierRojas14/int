@@ -18,23 +18,23 @@ class ModuloProducciones:
 
 
     def obtener_mask_de_unidad(self, df_prod, produccion_pedida):
-        diccionario_unidad = {"41107-TOMOGRAFÍA": 
+        diccionario_unidad = {"41107-TOMOGRAFÍA":
                               df_prod['EGRESOS'].str.contains('TOMOGRAFIA'),
 
-                              "41108-IMAGENOLOGÍA": 
+                              "41108-IMAGENOLOGÍA":
                               df_prod['EGRESOS'].str.contains('IMAGENOLOGIA'),
 
-                              "464-QUIRÓFANOS CARDIOVASCULAR": 
-                              df_prod['EGRESOS'].str.contains('QUIROFANOS CARDIOVASCULAR'),
+                              "464-QUIRÓFANOS CARDIOVASCULAR":
+                              df_prod['EGRESOS'] == 'QUIROFANOS CARDIOVASCULAR',
 
                               "84-QUIRÓFANOS TORACICA":
-                              df_prod.index.str.contains('QUIROFANOS CIRUGIA TORACICA'),
+                              df_prod['EGRESOS'] == 'QUIROFANOS CIRUGIA TORACICA',
 
                               "51001-BANCO DE SANGRE":
-                              df_prod['EGRESOS'].str.contains('BANCO DE SANGRE'),
+                              df_prod['EGRESOS'] == 'BANCO DE SANGRE',
 
                               "518-LABORATORIO CLÍNICO":
-                              df_prod['EGRESOS'].str.contains('LABORATORIO CLINICO'),
+                              df_prod['EGRESOS'] == 'LABORATORIO CLINICO',
 
                               "90-HOSPITALIZACIÓN QUIRÚRGICA":
                               df_prod['EGRESOS'].str.contains('HOSPITALIZACION QUIRURGICA'),
@@ -46,28 +46,28 @@ class ModuloProducciones:
                               df_prod['EGRESOS'].str.contains('TAVI'),
 
                               "264-PROCEDIMIENTOS EBUS":
-                              df_prod['EGRESOS'].str.contains('EBUS'),
+                              df_prod['EGRESOS'] == 'PROCEDIMIENTO EBUS',
 
                               "15022-PROCEDIMIENTO DE NEUMOLOGÍA":
-                              df_prod['EGRESOS'].str.contains('NEUMOLOGIA'),
+                              df_prod['EGRESOS'] == 'PROCEDIMIENTO DE NEUMOLOGIA (apnea del sueño)',
 
                               "253-PROCEDIMIENTOS DE HEMODINAMIA":
-                              df_prod['EGRESOS'].str.contains('HEMODINAMIA'),
+                              df_prod['EGRESOS'] == 'PROCEDIMIENTOS DE HEMODINAMIA',
 
                               "265-PROCEDIMIENTOS ECMO":
-                              df_prod['EGRESOS'].str.contains('ECMO'),
+                              df_prod['EGRESOS'].str.contains('PROCEDIMIENTO ECMO'),
 
                               "15105-CONSULTA CARDIOLOGÍA":
-                              df_prod['EGRESOS'].str.contains('CONSULTA CARDIOLOGIA'),
+                              df_prod['EGRESOS'] == 'CONSULTA CARDIOLOGIA',
 
                               "15220-CONSULTA CIRUGIA CARDIACA":
-                              df_prod['EGRESOS'].str.contains('CONSULTA CIRUGIA CARDIACA'),
+                              df_prod['EGRESOS'] == 'CONSULTA CIRUGIA CARDIACA',
 
                               "15201-CONSULTA CIRUGÍA GENERAL":
-                              df_prod['EGRESOS'].str.contains('CONSULTA CIRUGIA GENERAL'),
+                              df_prod['EGRESOS'] == 'CONSULTA CIRUGIA GENERAL (cirugía torax)',
 
                               "15026-PROCEDIMIENTOS DE CARDIOLOGÍA":
-                              df_prod['EGRESOS'].str.contains('PROCEDIMIENTO DE CARDIOLOGIA'),
+                              df_prod['EGRESOS'] == 'PROCEDIMIENTO DE CARDIOLOGIA',
                 
                               "195-UNIDAD DE TRATAMIENTO INTENSIVO ADULTO":
                               df_prod['EGRESOS'].str.contains('UNIDAD DE TRATAMIENTO INTENSIVO') &
@@ -80,16 +80,16 @@ class ModuloProducciones:
                                ~df_prod['EGRESOS'].str.contains('(Traslados)')),
 
                                "15123-PROGRAMA MANEJO DEL DOLOR":
-                               df_prod['EGRESOS'].str.contains('CONSULTA MANEJO DEL DOLOR'),
+                               df_prod['EGRESOS'] == 'CONSULTA MANEJO DEL DOLOR',
 
                                "15107-CONSULTA ONCOLOGÍA":
-                               df_prod['EGRESOS'].str.contains('CONSULTA ONCOLOGIA'),
+                               df_prod['EGRESOS'] == 'CONSULTA ONCOLOGIA',
 
                                "15038-PROCEDIMIENTO ONCOLOGÍA":
-                               df_prod['EGRESOS'].str.contains('PROCEDIMIENTO ONCOLOGIA'),
+                               df_prod['EGRESOS'] == 'PROCEDIMIENTO ONCOLOGIA',
 
                                "15008-CONSULTA NUTRICIÓN":
-                               df_prod['EGRESOS'].str.contains('CONSULTA NUTRICION')
+                               df_prod['EGRESOS'] == 'CONSULTA NUTRICION'
                               }
 
 
