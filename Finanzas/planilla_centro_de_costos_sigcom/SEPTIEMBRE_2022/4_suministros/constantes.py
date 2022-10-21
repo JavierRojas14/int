@@ -126,7 +126,6 @@ DICCIONARIO_UNIDADES_A_DESGLOSAR = {
                                       "15038-PROCEDIMIENTO ONCOLOGÍA"
                                     ],
                                     "670-ADMINISTRACIÓN": [
-                                      "15008-CONSULTA NUTRICIÓN",
-                                      "670-ADMINISTRACIÓN"
+                                      "15008-CONSULTA NUTRICIÓN"
                                     ]
                                   }

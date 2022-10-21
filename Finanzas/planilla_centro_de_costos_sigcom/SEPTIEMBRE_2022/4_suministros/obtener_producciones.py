@@ -29,7 +29,7 @@ class ModuloProducciones:
         return df_producciones
 
     def obtener_desglose_por_unidad(self, df_prod):
-        producciones_por_unidad = {}
+        producciones_por_unidad = pd.DataFrame()
         for unidad_a_desglosar, lista_subunidades in DICCIONARIO_UNIDADES_A_DESGLOSAR.items():
             for i, produccion_a_pedir in enumerate(lista_subunidades):
                 mask_consulta = self.obtener_mask_de_unidad(df_prod, produccion_a_pedir)
@@ -40,8 +40,11 @@ class ModuloProducciones:
                     mask_total = mask_total | mask_consulta
 
             df_unidad = df_prod[mask_total]
-            producciones_por_unidad[unidad_a_desglosar] = df_unidad
+            suma_producciones = df_unidad['SEPTIEMBRE'].sum()
+            df_unidad.loc[len(df_unidad.index)] = [unidad_a_desglosar, suma_producciones]
+            df_unidad['AGRUPACION'] = unidad_a_desglosar
 
+            producciones_por_unidad = pd.concat([producciones_por_unidad, df_unidad])
 
         return producciones_por_unidad
 
@@ -55,7 +58,7 @@ class ModuloProducciones:
                               "464-QUIRÓFANOS CARDIOVASCULAR":
                               df_prod['EGRESOS'] == 'QUIROFANOS CARDIOVASCULAR',
 
-                              "84-QUIRÓFANOS TORACICA":
+                              "484-QUIRÓFANOS TORACICA":
                               df_prod['EGRESOS'] == 'QUIROFANOS CIRUGIA TORACICA',
 
                               "51001-BANCO DE SANGRE":
@@ -130,7 +133,7 @@ class ModuloProducciones:
 
     def guardar_archivos(self, produccion_por_unidad):
         with pd.ExcelWriter('output.xlsx') as writer:
-            produccion_por_unidad.to_excel('writer', sheet_name = 'produccion_por_unidad')
+            produccion_por_unidad.to_excel(writer, sheet_name = 'produccion_por_unidad')
 
 
 modulo_producciones = ModuloProducciones()
