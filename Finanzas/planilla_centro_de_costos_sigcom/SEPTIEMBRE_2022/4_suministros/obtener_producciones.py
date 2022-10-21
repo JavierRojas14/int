@@ -1,15 +1,13 @@
 '''
-Este es un archivo para hacer un resumen de las producciones por Unidad'''
-
-import json
-from math import prod
-from operator import mod
+Este es un archivo para hacer un resumen de las producciones por Unidad
+'''
 import os
 
 import pandas as pd
 
-from constantes import DICCIONARIO_UNIDADES_A_DESGLOSAR
+from constantes import DICCIONARIO_UNIDADES_A_DESGLOSAR, UNIDADES_PROPORCIONALES_A_LA_PRODUCCION
 
+pd.options.mode.chained_assignment = None  # default='warn'
 
 class ModuloProducciones:
     def __init__(self):
@@ -40,8 +38,11 @@ class ModuloProducciones:
                     mask_total = mask_total | mask_consulta
 
             df_unidad = df_prod[mask_total]
+            df_unidad = df_unidad.groupby('EGRESOS').sum().reset_index()
             suma_producciones = df_unidad['SEPTIEMBRE'].sum()
             df_unidad.loc[len(df_unidad.index)] = [unidad_a_desglosar, suma_producciones]
+
+            df_unidad['PORCENTAJES'] = self.obtener_porcentajes(df_unidad)
             df_unidad['AGRUPACION'] = unidad_a_desglosar
 
             producciones_por_unidad = pd.concat([producciones_por_unidad, df_unidad])
@@ -102,13 +103,13 @@ class ModuloProducciones:
 
                               "195-UNIDAD DE TRATAMIENTO INTENSIVO ADULTO":
                               df_prod['EGRESOS'].str.contains('UNIDAD DE TRATAMIENTO INTENSIVO') &
-                              (~df_prod['EGRESOS'].str.contains('(Egresos)') |
-                               ~df_prod['EGRESOS'].str.contains('(Traslados)')),
+                              (~df_prod['EGRESOS'].str.contains('(Egresos)', regex = False) |
+                               ~df_prod['EGRESOS'].str.contains('(Traslados)', regex = False)),
 
                                "166-UNIDAD DE CUIDADOS INTENSIVOS":
                                df_prod['EGRESOS'].str.contains('UNIDAD DE CUIDADOS INTENSIVOS') &
-                              (~df_prod['EGRESOS'].str.contains('(Egresos)') |
-                               ~df_prod['EGRESOS'].str.contains('(Traslados)')),
+                              (~df_prod['EGRESOS'].str.contains('(Egresos)', regex = False) |
+                               ~df_prod['EGRESOS'].str.contains('(Traslados)', regex = False)),
 
                                "15123-PROGRAMA MANEJO DEL DOLOR":
                                df_prod['EGRESOS'] == 'CONSULTA MANEJO DEL DOLOR',
@@ -122,9 +123,16 @@ class ModuloProducciones:
                                "15008-CONSULTA NUTRICIÓN":
                                df_prod['EGRESOS'] == 'CONSULTA NUTRICION'
                               }
-        mask = diccionario_unidad[produccion_pedida]               
+        mask = diccionario_unidad[produccion_pedida]
         return mask
 
+    def obtener_porcentajes(self, produccion_unidad, unidad_a_desglosar):
+        if unidad_a_desglosar in UNIDADES_PROPORCIONALES_A_LA_PRODUCCION:
+            return produccion_unidad['SEPTIEMBRE'] / produccion_unidad['SEPTIEMBRE'].sum()
+        
+        else:
+            if unidad_a_desglosar == '253-PROCEDIMIENTOS DE HEMODINAMIA':
+                # Desglosar
 
     def obtener_porcentaje_de_produccion(self, mask, produccion):
         df_mask = produccion[mask].to_frame()
@@ -133,7 +141,8 @@ class ModuloProducciones:
 
     def guardar_archivos(self, produccion_por_unidad):
         with pd.ExcelWriter('output.xlsx') as writer:
-            produccion_por_unidad.to_excel(writer, sheet_name = 'produccion_por_unidad')
+            produccion_por_unidad.to_excel(writer, sheet_name = 'produccion_por_unidad', index =
+                                                                                         False)
 
 
 modulo_producciones = ModuloProducciones()

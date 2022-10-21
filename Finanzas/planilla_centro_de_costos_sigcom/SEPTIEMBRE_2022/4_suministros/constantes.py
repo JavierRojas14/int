@@ -129,3 +129,8 @@ DICCIONARIO_UNIDADES_A_DESGLOSAR = {
                                       "15008-CONSULTA NUTRICIÓN"
                                     ]
                                   }
+
+UNIDADES_PROPORCIONALES_A_LA_PRODUCCION = ["41108-IMAGENOLOGÍA", "PABELLÓN",
+                                           "518-LABORATORIO CLÍNICO",
+                                           "66-HOSPITALIZACIÓN MEDICINA INTERNA",
+                                           "166-UNIDAD DE CUIDADOS INTENSIVOS"]
