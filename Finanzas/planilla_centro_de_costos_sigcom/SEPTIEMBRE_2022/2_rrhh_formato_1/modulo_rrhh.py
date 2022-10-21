@@ -2,21 +2,32 @@
 Este programa permite obtener el formato 1 de RRHH del SIGCOM. Unidad de Finanzas.
 Javier Rojas Benítez.'''
 
-import pandas as pd
-import json
 import os
+
+import pandas as pd
 
 
 class ModuloRecursosHumanosSIGCOM:
+    '''
+    Esta clase permite analizar los datos para obtener el Formato 1 de RRHH del SIGCOM.
+    '''
+
     def __init__(self):
         pass
 
     def correr_programa(self):
-        df_leyes_juntas, honorarios = self.cargar_archivos_y_formatearlos()
-        suma_por_funcionario = self.agrupar_dfs(df_leyes_juntas, honorarios, 'funcionario')
-        suma_por_unidad = self.agrupar_dfs(df_leyes_juntas, honorarios, 'unidad')
+        '''
+        Esta función es el backbone del programa. Ejecuta las funciones más globales del programa.
 
-        guardar_archivos(suma_por_funcionario, suma_por_unidad)
+        - En primer lugar, carga los archivos de los funcionarios contratados por leyes y por
+        honorarios.
+        - En segundo lugar, junta ambos archivos, haciendo un procesamiento de los campos
+        redundantes, para así obtener una relación 1 RUT: 1 NOMBRE: 1 CARGO: 1 UNIDAD: 1 CONTRATO
+        '''
+        df_leyes_juntas, honorarios = self.cargar_archivos_y_formatearlos()
+        suma_leyes_honorarios = self.juntar_leyes_y_honorarios(df_leyes_juntas, honorarios)
+        self.guardar_archivos(suma_leyes_honorarios, df_leyes_juntas, honorarios)
+
 
     def cargar_archivos_y_formatearlos(self):
         '''
@@ -214,10 +225,22 @@ class ModuloRecursosHumanosSIGCOM:
 
         return df_funcionarios_unificados
 
-    def guardar_archivos(self, suma_por_funcionario, suma_por_unidad):
+    def guardar_archivos(self, suma_leyes_honorarios, df_leyes_juntas, honorarios):
+        '''
+        Esta función permite guardar 3 archivos:
+
+        - La suma TOTAL de HABERES para cada uno de los funcionarios, previamente unificando
+        sus NOMBRES, CARGOS, UNIDADES y TIPO CONTRATA. Por lo tanto, se obtiene una relación
+        1:1:1:1 para un único funcionario.
+
+        - El archivo de leyes juntas, previamente a unificar NOMBRE, CARGO y UNIDAD
+
+        - El archivo de honorarios juntas, previamente a unificar NOMBRE, CARGO y UNIDAD.
+        '''
         with pd.ExcelWriter('output.xlsx') as writer:
-            suma_por_funcionario.to_excel(writer, index = False, sheet_name = 'suma_por_funcionario')
-            suma_por_unidad.to_excel(writer, index = False, sheet_name = 'suma_por_unidad')
+            suma_leyes_honorarios.to_excel(writer, sheet_name = 'suma_leyes_honorarios')
+            df_leyes_juntas.to_excel(writer, sheet_name = 'leyes_juntas_preprocesadas')
+            honorarios.to_excel(writer, sheet_name = 'honorarios_preprocesados')
 
 modulo_rrhh_sigcom = ModuloRecursosHumanosSIGCOM()
 modulo_rrhh_sigcom.correr_programa()
