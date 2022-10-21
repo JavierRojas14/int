@@ -1,7 +1,15 @@
+'''
+Programa para obtener el formato 4 de Suministros del SIGCOM. Unidad de Finanzas.
+Javier Rojas Benítez'''
+
 import pandas as pd
-from constantes import TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON, TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM_JSON
+
+from constantes import (TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON,
+                        TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM_JSON)
+
 pd.options.mode.chained_assignment = None  # default='warn'
 import os
+
 import numpy as np
 
 
@@ -28,21 +36,7 @@ class AnalizadorSuministros:
 
         formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(df_consolidada)
         formato_relleno.to_excel('output.xlsx')
-
-    def convertir_a_tabla_din_y_rellenar_formato(self, df_consolidada):
-        tabla_dinamica = pd.pivot_table(df_consolidada, values = 'Neto Total', index = 'CC SIGCOM',
-                                        columns = 'Item SIGCOM', aggfunc = np.sum)
-        
-        formato = pd.read_excel('input\\Formato 4_Distribución Suministro 2022-10.xlsx')
-        formato = formato.set_index('Centro de Costo')
-
-        for cc in tabla_dinamica.index:
-            for item_sigcom in tabla_dinamica.columns:
-                formato.loc[cc, item_sigcom] = tabla_dinamica.loc[cc, item_sigcom]
-
-        return formato
-
-
+    
     def leer_archivos(self):
         df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
         df_traductor_bodega_sigfe = pd.read_excel('input\\asociacion_bodega_sigfe.xlsx', header = 3)
@@ -63,7 +57,7 @@ class AnalizadorSuministros:
 
         return df_cartola, df_traductor_bodega_sigfe, \
                TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, TRADUCTOR_DESTINO_INT_CC_SIGCOM
-
+    
     def unir_archivos(self, df_cartola, df_traductor_bodega_sigfe,
                       TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, \
                       TRADUCTOR_DESTINO_INT_CC_SIGCOM):
@@ -122,6 +116,19 @@ class AnalizadorSuministros:
                     print('Debes ingresar un destino válido.')
 
         return sin_cc
+
+    def convertir_a_tabla_din_y_rellenar_formato(self, df_consolidada):
+        tabla_dinamica = pd.pivot_table(df_consolidada, values = 'Neto Total', index = 'CC SIGCOM',
+                                        columns = 'Item SIGCOM', aggfunc = np.sum)
+
+        formato = pd.read_excel('input\\Formato 4_Distribución Suministro 2022-10.xlsx')
+        formato = formato.set_index('Centro de Costo')
+
+        for cc in tabla_dinamica.index:
+            for item_sigcom in tabla_dinamica.columns:
+                formato.loc[cc, item_sigcom] = tabla_dinamica.loc[cc, item_sigcom]
+
+        return formato
 
 analizador = AnalizadorSuministros()
 analizador.correr_programa()
