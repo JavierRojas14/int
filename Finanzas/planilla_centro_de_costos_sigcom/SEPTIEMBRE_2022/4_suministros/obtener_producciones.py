@@ -1,7 +1,14 @@
-import pandas as pd
-import numpy as np
+'''
+Este es un archivo para hacer un resumen de las producciones por Unidad'''
 
-from obtener_producciones import DICCIONARIO_UNIDADES_A_DESGLOSAR
+import json
+from math import prod
+from operator import mod
+import os
+
+import pandas as pd
+
+from constantes import DICCIONARIO_UNIDADES_A_DESGLOSAR
 
 
 class ModuloProducciones:
@@ -9,13 +16,34 @@ class ModuloProducciones:
         pass
 
     def correr_programa(self):
-        pass
+        df_prod = self.cargar_archivo()
+        producciones_por_unidad = self.obtener_desglose_por_unidad(df_prod)
+        self.guardar_archivos(producciones_por_unidad)
 
-    def obtener_desglose_por_unidad(self):
-        for unidad_a_desglosar in DICCIONARIO_UNIDADES_A_DESGLOSAR:
-            for subunidades_a_desglosar in DICCIONARIO_UNIDADES_A_DESGLOSAR[unidad_a_desglosar]:
-                break
+    def cargar_archivo(self):
+        nombre_archivo = [nombre for nombre in os.listdir('input') if 'Producción' in nombre][0]
+        nombre_archivo = os.path.join('input', nombre_archivo)
+        df_producciones = pd.read_excel(nombre_archivo, header = 3)
+        df_producciones['EGRESOS'] = df_producciones['EGRESOS'].fillna('PLACEHOLDER')
+        df_producciones = df_producciones[['EGRESOS', 'SEPTIEMBRE']]
+        return df_producciones
 
+    def obtener_desglose_por_unidad(self, df_prod):
+        producciones_por_unidad = {}
+        for unidad_a_desglosar, lista_subunidades in DICCIONARIO_UNIDADES_A_DESGLOSAR.items():
+            for i, produccion_a_pedir in enumerate(lista_subunidades):
+                mask_consulta = self.obtener_mask_de_unidad(df_prod, produccion_a_pedir)
+                if i == 0:
+                    mask_total = mask_consulta
+
+                else:
+                    mask_total = mask_total | mask_consulta
+
+            df_unidad = df_prod[mask_total]
+            producciones_por_unidad[unidad_a_desglosar] = df_unidad
+
+
+        return producciones_por_unidad
 
     def obtener_mask_de_unidad(self, df_prod, produccion_pedida):
         diccionario_unidad = {"41107-TOMOGRAFÍA":
@@ -68,12 +96,12 @@ class ModuloProducciones:
 
                               "15026-PROCEDIMIENTOS DE CARDIOLOGÍA":
                               df_prod['EGRESOS'] == 'PROCEDIMIENTO DE CARDIOLOGIA',
-                
+
                               "195-UNIDAD DE TRATAMIENTO INTENSIVO ADULTO":
                               df_prod['EGRESOS'].str.contains('UNIDAD DE TRATAMIENTO INTENSIVO') &
                               (~df_prod['EGRESOS'].str.contains('(Egresos)') |
                                ~df_prod['EGRESOS'].str.contains('(Traslados)')),
-                
+
                                "166-UNIDAD DE CUIDADOS INTENSIVOS":
                                df_prod['EGRESOS'].str.contains('UNIDAD DE CUIDADOS INTENSIVOS') &
                               (~df_prod['EGRESOS'].str.contains('(Egresos)') |
@@ -91,54 +119,19 @@ class ModuloProducciones:
                                "15008-CONSULTA NUTRICIÓN":
                                df_prod['EGRESOS'] == 'CONSULTA NUTRICION'
                               }
+        mask = diccionario_unidad[produccion_pedida]               
+        return mask
 
 
+    def obtener_porcentaje_de_produccion(self, mask, produccion):
+        df_mask = produccion[mask].to_frame()
+        df_mask['porcentajes'] = df_mask / df_mask.sum()
+        return df_mask
 
-def obtener_porcentaje_de_produccion(mask, produccion):
-    df_mask = produccion[mask].to_frame()
-    df_mask['porcentajes'] = df_mask / df_mask.sum()
-    return df_mask
+    def guardar_archivos(self, produccion_por_unidad):
+        with pd.ExcelWriter('output.xlsx') as writer:
+            produccion_por_unidad.to_excel('writer', sheet_name = 'produccion_por_unidad')
 
-produccion = pd.read_excel('input\\Producción para PERC septiembre 2022 A.xlsx', header = 3)
-produccion_septiembre = produccion.copy()
-produccion_septiembre['EGRESOS'] = produccion_septiembre['EGRESOS'].fillna('PLACEHOLDER')
-produccion_septiembre = produccion_septiembre.set_index('EGRESOS')
-produccion_septiembre = produccion_septiembre['SEPTIEMBRE']
 
-mask_imagenologia = df_prod['EGRESOS'].str.contains('IMAGENOLOGIA') | df_prod['EGRESOS'].str.contains('TOMOGRAFIA')
-
-mask_pabellon = df_prod['EGRESOS'].str.contains('QUIROFANOS CARDIOVASCULAR') | df_prod['EGRESOS'].str.contains('QUIROFANOS CIRUGIA TORACICA')
-
-mask_desglose_medicina_interna = df_prod['EGRESOS'].str.contains('HOSPITALIZACION MEDICINA INTERNA') | df_prod['EGRESOS'].str.contains('HOSPITALIZACION QUIRURGICA')
-
-mask_desglose_lab_clinico = df_prod['EGRESOS'].str.contains('LABORATORIO CLINICO') | df_prod['EGRESOS'].str.contains('BANCO DE SANGRE')
-
-mask_desglose_procedimientos_hemodinamia = df_prod['EGRESOS'].str.contains('HEMODINAMIA') | df_prod['EGRESOS'].str.contains('TAVI') | \
-                            df_prod['EGRESOS'].str.contains('EBUS') | df_prod['EGRESOS'].str.contains('NEUMOLOGIA')
-
-mask_desglose_procedimientos_cardiologia = df_prod['EGRESOS'].str.contains('CARDIOLOGIA') | df_prod['EGRESOS'].str.contains('ECMO') | \
-                            df_prod['EGRESOS'].str.contains('CIRUGIA CARDIACA') | df_prod['EGRESOS'].str.contains('CIRUGIA GENERAL')
-
-mask_desglose_uci = df_prod['EGRESOS'].str.contains('UNIDAD DE CUIDADOS INTENSIVOS') | df_prod['EGRESOS'].str.contains('UNIDAD DE TRATAMIENTO INTENSIVO ADULTO')
-
-mask_desglose_onco = df_prod['EGRESOS'].str.contains('ONCOLOGIA') | df_prod['EGRESOS'].str.contains('MANEJO')
-
-mask_desglose_admin = df_prod['EGRESOS'].str.contains('NUTRICION')
-
-mask_consultas = df_prod['EGRESOS'].str.contains('CONSULTA')
-
-todas_las_masks = [mask_imagenologia, mask_pabellon, mask_desglose_medicina_interna, 
-                   mask_desglose_lab_clinico, mask_desglose_procedimientos_hemodinamia, 
-                   mask_desglose_procedimientos_cardiologia, mask_desglose_uci, mask_desglose_onco,
-                   mask_desglose_admin, mask_consultas]
-
-total = pd.DataFrame()
-for mask in todas_las_masks:
-    produccion_desgl = obtener_porcentaje_de_produccion(mask, produccion_septiembre).reset_index()\
-                                                                        .groupby('EGRESOS')\
-                                                                        .sum()
-
-    total = pd.concat([total, produccion_desgl])
-    print('\n\n')
-
-total.to_excel('producciones.xlsx')
+modulo_producciones = ModuloProducciones()
+modulo_producciones.correr_programa()
