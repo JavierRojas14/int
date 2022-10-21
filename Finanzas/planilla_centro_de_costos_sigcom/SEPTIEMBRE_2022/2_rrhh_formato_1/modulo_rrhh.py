@@ -3,6 +3,7 @@ Este programa permite obtener el formato 1 de RRHH del SIGCOM. Unidad de Finanza
 Javier Rojas Benítez.'''
 
 import os
+import json
 
 import pandas as pd
 
@@ -57,7 +58,7 @@ class ModuloRecursosHumanosSIGCOM:
         de columnas). Finalmente, se concatenan entre sí a lo largo.
         '''
 
-        print(f'{"SE ESTÁN CARGANDO LAS LEYES":^40}')
+        print(f'\n{"SE ESTÁN CARGANDO LAS LEYES":-^30}')
         nombres_leyes = [os.path.join('input', nombre) \
                         for nombre in os.listdir('input') if 'TODOS' in nombre]
 
@@ -79,7 +80,7 @@ class ModuloRecursosHumanosSIGCOM:
         de leyes.
         '''
 
-        print(f'{"SE ESTÁN CARGANDO LOS HONORARIOS":^40}')
+        print(f'\n{"SE ESTÁN CARGANDO LOS HONORARIOS":-^30}')
         nombre_archivo_honorarios = [nom for nom in os.listdir('input') if 'PERC' in nom][0]
         nombre_archivo_honorarios = os.path.join('input', nombre_archivo_honorarios)
         honorarios = pd.read_excel(nombre_archivo_honorarios)
@@ -98,7 +99,7 @@ class ModuloRecursosHumanosSIGCOM:
         Esta función es un pasador para aplicar la funcion self.formatear_df() a los argumentos
         de la función.
         '''
-
+        print(f'\n{"SE ESTÁN UNIFICANDO LOS FORMATOS":-^30}')
         lista_dfs_formateadas = list(map(self.formatear_df, args))
         return lista_dfs_formateadas
 
@@ -134,16 +135,23 @@ class ModuloRecursosHumanosSIGCOM:
         también.
 
         '''
+        print(f'\n{"SE EMPEZARÁ A JUNTAR LAS LEYES CON LOS HONORARIOS":-^50}')
         informacion_a_consolidar = ['NOMBRE', 'CARGO', 'UNIDAD']
         leyes_modificada = df_leyes_juntas.copy()
         honorarios_modificada = honorarios.copy()
 
+        # Hasta aqui si estan los ruts
         for info in informacion_a_consolidar:
             leyes_modificada = self.unificar_redundancias(leyes_modificada, info)
             honorarios_modificada = self.unificar_redundancias(honorarios_modificada, info)
 
-        suma_leyes = leyes_modificada.groupby(informacion_a_consolidar).sum()
-        suma_honorarios = honorarios_modificada.groupby(informacion_a_consolidar).sum()
+        suma_leyes = leyes_modificada.groupby(['RUT-DV'] + informacion_a_consolidar) \
+                                     .sum() \
+                                     .reset_index()
+
+        suma_honorarios = honorarios_modificada.groupby(['RUT-DV'] + informacion_a_consolidar) \
+                                               .sum() \
+                                               .reset_index()
 
         suma_leyes['TIPO_CONTRATA'] = '1'
         suma_honorarios['TIPO_CONTRATA'] = '2'
@@ -157,7 +165,10 @@ class ModuloRecursosHumanosSIGCOM:
         for info in informacion_a_consolidar:
             ley_honorario_modificada = self.unificar_redundancias(ley_honorario_modificada, info)
 
-        suma_ley_honorario = ley_honorario_modificada.groupby(informacion_a_consolidar_juntos)
+        suma_ley_honorario = ley_honorario_modificada.groupby(['RUT-DV'] + \
+                                                              informacion_a_consolidar_juntos) \
+                                                              .sum() \
+                                                              .reset_index()
 
         return suma_ley_honorario
 
@@ -175,6 +186,10 @@ class ModuloRecursosHumanosSIGCOM:
         df_funcionarios_unificados = self.cambiar_redundancias(df_funcionarios,
                                                                caract_seleccionadas,
                                                                redundancia_a_identificar)
+
+        string_caract_seleccionadas = json.dumps(caract_seleccionadas, indent = 1)
+        print(f'Se identificaron las siguientes redundancias:\n{df_repetidos} \n'
+              f'Se consolidaron de la siguiente forma:\n{string_caract_seleccionadas} \n')
 
         return df_funcionarios_unificados
 
