@@ -5,11 +5,14 @@ import os
 
 import pandas as pd
 
-from constantes import (DICCIONARIO_UNIDADES_A_DESGLOSAR, PORCENTAJES_A_CONSULTAS_ONCOLOGIA, PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA, UNIDADES_PROPORCIONALES_A_LA_PRODUCCION,
+from constantes import (DICCIONARIO_UNIDADES_A_DESGLOSAR, PORCENTAJES_A_CONSULTAS_ONCOLOGIA, 
+                        PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA, 
+                        UNIDADES_PROPORCIONALES_A_LA_PRODUCCION,
                         VALOR_TAVI_SUMINISTROS, VALOR_EBUS_SUMINISTROS, VALOR_ECMO_SUMINISTROS,
                         PORCENTAJES_A_CONSULTAS_CARDIOLOGIA, PORCENTAJES_A_CONSULTAS_ONCOLOGIA,
                         PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA,
-                        PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA)
+                        PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA,
+                        VALOR_CONSULTAS_ADMIN_SUMINISTROS)
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -216,7 +219,21 @@ class ModuloProducciones:
 
                 return series_oncologia['PORCENTAJES']
 
+            elif unidad_a_desglosar == '670-ADMINISTRACIÓN':
+                series_admin = produccion_unidad.copy()
 
+                mask_consultas_admin = produccion_unidad['EGRESOS'].str.contains('CONSULTA')
+                consultas_admin = produccion_unidad[mask_consultas_admin]
+
+                valor_total_consultas_admin = consultas_admin['SEPTIEMBRE'] * \
+                                              VALOR_CONSULTAS_ADMIN_SUMINISTROS
+
+                series_admin.loc[valor_total_consultas_admin.index, 'PORCENTAJES'] = \
+                                 valor_total_consultas_admin
+
+                print(f'Administración se desglosó en:\n{series_admin.to_markdown()}')
+
+                return series_admin['PORCENTAJES']
 
     def guardar_archivos(self, produccion_por_unidad):
         with pd.ExcelWriter('output.xlsx') as writer:
