@@ -6,7 +6,9 @@ import os
 import pandas as pd
 
 from constantes import (DICCIONARIO_UNIDADES_A_DESGLOSAR, UNIDADES_PROPORCIONALES_A_LA_PRODUCCION,
-                        VALOR_TAVI_SUMINISTROS, VALOR_EBUS_SUMINISTROS)
+                        VALOR_TAVI_SUMINISTROS, VALOR_EBUS_SUMINISTROS, VALOR_ECMO_SUMINISTROS,
+                        PORCENTAJES_A_CONSULTAS_CARDIOLOGIA, 
+                        PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA)
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -141,7 +143,7 @@ class ModuloProducciones:
 
                 procedimientos_hemo = produccion_unidad[mask_procedimientos]
 
-                porcentajes_procedimientos_hemo = (procedimientos_hemo['SEPTIEMBRE'] /
+                porcentajes_hemo = (procedimientos_hemo['SEPTIEMBRE'] /
                                                    procedimientos_hemo['SEPTIEMBRE'].sum())
 
                 tavi = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO TAVI (4 horas c/u)"')
@@ -149,13 +151,42 @@ class ModuloProducciones:
                 valor_total_tavi = tavi['SEPTIEMBRE'] * VALOR_TAVI_SUMINISTROS
                 valor_total_ebus = ebus['SEPTIEMBRE'] * VALOR_EBUS_SUMINISTROS
 
-                series_hemodinamia.loc[porcentajes_procedimientos_hemo.index, 'PORCENTAJES'] = porcentajes_procedimientos_hemo
+                series_hemodinamia.loc[porcentajes_hemo.index, 'PORCENTAJES'] = porcentajes_hemo
                 series_hemodinamia.loc[valor_total_tavi.index, 'PORCENTAJES'] = valor_total_tavi
                 series_hemodinamia.loc[valor_total_ebus.index, 'PORCENTAJES'] = valor_total_ebus
 
-                print(f'Hemodinamia se desglosó en:\n{series_hemodinamia}')
+                print(f'Hemodinamia se desglosó en:\n{series_hemodinamia.to_markdown()}')
 
-                return series_hemodinamia['SEPTIEMBRE']
+                return series_hemodinamia['PORCENTAJES']
+
+            elif unidad_a_desglosar == '15026-PROCEDIMIENTOS DE CARDIOLOGÍA':
+                series_cardiologia = produccion_unidad.copy()
+
+                ecmo = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO ECMO (1,5 horas c/u/)"')
+                valor_total_ecmo = ecmo['SEPTIEMBRE'] * VALOR_ECMO_SUMINISTROS
+
+                mask_consultas_cardio = produccion_unidad['EGRESOS'].str.contains('CONSULTA')
+                consultas_cardio = produccion_unidad[mask_consultas_cardio]
+
+                porcentajes_consultas_cardio = (consultas_cardio['SEPTIEMBRE'] /
+                                                consultas_cardio['SEPTIEMBRE'].sum()) * \
+                                                PORCENTAJES_A_CONSULTAS_CARDIOLOGIA
+
+                procedimientos_cardio = produccion_unidad.query('EGRESOS == '
+                                                                '"PROCEDIMIENTO DE CARDIOLOGIA"')
+                porcentajes_proc_cardio = (procedimientos_cardio['SEPTIEMBRE'] / 
+                                           procedimientos_cardio['SEPTIEMBRE'].sum()) * \
+                                           PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA
+
+                series_cardiologia.loc[valor_total_ecmo.index, 'PORCENTAJES'] = valor_total_ecmo
+                series_cardiologia.loc[porcentajes_consultas_cardio.index, 'PORCENTAJES'] = \
+                                       porcentajes_consultas_cardio
+
+                series_cardiologia.loc[porcentajes_proc_cardio.index, 'PORCENTAJES'] = \
+                                       porcentajes_proc_cardio
+
+                print(f'Cardiología se desglosó en:\n{series_cardiologia.to_markdown()}')
+
 
 
     def guardar_archivos(self, produccion_por_unidad):
