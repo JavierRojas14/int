@@ -39,10 +39,11 @@ class ModuloProducciones:
 
             df_unidad = df_prod[mask_total]
             df_unidad = df_unidad.groupby('EGRESOS').sum().reset_index()
-            suma_producciones = df_unidad['SEPTIEMBRE'].sum()
-            df_unidad.loc[len(df_unidad.index)] = [unidad_a_desglosar, suma_producciones]
+            df_unidad['PORCENTAJES'] = self.obtener_porcentajes(df_unidad, unidad_a_desglosar)
 
-            df_unidad['PORCENTAJES'] = self.obtener_porcentajes(df_unidad)
+            suma_producciones = df_unidad['SEPTIEMBRE'].sum()
+            df_unidad.loc[len(df_unidad.index)] = [unidad_a_desglosar, suma_producciones, '1']
+
             df_unidad['AGRUPACION'] = unidad_a_desglosar
 
             producciones_por_unidad = pd.concat([producciones_por_unidad, df_unidad])
@@ -129,15 +130,15 @@ class ModuloProducciones:
     def obtener_porcentajes(self, produccion_unidad, unidad_a_desglosar):
         if unidad_a_desglosar in UNIDADES_PROPORCIONALES_A_LA_PRODUCCION:
             return produccion_unidad['SEPTIEMBRE'] / produccion_unidad['SEPTIEMBRE'].sum()
-        
+
         else:
             if unidad_a_desglosar == '253-PROCEDIMIENTOS DE HEMODINAMIA':
-                # Desglosar
+                # Aislar los procedimientos
+                mask_procedimientos = (produccion_unidad['EGRESOS'].str.contains('NEUMOLOGIA') |
+                                       produccion_unidad['EGRESOS'].str.contains('HEMODINAMIA'))
 
-    def obtener_porcentaje_de_produccion(self, mask, produccion):
-        df_mask = produccion[mask].to_frame()
-        df_mask['porcentajes'] = df_mask / df_mask.sum()
-        return df_mask
+                procedimientos_hemo = produccion_unidad[mask_procedimientos]
+                print(procedimientos_hemo)
 
     def guardar_archivos(self, produccion_por_unidad):
         with pd.ExcelWriter('output.xlsx') as writer:
