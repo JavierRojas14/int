@@ -110,14 +110,14 @@ class ModuloProducciones:
                               df_prod['EGRESOS'] == 'PROCEDIMIENTO DE CARDIOLOGIA',
 
                               "195-UNIDAD DE TRATAMIENTO INTENSIVO ADULTO":
-                              df_prod['EGRESOS'].str.contains('UNIDAD DE TRATAMIENTO INTENSIVO') &
-                              (~df_prod['EGRESOS'].str.contains('(Egresos)', regex = False) |
-                               ~df_prod['EGRESOS'].str.contains('(Traslados)', regex = False)),
+                              (df_prod['EGRESOS'].str.contains('UNIDAD DE TRATAMIENTO INTENSIVO') &
+                                ~(df_prod['EGRESOS'].str.contains('(Egresos)', regex = False) | 
+                                df_prod['EGRESOS'].str.contains('(Traslados)', regex = False))),
 
                                "166-UNIDAD DE CUIDADOS INTENSIVOS":
-                               df_prod['EGRESOS'].str.contains('UNIDAD DE CUIDADOS INTENSIVOS') &
-                              (~df_prod['EGRESOS'].str.contains('(Egresos)', regex = False) |
-                               ~df_prod['EGRESOS'].str.contains('(Traslados)', regex = False)),
+                               (df_prod['EGRESOS'].str.contains('UNIDAD DE CUIDADOS INTENSIVOS') &
+                                ~(df_prod['EGRESOS'].str.contains('(Egresos)', regex = False) | 
+                                df_prod['EGRESOS'].str.contains('(Traslados)', regex = False))),
 
                                "15123-PROGRAMA MANEJO DEL DOLOR":
                                df_prod['EGRESOS'] == 'CONSULTA MANEJO DEL DOLOR',
