@@ -134,3 +134,6 @@ UNIDADES_PROPORCIONALES_A_LA_PRODUCCION = ["41108-IMAGENOLOGÍA", "PABELLÓN",
                                            "518-LABORATORIO CLÍNICO",
                                            "66-HOSPITALIZACIÓN MEDICINA INTERNA",
                                            "166-UNIDAD DE CUIDADOS INTENSIVOS"]
+
+VALOR_TAVI_SUMINISTROS = 18921000
+VALOR_EBUS_SUMINISTROS = 100

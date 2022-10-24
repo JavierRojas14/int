@@ -5,7 +5,8 @@ import os
 
 import pandas as pd
 
-from constantes import DICCIONARIO_UNIDADES_A_DESGLOSAR, UNIDADES_PROPORCIONALES_A_LA_PRODUCCION
+from constantes import (DICCIONARIO_UNIDADES_A_DESGLOSAR, UNIDADES_PROPORCIONALES_A_LA_PRODUCCION,
+                        VALOR_TAVI_SUMINISTROS, VALOR_EBUS_SUMINISTROS)
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -134,11 +135,28 @@ class ModuloProducciones:
         else:
             if unidad_a_desglosar == '253-PROCEDIMIENTOS DE HEMODINAMIA':
                 # Aislar los procedimientos
+                series_hemodinamia = produccion_unidad.copy()
                 mask_procedimientos = (produccion_unidad['EGRESOS'].str.contains('NEUMOLOGIA') |
                                        produccion_unidad['EGRESOS'].str.contains('HEMODINAMIA'))
 
                 procedimientos_hemo = produccion_unidad[mask_procedimientos]
-                print(procedimientos_hemo)
+
+                porcentajes_procedimientos_hemo = (procedimientos_hemo['SEPTIEMBRE'] /
+                                                   procedimientos_hemo['SEPTIEMBRE'].sum())
+
+                tavi = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO TAVI (4 horas c/u)"')
+                ebus = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO EBUS"')
+                valor_total_tavi = tavi['SEPTIEMBRE'] * VALOR_TAVI_SUMINISTROS
+                valor_total_ebus = ebus['SEPTIEMBRE'] * VALOR_EBUS_SUMINISTROS
+
+                series_hemodinamia.loc[porcentajes_procedimientos_hemo.index, 'PORCENTAJES'] = porcentajes_procedimientos_hemo
+                series_hemodinamia.loc[valor_total_tavi.index, 'PORCENTAJES'] = valor_total_tavi
+                series_hemodinamia.loc[valor_total_ebus.index, 'PORCENTAJES'] = valor_total_ebus
+
+                print(f'Hemodinamia se desglosó en:\n{series_hemodinamia}')
+
+                return series_hemodinamia['SEPTIEMBRE']
+
 
     def guardar_archivos(self, produccion_por_unidad):
         with pd.ExcelWriter('output.xlsx') as writer:
