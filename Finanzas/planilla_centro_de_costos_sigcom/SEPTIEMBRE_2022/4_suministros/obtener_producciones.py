@@ -5,10 +5,11 @@ import os
 
 import pandas as pd
 
-from constantes import (DICCIONARIO_UNIDADES_A_DESGLOSAR, UNIDADES_PROPORCIONALES_A_LA_PRODUCCION,
+from constantes import (DICCIONARIO_UNIDADES_A_DESGLOSAR, PORCENTAJES_A_CONSULTAS_ONCOLOGIA, PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA, UNIDADES_PROPORCIONALES_A_LA_PRODUCCION,
                         VALOR_TAVI_SUMINISTROS, VALOR_EBUS_SUMINISTROS, VALOR_ECMO_SUMINISTROS,
-                        PORCENTAJES_A_CONSULTAS_CARDIOLOGIA, 
-                        PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA)
+                        PORCENTAJES_A_CONSULTAS_CARDIOLOGIA, PORCENTAJES_A_CONSULTAS_ONCOLOGIA,
+                        PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA,
+                        PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA)
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -186,6 +187,34 @@ class ModuloProducciones:
                                        porcentajes_proc_cardio
 
                 print(f'Cardiología se desglosó en:\n{series_cardiologia.to_markdown()}')
+
+                return series_cardiologia['PORCENTAJES']
+
+            elif unidad_a_desglosar == '15038-PROCEDIMIENTO ONCOLOGÍA':
+                series_oncologia = produccion_unidad.copy()
+
+                mask_consultas_onco = produccion_unidad['EGRESOS'].str.contains('CONSULTA')
+                consultas_onco = produccion_unidad[mask_consultas_onco]
+
+                porcentajes_consultas_onco = (consultas_onco['SEPTIEMBRE'] /
+                                              consultas_onco['SEPTIEMBRE'].sum()) * \
+                                              PORCENTAJES_A_CONSULTAS_ONCOLOGIA
+
+                procedimientos_onco = produccion_unidad.query('EGRESOS == '
+                                                              '"PROCEDIMIENTO ONCOLOGIA"')
+                porcentajes_proc_onco = (procedimientos_onco['SEPTIEMBRE'] /
+                                         procedimientos_onco['SEPTIEMBRE'].sum()) * \
+                                         PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA
+
+                series_oncologia.loc[porcentajes_consultas_onco.index, 'PORCENTAJES'] = \
+                                     porcentajes_consultas_onco
+
+                series_oncologia.loc[porcentajes_proc_onco.index, 'PORCENTAJES'] = \
+                                     porcentajes_proc_onco
+
+                print(f'Oncologia se desglosó en:\n{series_oncologia.to_markdown()}')
+
+                return series_oncologia['PORCENTAJES']
 
 
 
