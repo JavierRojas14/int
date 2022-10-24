@@ -129,7 +129,14 @@ class ModuloProducciones:
                                df_prod['EGRESOS'] == 'PROCEDIMIENTO ONCOLOGIA',
 
                                "15008-CONSULTA NUTRICIÓN":
-                               df_prod['EGRESOS'] == 'CONSULTA NUTRICION'
+                               df_prod['EGRESOS'] == 'CONSULTA NUTRICION',
+
+                               "15010-CONSULTA OTROS PROFESIONALES":
+                               df_prod['EGRESOS'] == 'CONSULTA OTROS PROFESIONALES',
+
+                               "15111-CONSULTA NEUMOLOGÍA":
+                               df_prod['EGRESOS'] == 'CONSULTA NEUMOLOGIA (broncopulmonar)'
+
                               }
         mask = diccionario_unidad[produccion_pedida]
         return mask

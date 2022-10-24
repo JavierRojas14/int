@@ -127,13 +127,24 @@ DICCIONARIO_UNIDADES_A_DESGLOSAR = {
                                     ],
                                     "670-ADMINISTRACIÓN": [
                                       "15008-CONSULTA NUTRICIÓN"
+                                    ],
+                                    "CONSULTAS": [
+                                      "15220-CONSULTA CIRUGIA CARDIACA",
+                                      "15201-CONSULTA CIRUGÍA GENERAL",
+                                      "15010-CONSULTA OTROS PROFESIONALES",
+                                      "15123-PROGRAMA MANEJO DEL DOLOR",
+                                      "15111-CONSULTA NEUMOLOGÍA",
+                                      "15107-CONSULTA ONCOLOGÍA",
+                                      "15105-CONSULTA CARDIOLOGÍA",
+                                      "15008-CONSULTA NUTRICIÓN"
                                     ]
                                   }
 
 UNIDADES_PROPORCIONALES_A_LA_PRODUCCION = ["41108-IMAGENOLOGÍA", "PABELLÓN",
                                            "518-LABORATORIO CLÍNICO",
                                            "66-HOSPITALIZACIÓN MEDICINA INTERNA",
-                                           "166-UNIDAD DE CUIDADOS INTENSIVOS"]
+                                           "166-UNIDAD DE CUIDADOS INTENSIVOS",
+                                           "CONSULTAS"]
 
 VALOR_TAVI_SUMINISTROS = 18921000
 VALOR_EBUS_SUMINISTROS = 100
