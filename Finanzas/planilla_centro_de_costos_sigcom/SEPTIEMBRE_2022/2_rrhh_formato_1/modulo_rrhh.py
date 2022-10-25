@@ -68,6 +68,7 @@ class ModuloRecursosHumanosSIGCOM:
 
         leyes_columnas_utiles = list(map(lambda x: x[columnas_contrato], leyes_crudas))
         leyes_juntas = pd.concat(leyes_columnas_utiles)
+        leyes_juntas = leyes_juntas.query('`TOTAL HABER` > 0')
 
         return leyes_juntas
 
@@ -92,6 +93,8 @@ class ModuloRecursosHumanosSIGCOM:
         honorarios = honorarios[columnas_honorario].rename(
                                 columns = {'UNIDAD O SERVICIO DONDE SE DESEMPEÑA': 'UNIDAD',
                                             'VALOR TOTAL O BRUTO': 'TOTAL HABER'})
+        honorarios = honorarios.query('`TOTAL HABER` > 0')
+
         return honorarios
 
     def unificar_formatos(self, *args):
@@ -253,7 +256,8 @@ class ModuloRecursosHumanosSIGCOM:
         - El archivo de honorarios juntas, previamente a unificar NOMBRE, CARGO y UNIDAD.
         '''
         with pd.ExcelWriter('output.xlsx') as writer:
-            suma_leyes_honorarios.to_excel(writer, sheet_name = 'suma_leyes_honorarios')
+            suma_leyes_honorarios.to_excel(writer, sheet_name = 'suma_leyes_honorarios',
+                                           index = False)
             df_leyes_juntas.to_excel(writer, sheet_name = 'leyes_juntas_preprocesadas')
             honorarios.to_excel(writer, sheet_name = 'honorarios_preprocesados')
 
