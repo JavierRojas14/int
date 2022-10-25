@@ -35,7 +35,7 @@ class AnalizadorSuministros:
             df_consolidada = pd.read_excel('item_cc_rellenados_completos.xlsx')
 
         formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(df_consolidada)
-        formato_relleno.to_excel('output.xlsx')
+        formato_relleno.to_excel('output_formato.xlsx')
     
     def leer_archivos(self):
         df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
@@ -91,8 +91,6 @@ class AnalizadorSuministros:
     def filtrar_motivos(self, df_final):
         motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
         df_final = df_final[~df_final['Motivo'].isin(motivos_a_filtrar)]
-
-        df_final.to_excel('Filtrado.xlsx', index = False)
 
         return df_final
 

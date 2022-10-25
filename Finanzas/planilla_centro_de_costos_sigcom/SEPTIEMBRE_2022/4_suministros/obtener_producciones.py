@@ -243,7 +243,7 @@ class ModuloProducciones:
                 return series_admin['PORCENTAJES']
 
     def guardar_archivos(self, produccion_por_unidad):
-        with pd.ExcelWriter('output.xlsx') as writer:
+        with pd.ExcelWriter('output_producciones.xlsx') as writer:
             produccion_por_unidad.to_excel(writer, sheet_name = 'produccion_por_unidad', index =
                                                                                          False)
 
