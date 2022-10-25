@@ -7,6 +7,8 @@ import json
 
 import pandas as pd
 
+from constantes import (DICCIONARIO_CC_INT_CC_SIGCOM, CARGOS_RRHH_HONORARIOS,
+                        TRADUCTOR_CC_INT_CC_SIGCOM)
 
 class ModuloRecursosHumanosSIGCOM:
     '''
@@ -27,7 +29,10 @@ class ModuloRecursosHumanosSIGCOM:
         '''
         df_leyes_juntas, honorarios = self.cargar_archivos_y_formatearlos()
         suma_leyes_honorarios = self.juntar_leyes_y_honorarios(df_leyes_juntas, honorarios)
-        self.guardar_archivos(suma_leyes_honorarios, df_leyes_juntas, honorarios)
+        suma_leyes_honorarios_traducido = self.traducir_a_sigcom(suma_leyes_honorarios)
+
+        self.guardar_archivos(suma_leyes_honorarios_traducido, suma_leyes_honorarios, 
+                              df_leyes_juntas, honorarios)
 
 
     def cargar_archivos_y_formatearlos(self):
@@ -243,7 +248,15 @@ class ModuloRecursosHumanosSIGCOM:
 
         return df_funcionarios_unificados
 
-    def guardar_archivos(self, suma_leyes_honorarios, df_leyes_juntas, honorarios):
+    def traducir_a_sigcom(self, df_sumada):
+        df_traducida = df_sumada.copy()
+        df_traducida['CC SIGCOM'] = df_traducida['UNIDAD'].apply(lambda x: 
+                                                                 TRADUCTOR_CC_INT_CC_SIGCOM[x])
+
+        return df_traducida
+
+    def guardar_archivos(self, suma_leyes_honorarios_traducido, suma_leyes_honorarios, 
+                         df_leyes_juntas, honorarios):
         '''
         Esta función permite guardar 3 archivos:
 
@@ -256,6 +269,8 @@ class ModuloRecursosHumanosSIGCOM:
         - El archivo de honorarios juntas, previamente a unificar NOMBRE, CARGO y UNIDAD.
         '''
         with pd.ExcelWriter('output.xlsx') as writer:
+            suma_leyes_honorarios_traducido.to_excel(writer, sheet_name = 
+                                                             'suma_leyes_honorarios_traducido')
             suma_leyes_honorarios.to_excel(writer, sheet_name = 'suma_leyes_honorarios',
                                            index = False)
             df_leyes_juntas.to_excel(writer, sheet_name = 'leyes_juntas_preprocesadas')
