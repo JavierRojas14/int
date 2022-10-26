@@ -99,7 +99,7 @@ class AnalizadorSuministros:
                 else:
                     print('Debes ingresar un destino válido.')
         
-        # df_cartola_completa.to_excel('input\\cartola_valorizada_con_cc_completos.xlsx')
+        df_cartola.to_excel('input\\cartola_valorizada_con_cc.xlsx')
 
         return df_cartola
 
