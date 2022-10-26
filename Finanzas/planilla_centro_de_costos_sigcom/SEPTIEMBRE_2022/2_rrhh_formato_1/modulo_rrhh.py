@@ -269,8 +269,9 @@ class ModuloRecursosHumanosSIGCOM:
         - El archivo de honorarios juntas, previamente a unificar NOMBRE, CARGO y UNIDAD.
         '''
         with pd.ExcelWriter('output.xlsx') as writer:
-            suma_leyes_honorarios_traducido.to_excel(writer, sheet_name = 
-                                                             'suma_leyes_honorarios_traducido')
+            suma_leyes_honorarios_traducido.to_excel(writer, sheet_name =
+                                                             'suma_leyes_honorarios_traducido',
+                                                             index = False)
             suma_leyes_honorarios.to_excel(writer, sheet_name = 'suma_leyes_honorarios',
                                            index = False)
             df_leyes_juntas.to_excel(writer, sheet_name = 'leyes_juntas_preprocesadas')

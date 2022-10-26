@@ -1,0 +1,117 @@
+'''
+Programa para obtener el formato 4 de Suministros del SIGCOM. Unidad de Finanzas.
+Javier Rojas Benítez'''
+
+import numpy as np
+import os
+import pandas as pd
+
+from constantes import (BODEGA_SIGFE_SIGCOM,
+                        TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON,
+                        TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM_JSON)
+
+pd.options.mode.chained_assignment = None  # default='warn'
+
+class AnalizadorSuministros:
+    def __init__(self):
+        pass
+
+    def correr_programa(self):
+        df_cartola = self.leer_archivos()
+
+        unidas_destino = self.unir_archivos(df_cartola, df_traductor_bodega_sigfe)
+
+        df_final = self.filtrar_salidas_farmacia(unidas_destino)
+        df_final = self.filtrar_motivos(df_final)
+
+        if not 'item_cc_rellenados_completos.xlsx' in os.listdir():
+            df_sin_cc_rellenados = self.rellenar_destinos(df_final)
+
+        else:
+            df_consolidada = pd.read_excel('item_cc_rellenados_completos.xlsx')
+
+        formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(
+            df_consolidada)
+        formato_relleno.to_excel('output_formato.xlsx')
+
+    def leer_archivos_y_asociar(self):
+        df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
+        df_cartola['Item Presupuestario SIGCOM'] = df_cartola['Codigo Articulo']
+        return df_cartola, df_traductor_bodega_sigfe, 
+
+    def unir_archivos(self, df_cartola, df_traductor_bodega_sigfe,
+                      TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM,
+                      TRADUCTOR_DESTINO_INT_CC_SIGCOM):
+
+        unidas = pd.merge(df_cartola, df_traductor_bodega_sigfe, how='left',
+                          left_on='Codigo Articulo', right_on='Código')
+
+        unidas_concepto_presup = pd.merge(unidas, TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, how='left',
+                                          on='Item SIGFE')
+
+        unidas_destino = pd.merge(unidas_concepto_presup,
+                                  TRADUCTOR_DESTINO_INT_CC_SIGCOM, how='left', on='Destino')
+
+        unidas_destino = unidas_destino[['Codigo Articulo', 'Nombre', 'Movimiento', 'Destino',
+                                         'Motivo', 'Neto Total', 'Familia', 'Item SIGFE', 'Item SIGCOM', 'CC SIGCOM']]
+
+        return unidas_destino
+
+    def filtrar_salidas_farmacia(self, unidas_destino):
+        df_final = unidas_destino.copy()
+        df_final = df_final.query('Movimiento == "Salida"')
+
+        mask_farmacia = ~(df_final['Destino'].str.contains('FARMACIA')) | \
+            (df_final['Destino'].str.contains('SECRE. FARMACIA'))
+
+        df_final = df_final[mask_farmacia]
+        df_final = df_final.query('`Item SIGFE` != "Farmacia"')
+
+        return df_final
+
+    def filtrar_motivos(self, df_final):
+        motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
+        df_final = df_final[~df_final['Motivo'].isin(motivos_a_filtrar)]
+
+        return df_final
+
+    def rellenar_destinos(self, df_final):
+        sin_cc = df_final[df_final['CC SIGCOM'].isna()]
+        print(f'Las siguientes filas NO tienen CC SIGCOM:\n{sin_cc}')
+        print('- Se procederá a rellenarlas -')
+
+        for tupla in sin_cc.itertuples():
+            print('\n', tupla)
+            while True:
+                destino = input(
+                    'Qué destino crees que es? (están en constantes.py) ')
+
+                if destino in TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON:
+                    cc = TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON[destino]
+                    sin_cc.loc[tupla.Index, 'Destino'] = destino
+                    sin_cc.loc[tupla.Index, 'CC SIGCOM'] = cc
+                    break
+
+                else:
+                    print('Debes ingresar un destino válido.')
+
+        return sin_cc
+
+    def convertir_a_tabla_din_y_rellenar_formato(self, df_consolidada):
+        tabla_dinamica = pd.pivot_table(df_consolidada, values='Neto Total', index='CC SIGCOM',
+                                        columns='Item SIGCOM', aggfunc=np.sum)
+
+        formato = pd.read_excel(
+            'input\\Formato 4_Distribución Suministro 2022-10.xlsx')
+        formato = formato.set_index('Centro de Costo')
+
+        for cc in tabla_dinamica.index:
+            for item_sigcom in tabla_dinamica.columns:
+                formato.loc[cc,
+                            item_sigcom] = tabla_dinamica.loc[cc, item_sigcom]
+
+        return formato
+
+
+analizador = AnalizadorSuministros()
+analizador.correr_programa()
