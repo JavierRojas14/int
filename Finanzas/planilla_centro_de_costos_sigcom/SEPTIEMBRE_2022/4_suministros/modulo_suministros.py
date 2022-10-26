@@ -6,23 +6,25 @@ import numpy as np
 import os
 import pandas as pd
 
-from constantes import (BODEGA_SIGFE_SIGCOM,
-                        TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON,
-                        TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM_JSON)
+from constantes import BODEGA_SIGFE_SIGCOM, DESTINO_INT_CC_SIGCOM
 
 pd.options.mode.chained_assignment = None  # default='warn'
+
 
 class AnalizadorSuministros:
     def __init__(self):
         pass
 
     def correr_programa(self):
-        df_cartola = self.leer_archivos()
+        df_cartola = self.leer_archivo()
+        df_cartola = self.dejar_movimientos_de_salida(df_cartola)
+        df_cartola = self.filtrar_destinos_de_farmacia(df_cartola)
+        df_cartola = self.asociar_codigo_articulo_a_sigcom(df_cartola)
+        df_cartola = self.asociar_destino_int_a_sigcom(df_cartola)
+        df_cartola = self.filtrar_items_de_farmacia(df_cartola)
+        df_cartola = self.filtrar_motivos(df_cartola)
 
-        unidas_destino = self.unir_archivos(df_cartola, df_traductor_bodega_sigfe)
-
-        df_final = self.filtrar_salidas_farmacia(unidas_destino)
-        df_final = self.filtrar_motivos(df_final)
+        df_completa = self.rellenar_destinos(df_cartola)
 
         if not 'item_cc_rellenados_completos.xlsx' in os.listdir():
             df_sin_cc_rellenados = self.rellenar_destinos(df_final)
@@ -34,66 +36,78 @@ class AnalizadorSuministros:
             df_consolidada)
         formato_relleno.to_excel('output_formato.xlsx')
 
-    def leer_archivos_y_asociar(self):
+    def leer_archivo(self):
         df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
-        df_cartola['Item Presupuestario SIGCOM'] = df_cartola['Codigo Articulo']
-        return df_cartola, df_traductor_bodega_sigfe, 
+        return df_cartola
+    
+    def dejar_movimientos_de_salida(self, df_cartola):
+        df_filtrada = df_cartola.copy()
+        return df_filtrada.query('Movimiento == "Salida"')
 
-    def unir_archivos(self, df_cartola, df_traductor_bodega_sigfe,
-                      TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM,
-                      TRADUCTOR_DESTINO_INT_CC_SIGCOM):
+    def filtrar_destinos_de_farmacia(self, df_cartola):
+        df_filtrada = df_cartola.copy()
 
-        unidas = pd.merge(df_cartola, df_traductor_bodega_sigfe, how='left',
-                          left_on='Codigo Articulo', right_on='Código')
+        mask_farmacia = ~(df_filtrada['Destino'].str.contains('FARMACIA')) | \
+                         (df_filtrada['Destino'].str.contains('SECRE. FARMACIA'))
 
-        unidas_concepto_presup = pd.merge(unidas, TRADUCTOR_ITEM_SIGFE_ITEM_SIGCOM, how='left',
-                                          on='Item SIGFE')
+        return df_filtrada[mask_farmacia]
+    
+    def asociar_codigo_articulo_a_sigcom(self, df_cartola):
+        df_filtrada = df_cartola.copy()
+        df_filtrada['Tipo_Articulo_SIGCOM'] = df_filtrada['Codigo Articulo'].apply(
+            lambda x: BODEGA_SIGFE_SIGCOM[x]['Total_SIGCOM'])
 
-        unidas_destino = pd.merge(unidas_concepto_presup,
-                                  TRADUCTOR_DESTINO_INT_CC_SIGCOM, how='left', on='Destino')
 
-        unidas_destino = unidas_destino[['Codigo Articulo', 'Nombre', 'Movimiento', 'Destino',
-                                         'Motivo', 'Neto Total', 'Familia', 'Item SIGFE', 'Item SIGCOM', 'CC SIGCOM']]
+        df_filtrada['Tipo_Articulo_SIGFE'] = df_filtrada['Codigo Articulo'].apply(
+            lambda x: BODEGA_SIGFE_SIGCOM[x]['Item SIGFE'])
+        
+        return df_filtrada
+    
+    def asociar_destino_int_a_sigcom(self, df_cartola):
+        df_filtrada = df_cartola.copy()
+        df_filtrada['CC SIGCOM'] = df_filtrada['Destino'].apply(
+            lambda x: DESTINO_INT_CC_SIGCOM[x])
+        
+        return df_filtrada
+    
+    def filtrar_items_de_farmacia(self, df_cartola):
+        df_filtrada = df_cartola.copy()
+        df_filtrada = df_filtrada.query('Tipo_Articulo_SIGFE != "Farmacia"')
 
-        return unidas_destino
+        return df_filtrada
 
-    def filtrar_salidas_farmacia(self, unidas_destino):
-        df_final = unidas_destino.copy()
-        df_final = df_final.query('Movimiento == "Salida"')
-
-        mask_farmacia = ~(df_final['Destino'].str.contains('FARMACIA')) | \
-            (df_final['Destino'].str.contains('SECRE. FARMACIA'))
-
-        df_final = df_final[mask_farmacia]
-        df_final = df_final.query('`Item SIGFE` != "Farmacia"')
-
-        return df_final
-
-    def filtrar_motivos(self, df_final):
+    def filtrar_motivos(self, df_cartola):
+        df_filtrada = df_cartola.copy()
         motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
-        df_final = df_final[~df_final['Motivo'].isin(motivos_a_filtrar)]
+        df_filtrada = df_filtrada[~df_filtrada['Motivo'].isin(motivos_a_filtrar)]
 
-        return df_final
+        return df_filtrada
 
-    def rellenar_destinos(self, df_final):
-        sin_cc = df_final[df_final['CC SIGCOM'].isna()]
-        print(f'Las siguientes filas NO tienen CC SIGCOM:\n{sin_cc}')
-        print('- Se procederá a rellenarlas -')
+    def rellenar_destinos(self, df_cartola):
+        if 'cartola_valorizada_con_cc_completos.xlsx' in os.listdir('input'):
+            df_cartola = pd.read_excel('input\\cartola_valorizada_con_cc_completos.xlsx')
+        
+        sin_cc = df_cartola[df_cartola['CC SIGCOM'].isna()]
+        print('\n- Se rellenarán los centros de costo NO ASIGNADOS asociados a cada artículo - \n')
+        print(f'{sin_cc.to_markdown()}')
+        
 
-        for tupla in sin_cc.itertuples():
-            print('\n', tupla)
-            while True:
-                destino = input(
-                    'Qué destino crees que es? (están en constantes.py) ')
+        # for tupla in sin_cc.itertuples():
+        #     print('\n', tupla)
+        #     while True:
+        #         destino = input(
+        #             'Qué destino crees que es? (están en constantes.py) ')
 
-                if destino in TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON:
-                    cc = TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON[destino]
-                    sin_cc.loc[tupla.Index, 'Destino'] = destino
-                    sin_cc.loc[tupla.Index, 'CC SIGCOM'] = cc
-                    break
+        #         if destino in TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON:
+        #             cc = TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON[destino]
+        #             sin_cc.loc[tupla.Index, 'Destino'] = destino
+        #             sin_cc.loc[tupla.Index, 'CC SIGCOM'] = cc
+        #             break
 
-                else:
-                    print('Debes ingresar un destino válido.')
+        #         else:
+        #             print('Debes ingresar un destino válido.')
+        
+        # df_cartola_completa.to_excel('input\\cartola_valorizada_con_cc_completos.xlsx')
 
         return sin_cc
 

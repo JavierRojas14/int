@@ -10,6 +10,7 @@ import pandas as pd
 from constantes import (DICCIONARIO_CC_INT_CC_SIGCOM, CARGOS_RRHH_HONORARIOS,
                         TRADUCTOR_CC_INT_CC_SIGCOM)
 
+
 class ModuloRecursosHumanosSIGCOM:
     '''
     Esta clase permite analizar los datos para obtener el Formato 1 de RRHH del SIGCOM.
@@ -31,9 +32,8 @@ class ModuloRecursosHumanosSIGCOM:
         suma_leyes_honorarios = self.juntar_leyes_y_honorarios(df_leyes_juntas, honorarios)
         suma_leyes_honorarios_traducido = self.traducir_a_sigcom(suma_leyes_honorarios)
 
-        self.guardar_archivos(suma_leyes_honorarios_traducido, suma_leyes_honorarios, 
+        self.guardar_archivos(suma_leyes_honorarios_traducido, suma_leyes_honorarios,
                               df_leyes_juntas, honorarios)
-
 
     def cargar_archivos_y_formatearlos(self):
         '''
@@ -64,10 +64,10 @@ class ModuloRecursosHumanosSIGCOM:
         '''
 
         print(f'\n{"SE ESTÁN CARGANDO LAS LEYES":-^30}')
-        nombres_leyes = [os.path.join('input', nombre) \
-                        for nombre in os.listdir('input') if 'TODOS' in nombre]
+        nombres_leyes = [os.path.join('input', nombre)
+                         for nombre in os.listdir('input') if 'TODOS' in nombre]
 
-        leyes_crudas = map(lambda x: pd.read_excel(x, header = 2), nombres_leyes)
+        leyes_crudas = map(lambda x: pd.read_excel(x, header=2), nombres_leyes)
 
         columnas_contrato = ['RUT-DV', 'NOMBRE', 'UNIDAD', 'CARGO', 'TOTAL HABER']
 
@@ -96,8 +96,8 @@ class ModuloRecursosHumanosSIGCOM:
                               'CARGO', 'VALOR TOTAL O BRUTO']
 
         honorarios = honorarios[columnas_honorario].rename(
-                                columns = {'UNIDAD O SERVICIO DONDE SE DESEMPEÑA': 'UNIDAD',
-                                            'VALOR TOTAL O BRUTO': 'TOTAL HABER'})
+            columns={'UNIDAD O SERVICIO DONDE SE DESEMPEÑA': 'UNIDAD',
+                     'VALOR TOTAL O BRUTO': 'TOTAL HABER'})
         honorarios = honorarios.query('`TOTAL HABER` > 0')
 
         return honorarios
@@ -173,10 +173,10 @@ class ModuloRecursosHumanosSIGCOM:
         for info in informacion_a_consolidar:
             ley_honorario_modificada = self.unificar_redundancias(ley_honorario_modificada, info)
 
-        suma_ley_honorario = ley_honorario_modificada.groupby(['RUT-DV'] + \
+        suma_ley_honorario = ley_honorario_modificada.groupby(['RUT-DV'] +
                                                               informacion_a_consolidar_juntos) \
-                                                              .sum() \
-                                                              .reset_index()
+            .sum() \
+            .reset_index()
 
         return suma_ley_honorario
 
@@ -195,7 +195,7 @@ class ModuloRecursosHumanosSIGCOM:
                                                                caract_seleccionadas,
                                                                redundancia_a_identificar)
 
-        string_caract_seleccionadas = json.dumps(caract_seleccionadas, indent = 1)
+        string_caract_seleccionadas = json.dumps(caract_seleccionadas, indent=1)
         print(f'Se identificaron las siguientes redundancias:\n{df_repetidos} \n'
               f'Se consolidaron de la siguiente forma:\n{string_caract_seleccionadas} \n')
 
@@ -209,11 +209,11 @@ class ModuloRecursosHumanosSIGCOM:
         - Los grupos están ordenados de forma descendente (La caract que gana más al principio).
         '''
 
-        agrupado = df_funcionarios.groupby(by = ['RUT-DV', caracteristica_a_identificar]).sum()
+        agrupado = df_funcionarios.groupby(by=['RUT-DV', caracteristica_a_identificar]).sum()
 
-        duplicados = agrupado[agrupado.index.get_level_values(0).duplicated(keep = False)]
-        duplicados_ordenados = duplicados.reset_index().sort_values(by = ['RUT-DV', 'TOTAL HABER'],
-                                                                    ascending = False)
+        duplicados = agrupado[agrupado.index.get_level_values(0).duplicated(keep=False)]
+        duplicados_ordenados = duplicados.reset_index().sort_values(by=['RUT-DV', 'TOTAL HABER'],
+                                                                    ascending=False)
         return duplicados_ordenados
 
     def seleccionar_caract_a_unificar(self, df_con_duplicados, caracteristica):
@@ -235,7 +235,6 @@ class ModuloRecursosHumanosSIGCOM:
 
         return diccionario
 
-
     def cambiar_redundancias(self, df_funcionarios, dict_a_cambiar, caracteristica_a_cambiar):
         '''
         - Esta función toma el DataFrame original de los funcionarios y aplica la consolidación
@@ -249,13 +248,16 @@ class ModuloRecursosHumanosSIGCOM:
         return df_funcionarios_unificados
 
     def traducir_a_sigcom(self, df_sumada):
+        '''
+        Esta función permite asociar la Unidad del INT, con el CC del SIGCOM
+        '''
         df_traducida = df_sumada.copy()
-        df_traducida['CC SIGCOM'] = df_traducida['UNIDAD'].apply(lambda x: 
+        df_traducida['CC SIGCOM'] = df_traducida['UNIDAD'].apply(lambda x:
                                                                  TRADUCTOR_CC_INT_CC_SIGCOM[x])
 
         return df_traducida
 
-    def guardar_archivos(self, suma_leyes_honorarios_traducido, suma_leyes_honorarios, 
+    def guardar_archivos(self, suma_leyes_honorarios_traducido, suma_leyes_honorarios,
                          df_leyes_juntas, honorarios):
         '''
         Esta función permite guardar 3 archivos:
@@ -269,13 +271,13 @@ class ModuloRecursosHumanosSIGCOM:
         - El archivo de honorarios juntas, previamente a unificar NOMBRE, CARGO y UNIDAD.
         '''
         with pd.ExcelWriter('output.xlsx') as writer:
-            suma_leyes_honorarios_traducido.to_excel(writer, sheet_name =
-                                                             'suma_leyes_honorarios_traducido',
-                                                             index = False)
-            suma_leyes_honorarios.to_excel(writer, sheet_name = 'suma_leyes_honorarios',
-                                           index = False)
-            df_leyes_juntas.to_excel(writer, sheet_name = 'leyes_juntas_preprocesadas')
-            honorarios.to_excel(writer, sheet_name = 'honorarios_preprocesados')
+            suma_leyes_honorarios_traducido.to_excel(
+                writer, sheet_name='suma_leyes_honorarios_traducido', index=False)
+            suma_leyes_honorarios.to_excel(writer, sheet_name='suma_leyes_honorarios',
+                                           index=False)
+            df_leyes_juntas.to_excel(writer, sheet_name='leyes_juntas_preprocesadas')
+            honorarios.to_excel(writer, sheet_name='honorarios_preprocesados')
+
 
 modulo_rrhh_sigcom = ModuloRecursosHumanosSIGCOM()
 modulo_rrhh_sigcom.correr_programa()
