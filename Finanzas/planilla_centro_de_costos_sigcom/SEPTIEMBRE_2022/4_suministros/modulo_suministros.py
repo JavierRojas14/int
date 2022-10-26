@@ -26,15 +26,10 @@ class AnalizadorSuministros:
 
         df_completa = self.rellenar_destinos(df_cartola)
 
-        if not 'item_cc_rellenados_completos.xlsx' in os.listdir():
-            df_sin_cc_rellenados = self.rellenar_destinos(df_final)
-
-        else:
-            df_consolidada = pd.read_excel('item_cc_rellenados_completos.xlsx')
-
         formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(
-            df_consolidada)
-        formato_relleno.to_excel('output_formato.xlsx')
+            df_completa)
+        
+        self.guardar_archivos(formato_relleno, df_completa)
 
     def leer_archivo(self):
         df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
@@ -84,32 +79,29 @@ class AnalizadorSuministros:
         return df_filtrada
 
     def rellenar_destinos(self, df_cartola):
-        if 'cartola_valorizada_con_cc_completos.xlsx' in os.listdir('input'):
-            df_cartola = pd.read_excel('input\\cartola_valorizada_con_cc_completos.xlsx')
+        if 'cartola_valorizada_con_cc.xlsx' in os.listdir('input'):
+            df_cartola = pd.read_excel('input\\cartola_valorizada_con_cc.xlsx')
         
         sin_cc = df_cartola[df_cartola['CC SIGCOM'].isna()]
         print('\n- Se rellenarán los centros de costo NO ASIGNADOS asociados a cada artículo - \n')
-        print(f'{sin_cc.to_markdown()}')
-        
+        print(f'{sin_cc[["Nombre", "Destino", "Item SIGFE", "Item SIGCOM"]].to_markdown()}')
 
-        # for tupla in sin_cc.itertuples():
-        #     print('\n', tupla)
-        #     while True:
-        #         destino = input(
-        #             'Qué destino crees que es? (están en constantes.py) ')
+        for fila_sin_cc in sin_cc.itertuples():
+            while True:
+                destino = input('Qué destino crees que es? (están en constantes.py) ')
 
-        #         if destino in TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON:
-        #             cc = TRADUCTOR_DESTINO_INT_CC_SIGCOM_JSON[destino]
-        #             sin_cc.loc[tupla.Index, 'Destino'] = destino
-        #             sin_cc.loc[tupla.Index, 'CC SIGCOM'] = cc
-        #             break
+                if destino in DESTINO_INT_CC_SIGCOM:
+                    centro_de_costo = DESTINO_INT_CC_SIGCOM[destino]
+                    df_cartola.loc[fila_sin_cc.Index, 'Destino'] = destino
+                    df_cartola.loc[fila_sin_cc.Index, 'CC SIGCOM'] = centro_de_costo
+                    break
 
-        #         else:
-        #             print('Debes ingresar un destino válido.')
+                else:
+                    print('Debes ingresar un destino válido.')
         
         # df_cartola_completa.to_excel('input\\cartola_valorizada_con_cc_completos.xlsx')
 
-        return sin_cc
+        return df_cartola
 
     def convertir_a_tabla_din_y_rellenar_formato(self, df_consolidada):
         tabla_dinamica = pd.pivot_table(df_consolidada, values='Neto Total', index='CC SIGCOM',
@@ -125,6 +117,11 @@ class AnalizadorSuministros:
                             item_sigcom] = tabla_dinamica.loc[cc, item_sigcom]
 
         return formato
+    
+    def guardar_archivos(self, formato_relleno, df_cartola):
+        with pd.ExcelWriter('output_suministros.xlsx') as writer:
+            formato_relleno.to_excel(writer, sheet_name = 'formato_relleno')
+            df_cartola.to_excel(writer, sheet_name = 'cartola_con_cc_sigcom')
 
 
 analizador = AnalizadorSuministros()
