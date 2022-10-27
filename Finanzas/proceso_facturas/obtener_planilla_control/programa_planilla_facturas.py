@@ -8,6 +8,7 @@ import json
 import os
 
 import pandas as pd
+from pandas.core.arrays import base
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -37,6 +38,7 @@ class GeneradorPlanillaFinanzas:
 
         df_izquierda = self.calcular_tiempo_8_dias(df_izquierda)
         df_izquierda = self.obtener_referencias_nc(df_izquierda)
+        df_izquierda = self.asociar_saldo_de_oc(df_izquierda)
         df_izquierda = self.obtener_columnas_necesarias(df_izquierda)
 
         self.guardar_dfs(df_izquierda)
@@ -54,8 +56,8 @@ class GeneradorPlanillaFinanzas:
         nombre de la columna Folio).
         '''
         diccionario_dfs = {}
-        for base_de_datos in os.listdir('crudos'):
-            ruta_carpeta = os.path.join('crudos', base_de_datos)
+        for base_de_datos in os.listdir('crudos\\cruce'):
+            ruta_carpeta = os.path.join('crudos\\cruce', base_de_datos)
             ruta_dfs = list(map(lambda x: os.path.join(ruta_carpeta, x), os.listdir(ruta_carpeta)))
             print(f'Leo {base_de_datos}')
 
@@ -71,7 +73,7 @@ class GeneradorPlanillaFinanzas:
                                                         'Numero Documento': 'Folio'})
 
                 df_sumada['Folio'] = df_sumada['Folio'].astype(str) \
-                                                       .str.replace('.0', '', regex = False)
+                                                    .str.replace('.0', '', regex = False)
 
             elif base_de_datos == 'SIGFE':
                 dfs = list(map(lambda x: pd.read_csv(x, delimiter = ',', header = 10), ruta_dfs))
@@ -99,17 +101,17 @@ class GeneradorPlanillaFinanzas:
 
             elif base_de_datos == 'SII':
                 dfs = list(map(lambda x: pd.read_csv(x, delimiter = ';', index_col = False),
-                               ruta_dfs))
+                            ruta_dfs))
 
                 dfs = list(map(lambda x: x.drop(columns = ['Tabacos Puros', 'Tabacos Cigarrillos',
-                                                           'Tabacos Elaborados']) \
-                                         if len(x.columns) == 27 \
-                                         else x, dfs))
+                                                        'Tabacos Elaborados']) \
+                                        if len(x.columns) == 27 \
+                                        else x, dfs))
 
                 df_sumada = pd.concat(dfs).rename(columns = {'RUT Proveedor': 'RUT Emisor'})
                 mask_negativas = (df_sumada['Tipo Doc'] == 61) | (df_sumada['Tipo Doc'] == 56)
                 columnas_negativas = ['Monto Exento', 'Monto Neto', 'Monto IVA Recuperable',
-                                      'Monto Total']
+                                    'Monto Total']
 
                 df_sumada.loc[mask_negativas, columnas_negativas] = df_sumada.loc[mask_negativas,
                                                                     columnas_negativas] * -1
@@ -122,7 +124,7 @@ class GeneradorPlanillaFinanzas:
                                                         'NºDoc.': 'Folio'})
 
                 df_sumada['Folio'] = df_sumada['Folio'].astype(str) \
-                                                       .str.replace('.0', '', regex = False)
+                                                    .str.replace('.0', '', regex = False)
 
             elif base_de_datos == 'OBSERVACIONES':
                 dfs = list(map(pd.read_excel, ruta_dfs))
@@ -252,6 +254,33 @@ class GeneradorPlanillaFinanzas:
 
         return df_izquierda
 
+    def asociar_saldo_de_oc(self, df_junta):
+        '''
+        Esta función permite agregar el saldo disponible de las ordenes de compra a cada
+        factura que esté asociada.
+        '''
+        oc_sigfe = pd.read_excel('crudos\\analisis_posterior_cruce\\SIGFE REPORTS\\SA_ListadoDisponibilidadCompromiso.xls', header = 5)
+        oc_pendientes = oc_sigfe.query('`Monto Disponible` > 0')
+        mask_subtitulo_22 = oc_pendientes['Concepto Presupuesto'].str[:2] == '22'
+        oc_pendientes_subt_22 = oc_pendientes[mask_subtitulo_22]
+
+        for orden_compra in oc_pendientes_subt_22['Número Documento'].unique():
+            if not(orden_compra in ['2022', '2']):
+
+                mask_oc_sigfe = (oc_pendientes_subt_22['Número Documento'] == orden_compra)
+                datos_oc = oc_pendientes_subt_22[mask_oc_sigfe]
+                monto_disponible = datos_oc['Monto Disponible'].iloc[0]
+                numero_compromiso = datos_oc['Folio'].iloc[0]
+                
+                mask_oc_acepta = (df_junta['folio_oc ACEPTA'] == orden_compra)
+                facturas_asociadas = df_junta[mask_oc_acepta]
+
+                df_junta.loc[mask_oc_acepta, 'NUMERO_COMPROMISO_OC'] = numero_compromiso
+                df_junta.loc[mask_oc_acepta, 'MONTO_DISPONIBLE_OC'] = monto_disponible
+        
+        return df_junta
+
+
     def obtener_columnas_necesarias(self, df_izquierda):
         '''
         Esta función selecciona sólo las columnas necesarias en el fomrato final para
@@ -274,7 +303,8 @@ class GeneradorPlanillaFinanzas:
         'Folio_interno PAGO SIGFE',
         'Fecha Recepción SCI', 'Registrador SCI', 'Articulo SCI', 'N° Acta SCI',
         'Ubic. TURBO', 'NºPresu TURBO', 'Folio_interno TURBO', 'NºPago TURBO',
-        'tiempo_diferencia SII', 'esta_al_dia', 'REFERENCIAS', 'OBSERVACION OBSERVACIONES']
+        'tiempo_diferencia SII', 'esta_al_dia', 'REFERENCIAS', 'OBSERVACION OBSERVACIONES',
+        'NUMERO_COMPROMISO_OC', 'MONTO_DISPONIBLE_OC']
 
         df_util = df_izquierda[columnas_a_ocupar]
         df_util['Tipo Doc SII'] = df_util['Tipo Doc SII'].astype('category')

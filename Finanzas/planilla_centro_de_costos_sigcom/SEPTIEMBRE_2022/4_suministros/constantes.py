@@ -115180,7 +115180,17 @@ DICCIONARIO_UNIDADES_A_DESGLOSAR = {
                                     "670-ADMINISTRACIÓN": [
                                       "15008-CONSULTA NUTRICIÓN"
                                     ],
-                                    "CONSULTAS": [
+                                    "CONSULTAS CON MANEJO DEL DOLOR": [
+                                      "15220-CONSULTA CIRUGIA CARDIACA",
+                                      "15201-CONSULTA CIRUGÍA GENERAL",
+                                      "15010-CONSULTA OTROS PROFESIONALES",
+                                      "15111-CONSULTA NEUMOLOGÍA",
+                                      "15107-CONSULTA ONCOLOGÍA",
+                                      "15105-CONSULTA CARDIOLOGÍA",
+                                      "15008-CONSULTA NUTRICIÓN",
+                                      "15123-PROGRAMA MANEJO DEL DOLOR"
+                                    ],
+                                    "CONSULTAS SIN MANEJO DEL DOLOR": [
                                       "15220-CONSULTA CIRUGIA CARDIACA",
                                       "15201-CONSULTA CIRUGÍA GENERAL",
                                       "15010-CONSULTA OTROS PROFESIONALES",
@@ -115195,10 +115205,11 @@ UNIDADES_PROPORCIONALES_A_LA_PRODUCCION = ["41108-IMAGENOLOGÍA", "PABELLÓN",
                                            "518-LABORATORIO CLÍNICO",
                                            "66-HOSPITALIZACIÓN MEDICINA INTERNA",
                                            "166-UNIDAD DE CUIDADOS INTENSIVOS",
-                                           "CONSULTAS"]
+                                           "CONSULTAS CON MANEJO DEL DOLOR",
+                                           "CONSULTAS SIN MANEJO DEL DOLOR"]
 
-VALOR_TAVI_SUMINISTROS = 18921000
-VALOR_EBUS_SUMINISTROS = 100
+VALOR_TAVI_SUMINISTROS = 22784797
+VALOR_EBUS_SUMINISTROS = 4408972
 VALOR_ECMO_SUMINISTROS = 3092453
 PORCENTAJES_A_CONSULTAS_CARDIOLOGIA = 0.15
 PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA = 0.85
@@ -115206,4 +115217,4 @@ PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA = 0.85
 PORCENTAJES_A_CONSULTAS_ONCOLOGIA = 0.15
 PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA = 0.85
 
-VALOR_CONSULTAS_ADMIN_SUMINISTROS = 2000
+VALOR_CONSULTAS_ADMIN_SUMINISTROS = 5314
