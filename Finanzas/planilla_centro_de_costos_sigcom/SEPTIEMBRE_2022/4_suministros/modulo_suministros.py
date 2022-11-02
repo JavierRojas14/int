@@ -2,12 +2,13 @@
 Programa para obtener el formato 4 de Suministros del SIGCOM. Unidad de Finanzas.
 Javier Rojas Benítez'''
 
-import numpy as np
 import os
+
+import numpy as np
 import pandas as pd
 
-from constantes import DESTINO_INT_CC_SIGCOM
 from bodega_sigfe_sigcom import BODEGA_SIGFE_SIGCOM
+from constantes import DESTINO_INT_CC_SIGCOM
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -19,13 +20,16 @@ class AnalizadorSuministros:
     def correr_programa(self):
         df_cartola = self.leer_asociar_y_filtrar_cartola()
         df_completa = self.rellenar_destinos(df_cartola)
-
         formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(df_completa)
 
         self.guardar_archivos(formato_relleno, df_completa)
 
     def leer_asociar_y_filtrar_cartola(self):
         '''
+        Esta función solamente se ejecuta si es que NO existe un archivo llamado
+        "cartola_valorizada_con_cc.xlsx" en input. Si es que existe un archivo con ese nombre,
+        entonces lo lee y lo retorna.
+
         Esta función permite leer el archivo de la Cartola Valorizada del SCI. Luego, trata
         este archivo de la siguiente forma:
 
@@ -41,13 +45,13 @@ class AnalizadorSuministros:
         7 - Filtra todos los artículos que sean del tipo Farmacia (ya que estos vienen desde
         la planilla de Juan Pablo).
         '''
-        if not('cartola_valorizada_con_cc.xlsx' in os.listdir('input')):
+        if not ('cartola_valorizada_con_cc.xlsx' in os.listdir('input')):
             df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
             df_filtrada = df_cartola.copy()
 
             df_filtrada = df_filtrada.query('Movimiento == "Salida"')
             mask_farmacia = ~(df_filtrada['Destino'].str.contains('FARMACIA')) | \
-                            (df_filtrada['Destino'].str.contains('SECRE. FARMACIA'))
+                (df_filtrada['Destino'].str.contains('SECRE. FARMACIA'))
             df_filtrada = df_filtrada[mask_farmacia]
             motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
             df_filtrada = df_filtrada[~df_filtrada['Motivo'].isin(motivos_a_filtrar)]
@@ -56,8 +60,8 @@ class AnalizadorSuministros:
             df_filtrada = self.asociar_destino_int_a_sigcom(df_filtrada)
             df_filtrada = df_filtrada.query('Tipo_Articulo_SIGFE != "Farmacia"')
 
-            df_filtrada.to_excel('input\\cartola_valorizada_con_cc.xlsx', index = False)
-        
+            df_filtrada.to_excel('input\\cartola_valorizada_con_cc.xlsx', index=False)
+
         else:
             df_filtrada = pd.read_excel('input\\cartola_valorizada_con_cc.xlsx')
 
@@ -81,13 +85,11 @@ class AnalizadorSuministros:
         return df_filtrada
 
     def rellenar_destinos(self, df_cartola):
-        if 'cartola_valorizada_con_cc.xlsx' in os.listdir('input'):
-            df_cartola = pd.read_excel('input\\cartola_valorizada_con_cc.xlsx')
-
         sin_cc = df_cartola[df_cartola['CC SIGCOM'].isna()]
+        a_printear = sin_cc[["Nombre", "Destino", "Tipo_Articulo_SIGFE", "Tipo_Articulo_SIGCOM"]]
+
         print('\n- Se rellenarán los centros de costo NO ASIGNADOS asociados a cada artículo - \n')
-        print(
-            f'{sin_cc[["Nombre", "Destino", "Tipo_Articulo_SIGFE", "Tipo_Articulo_SIGCOM"]].to_markdown()}')
+        print(f'{a_printear.to_markdown()}')
 
         for fila_sin_cc in sin_cc.itertuples():
             while True:
@@ -102,7 +104,7 @@ class AnalizadorSuministros:
                 else:
                     print('Debes ingresar un destino válido.')
 
-        df_cartola.to_excel('input\\cartola_valorizada_con_cc.xlsx', index = False)
+        df_cartola.to_excel('input\\cartola_valorizada_con_cc.xlsx', index=False)
 
         return df_cartola
 
