@@ -18,6 +18,7 @@ class AnalizadorSuministros:
     Esta clase permite desglosar los suministros de la cartola valorizada del SCI, y generar
     el formato 4 de Suministros del SIGCOM.
     '''
+
     def __init__(self):
         pass
 
@@ -73,7 +74,7 @@ class AnalizadorSuministros:
 
         df_filtrada = df_filtrada.query('Movimiento == "Salida"')
         mask_farmacia = ~(df_filtrada['Destino'].str.contains('FARMACIA')) | \
-                (df_filtrada['Destino'].str.contains('SECRE. FARMACIA'))
+            (df_filtrada['Destino'].str.contains('SECRE. FARMACIA'))
         df_filtrada = df_filtrada[mask_farmacia]
         motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
         df_filtrada = df_filtrada[~df_filtrada['Motivo'].isin(motivos_a_filtrar)]
@@ -140,6 +141,39 @@ class AnalizadorSuministros:
             df_cartola.to_excel('input\\cartola_valorizada_traducida.xlsx', index=False)
 
         return df_cartola
+    
+    # def rellenar_item_presupuestario_sigcom(self, df_cartola):
+    #     '''
+    #     Esta función permite rellenar todos los ítems que les falten ítems presupuestarios en
+    #     SIGCOM (Porque son ítems que NO están en el Maestro Artículo).
+    #     '''
+    #     sin_item_pres_sigcom = df_cartola[df_cartola['Tipo_Articulo_SIGCOM'].isna()]
+    #     a_printear = sin_item_pres_sigcom[["Nombre", "Destino", "Tipo_Articulo_SIGFE", "Tipo_Articulo_SIGCOM"]]
+
+    #     print('\n- Se rellenarán los item presupuestario SIGCOM NO ASIGNADOS asociados a '
+    #           'cada artículo - \n')
+    #     print(f'{a_printear.to_markdown()}')
+
+    #     for nombre_articulo in sin_item_pres_sigcom['Nombre'].unique():
+    #         while True:
+    #             destino = input(f'\n{nombre_articulo}\n'
+    #                             f'Qué destino crees que es? (están en constantes.py): ')
+
+    #             if destino in DESTINO_INT_CC_SIGCOM:
+    #                 cc_sigcom = DESTINO_INT_CC_SIGCOM[destino]
+
+    #                 mask_articulos_mismo_nombre = sin_item_pres_sigcom['Nombre'] == nombre_articulo
+    #                 a_cambiar = sin_item_pres_sigcom[mask_articulos_mismo_nombre]
+    #                 df_cartola.loc[a_cambiar.index, 'Destino'] = destino
+    #                 df_cartola.loc[a_cambiar.index, 'CC SIGCOM'] = cc_sigcom
+    #                 break
+
+    #             else:
+    #                 print('Debes ingresar un destino válido.')
+
+    #         df_cartola.to_excel('input\\cartola_valorizada_traducida.xlsx', index=False)
+
+    #     return df_cartola
 
     def convertir_a_tabla_din_y_rellenar_formato(self, df_consolidada):
         '''
