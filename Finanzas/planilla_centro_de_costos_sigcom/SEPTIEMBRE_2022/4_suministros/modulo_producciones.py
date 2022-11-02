@@ -43,7 +43,14 @@ class ModuloProducciones:
         return df_producciones
 
     def obtener_desglose_por_unidad(self, df_prod):
-        producciones_por_unidad = pd.DataFrame()
+        '''
+        Esta función permite desglosar cada una de los centros de costo según se indicó
+        en el DICCIONARIO_UNIDADES_A_DESGLOSAR en constantes.py. Si se quiere hacer un nuevo
+        desglose, entonces se debe agregar ahí.
+
+        Esta función retorna un diccionario del tipo {unidad_a_desglosar: DataFrame del desglose}
+        '''
+        producciones_por_unidad = {}
         for unidad_a_desglosar, lista_subunidades in DICCIONARIO_UNIDADES_A_DESGLOSAR.items():
             for i, produccion_a_pedir in enumerate(lista_subunidades):
                 mask_consulta = self.obtener_mask_de_unidad(df_prod, produccion_a_pedir)
@@ -62,7 +69,7 @@ class ModuloProducciones:
 
             df_unidad['AGRUPACION'] = unidad_a_desglosar
 
-            producciones_por_unidad = pd.concat([producciones_por_unidad, df_unidad])
+            producciones_por_unidad[unidad_a_desglosar] = df_unidad
 
         return producciones_por_unidad
 
@@ -154,109 +161,115 @@ class ModuloProducciones:
         return mask
 
     def obtener_porcentajes(self, produccion_unidad, unidad_a_desglosar):
+        '''
+        Esta función permite obtener los porcentajes/valores totales por desglose de centro de
+        costo SIGCOM'''
         if unidad_a_desglosar in UNIDADES_PROPORCIONALES_A_LA_PRODUCCION:
             return produccion_unidad.iloc[:, 1] / produccion_unidad.iloc[:, 1].sum()
 
-        else:
-            if unidad_a_desglosar == '253-PROCEDIMIENTOS DE HEMODINAMIA':
-                # Aislar los procedimientos
-                series_hemodinamia = produccion_unidad.copy()
-                mask_procedimientos = (produccion_unidad['EGRESOS'].str.contains('NEUMOLOGIA') |
-                                       produccion_unidad['EGRESOS'].str.contains('HEMODINAMIA'))
+        if unidad_a_desglosar == '253-PROCEDIMIENTOS DE HEMODINAMIA':
+            # Aislar los procedimientos
+            series_hemodinamia = produccion_unidad.copy()
+            mask_procedimientos = (produccion_unidad['EGRESOS'].str.contains('NEUMOLOGIA') |
+                                   produccion_unidad['EGRESOS'].str.contains('HEMODINAMIA'))
 
-                procedimientos_hemo = produccion_unidad[mask_procedimientos]
+            procedimientos_hemo = produccion_unidad[mask_procedimientos]
 
-                porcentajes_hemo = (procedimientos_hemo.iloc[:, 1] /
-                                    procedimientos_hemo.iloc[:, 1].sum())
+            porcentajes_hemo = (procedimientos_hemo.iloc[:, 1] /
+                                procedimientos_hemo.iloc[:, 1].sum())
 
-                tavi = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO TAVI (4 horas c/u)"')
-                ebus = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO EBUS"')
-                valor_total_tavi = tavi.iloc[:, 1] * VALOR_TAVI_SUMINISTROS
-                valor_total_ebus = ebus.iloc[:, 1] * VALOR_EBUS_SUMINISTROS
+            tavi = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO TAVI (4 horas c/u)"')
+            ebus = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO EBUS"')
+            valor_total_tavi = tavi.iloc[:, 1] * VALOR_TAVI_SUMINISTROS
+            valor_total_ebus = ebus.iloc[:, 1] * VALOR_EBUS_SUMINISTROS
 
-                series_hemodinamia.loc[porcentajes_hemo.index, 'PORCENTAJES'] = porcentajes_hemo
-                series_hemodinamia.loc[valor_total_tavi.index, 'PORCENTAJES'] = valor_total_tavi
-                series_hemodinamia.loc[valor_total_ebus.index, 'PORCENTAJES'] = valor_total_ebus
+            series_hemodinamia.loc[porcentajes_hemo.index, 'PORCENTAJES'] = porcentajes_hemo
+            series_hemodinamia.loc[valor_total_tavi.index, 'PORCENTAJES'] = valor_total_tavi
+            series_hemodinamia.loc[valor_total_ebus.index, 'PORCENTAJES'] = valor_total_ebus
 
-                print(f'Hemodinamia se desglosó en:\n{series_hemodinamia.to_markdown()}')
+            print(f'Hemodinamia se desglosó en:\n{series_hemodinamia.to_markdown()}\n')
 
-                return series_hemodinamia['PORCENTAJES']
+            return series_hemodinamia['PORCENTAJES']
 
-            elif unidad_a_desglosar == '15026-PROCEDIMIENTOS DE CARDIOLOGÍA':
-                series_cardiologia = produccion_unidad.copy()
+        if unidad_a_desglosar == '15026-PROCEDIMIENTOS DE CARDIOLOGÍA':
+            series_cardiologia = produccion_unidad.copy()
 
-                ecmo = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO ECMO (1,5 horas c/u/)"')
-                valor_total_ecmo = ecmo.iloc[:, 1] * VALOR_ECMO_SUMINISTROS
+            ecmo = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO ECMO (1,5 horas c/u/)"')
+            valor_total_ecmo = ecmo.iloc[:, 1] * VALOR_ECMO_SUMINISTROS
 
-                mask_consultas_cardio = produccion_unidad['EGRESOS'].str.contains('CONSULTA')
-                consultas_cardio = produccion_unidad[mask_consultas_cardio]
+            mask_consultas_cardio = produccion_unidad['EGRESOS'].str.contains('CONSULTA')
+            consultas_cardio = produccion_unidad[mask_consultas_cardio]
 
-                porcentajes_consultas_cardio = (consultas_cardio.iloc[:, 1] /
-                                                consultas_cardio.iloc[:, 1].sum()) * \
-                    PORCENTAJES_A_CONSULTAS_CARDIOLOGIA
+            porcentajes_consultas_cardio = (consultas_cardio.iloc[:, 1] /
+                                            consultas_cardio.iloc[:, 1].sum()) * \
+                PORCENTAJES_A_CONSULTAS_CARDIOLOGIA
 
-                procedimientos_cardio = produccion_unidad.query('EGRESOS == '
-                                                                '"PROCEDIMIENTO DE CARDIOLOGIA"')
-                porcentajes_proc_cardio = (procedimientos_cardio.iloc[:, 1] /
-                                           procedimientos_cardio.iloc[:, 1].sum()) * \
-                    PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA
+            procedimientos_cardio = produccion_unidad.query('EGRESOS == '
+                                                            '"PROCEDIMIENTO DE CARDIOLOGIA"')
+            porcentajes_proc_cardio = (procedimientos_cardio.iloc[:, 1] /
+                                       procedimientos_cardio.iloc[:, 1].sum()) * \
+                PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA
 
-                series_cardiologia.loc[valor_total_ecmo.index, 'PORCENTAJES'] = valor_total_ecmo
-                series_cardiologia.loc[porcentajes_consultas_cardio.index, 'PORCENTAJES'] = \
-                    porcentajes_consultas_cardio
+            series_cardiologia.loc[valor_total_ecmo.index, 'PORCENTAJES'] = valor_total_ecmo
+            series_cardiologia.loc[porcentajes_consultas_cardio.index, 'PORCENTAJES'] = \
+                porcentajes_consultas_cardio
 
-                series_cardiologia.loc[porcentajes_proc_cardio.index, 'PORCENTAJES'] = \
-                    porcentajes_proc_cardio
+            series_cardiologia.loc[porcentajes_proc_cardio.index, 'PORCENTAJES'] = \
+                porcentajes_proc_cardio
 
-                print(f'Cardiología se desglosó en:\n{series_cardiologia.to_markdown()}')
+            print(f'Cardiología se desglosó en:\n{series_cardiologia.to_markdown()}\n')
 
-                return series_cardiologia['PORCENTAJES']
+            return series_cardiologia['PORCENTAJES']
 
-            elif unidad_a_desglosar == '15038-PROCEDIMIENTO ONCOLOGÍA':
-                series_oncologia = produccion_unidad.copy()
+        if unidad_a_desglosar == '15038-PROCEDIMIENTO ONCOLOGÍA':
+            series_oncologia = produccion_unidad.copy()
 
-                mask_consultas_onco = produccion_unidad['EGRESOS'].str.contains('CONSULTA')
-                consultas_onco = produccion_unidad[mask_consultas_onco]
+            mask_consultas_onco = produccion_unidad['EGRESOS'].str.contains('CONSULTA')
+            consultas_onco = produccion_unidad[mask_consultas_onco]
 
-                porcentajes_consultas_onco = (consultas_onco.iloc[:, 1] /
-                                              consultas_onco.iloc[:, 1].sum()) * \
-                    PORCENTAJES_A_CONSULTAS_ONCOLOGIA
+            porcentajes_consultas_onco = (consultas_onco.iloc[:, 1] /
+                                          consultas_onco.iloc[:, 1].sum()) * \
+                PORCENTAJES_A_CONSULTAS_ONCOLOGIA
 
-                procedimientos_onco = produccion_unidad.query('EGRESOS == '
-                                                              '"PROCEDIMIENTO ONCOLOGIA"')
-                porcentajes_proc_onco = (procedimientos_onco.iloc[:, 1] /
-                                         procedimientos_onco.iloc[:, 1].sum()) * \
-                    PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA
+            procedimientos_onco = produccion_unidad.query('EGRESOS == '
+                                                          '"PROCEDIMIENTO ONCOLOGIA"')
+            porcentajes_proc_onco = (procedimientos_onco.iloc[:, 1] /
+                                     procedimientos_onco.iloc[:, 1].sum()) * \
+                PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA
 
-                series_oncologia.loc[porcentajes_consultas_onco.index, 'PORCENTAJES'] = \
-                    porcentajes_consultas_onco
+            series_oncologia.loc[porcentajes_consultas_onco.index, 'PORCENTAJES'] = \
+                porcentajes_consultas_onco
 
-                series_oncologia.loc[porcentajes_proc_onco.index, 'PORCENTAJES'] = \
-                    porcentajes_proc_onco
+            series_oncologia.loc[porcentajes_proc_onco.index, 'PORCENTAJES'] = \
+                porcentajes_proc_onco
 
-                print(f'Oncologia se desglosó en:\n{series_oncologia.to_markdown()}')
+            print(f'Oncologia se desglosó en:\n{series_oncologia.to_markdown()}\n')
 
-                return series_oncologia['PORCENTAJES']
+            return series_oncologia['PORCENTAJES']
 
-            elif unidad_a_desglosar == '670-ADMINISTRACIÓN':
-                series_admin = produccion_unidad.copy()
+        if unidad_a_desglosar == '670-ADMINISTRACIÓN':
+            series_admin = produccion_unidad.copy()
 
-                mask_consultas_admin = produccion_unidad['EGRESOS'].str.contains('CONSULTA')
-                consultas_admin = produccion_unidad[mask_consultas_admin]
+            mask_consultas_admin = produccion_unidad['EGRESOS'].str.contains('CONSULTA')
+            consultas_admin = produccion_unidad[mask_consultas_admin]
 
-                valor_total_consultas_admin = consultas_admin.iloc[:, 1] * \
-                    VALOR_CONSULTAS_ADMIN_SUMINISTROS
+            valor_total_consultas_admin = consultas_admin.iloc[:, 1] * \
+                VALOR_CONSULTAS_ADMIN_SUMINISTROS
 
-                series_admin.loc[valor_total_consultas_admin.index, 'PORCENTAJES'] = \
-                    valor_total_consultas_admin
+            series_admin.loc[valor_total_consultas_admin.index, 'PORCENTAJES'] = \
+                valor_total_consultas_admin
 
-                print(f'Administración se desglosó en:\n{series_admin.to_markdown()}')
+            print(f'Administración se desglosó en:\n{series_admin.to_markdown()}\n')
 
-                return series_admin['PORCENTAJES']
+            return series_admin['PORCENTAJES']
 
     def guardar_archivos(self, produccion_por_unidad):
+        '''
+        Esta función guarda el desglose de las producciones!
+        '''
         with pd.ExcelWriter('output_producciones.xlsx') as writer:
-            produccion_por_unidad.to_excel(writer, sheet_name='produccion_por_unidad', index=False)
+            for desglose_por_unidad, df_unidad in produccion_por_unidad.items():
+                df_unidad.to_excel(writer, sheet_name=f'{desglose_por_unidad[:31]}', index=False)
 
 
 modulo_producciones = ModuloProducciones()
