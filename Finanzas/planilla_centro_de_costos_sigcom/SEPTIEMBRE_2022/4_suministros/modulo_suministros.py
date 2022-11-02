@@ -6,7 +6,8 @@ import numpy as np
 import os
 import pandas as pd
 
-from constantes import BODEGA_SIGFE_SIGCOM, DESTINO_INT_CC_SIGCOM
+from constantes import DESTINO_INT_CC_SIGCOM
+from bodega_sigfe_sigcom import BODEGA_SIGFE_SIGCOM
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -17,42 +18,50 @@ class AnalizadorSuministros:
 
     def correr_programa(self):
         df_cartola = self.leer_asociar_y_filtrar_cartola()
-
-        if 'input\\cartola_valorizada_con_cc.xlsx' in os.listdir('input'):
-            df_cartola.to_excel('input\\cartola_valorizada_con_cc.xlsx', index = False)
-
         df_completa = self.rellenar_destinos(df_cartola)
 
-        formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(
-            df_completa)
+        formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(df_completa)
 
         self.guardar_archivos(formato_relleno, df_completa)
 
     def leer_asociar_y_filtrar_cartola(self):
-        df_cartola = self.leer_archivo()
-        df_cartola = self.dejar_movimientos_de_salida(df_cartola)
-        df_cartola = self.filtrar_destinos_de_farmacia(df_cartola)
-        df_cartola = self.asociar_codigo_articulo_a_sigcom(df_cartola)
-        df_cartola = self.asociar_destino_int_a_sigcom(df_cartola)
-        df_cartola = self.filtrar_items_de_farmacia(df_cartola)
-        df_cartola = self.filtrar_motivos(df_cartola)
-        return df_cartola
+        '''
+        Esta función permite leer el archivo de la Cartola Valorizada del SCI. Luego, trata
+        este archivo de la siguiente forma:
 
-    def leer_archivo(self):
-        df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
-        return df_cartola
+        1 - Crea una copia de la cartola.
+        2 - Deja solamente los movimientos de salida de los artículos
+        3 - Filtra todos los movimientos que NO tengan FARMACIA en su nombre, exceptuando
+        SECRE. FARMACIA
+        4 - Filtra todos los movimientos que tengan como motivo a "Merma" - "Préstamo" o "Devolución
+        al Proveedor".
+        5 - Asocia el código de bodega con el código SIGFE y el código SIGCOM.
+        6 - Asocia el destino INT (destino del artículo dentro del hospital) con un centro
+        de costo.
+        7 - Filtra todos los artículos que sean del tipo Farmacia (ya que estos vienen desde
+        la planilla de Juan Pablo).
+        '''
+        if not('cartola_valorizada_con_cc.xlsx' in os.listdir('input')):
+            df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
+            df_filtrada = df_cartola.copy()
 
-    def dejar_movimientos_de_salida(self, df_cartola):
-        df_filtrada = df_cartola.copy()
-        return df_filtrada.query('Movimiento == "Salida"')
+            df_filtrada = df_filtrada.query('Movimiento == "Salida"')
+            mask_farmacia = ~(df_filtrada['Destino'].str.contains('FARMACIA')) | \
+                            (df_filtrada['Destino'].str.contains('SECRE. FARMACIA'))
+            df_filtrada = df_filtrada[mask_farmacia]
+            motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
+            df_filtrada = df_filtrada[~df_filtrada['Motivo'].isin(motivos_a_filtrar)]
 
-    def filtrar_destinos_de_farmacia(self, df_cartola):
-        df_filtrada = df_cartola.copy()
+            df_filtrada = self.asociar_codigo_articulo_a_sigcom(df_filtrada)
+            df_filtrada = self.asociar_destino_int_a_sigcom(df_filtrada)
+            df_filtrada = df_filtrada.query('Tipo_Articulo_SIGFE != "Farmacia"')
 
-        mask_farmacia = ~(df_filtrada['Destino'].str.contains('FARMACIA')) | \
-                         (df_filtrada['Destino'].str.contains('SECRE. FARMACIA'))
+            df_filtrada.to_excel('input\\cartola_valorizada_con_cc.xlsx', index = False)
+        
+        else:
+            df_filtrada = pd.read_excel('input\\cartola_valorizada_con_cc.xlsx')
 
-        return df_filtrada[mask_farmacia]
+        return df_filtrada
 
     def asociar_codigo_articulo_a_sigcom(self, df_cartola):
         df_filtrada = df_cartola.copy()
@@ -68,19 +77,6 @@ class AnalizadorSuministros:
         df_filtrada = df_cartola.copy()
         df_filtrada['CC SIGCOM'] = df_filtrada['Destino'].apply(
             lambda x: DESTINO_INT_CC_SIGCOM[x])
-
-        return df_filtrada
-
-    def filtrar_items_de_farmacia(self, df_cartola):
-        df_filtrada = df_cartola.copy()
-        df_filtrada = df_filtrada.query('Tipo_Articulo_SIGFE != "Farmacia"')
-
-        return df_filtrada
-
-    def filtrar_motivos(self, df_cartola):
-        df_filtrada = df_cartola.copy()
-        motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
-        df_filtrada = df_filtrada[~df_filtrada['Motivo'].isin(motivos_a_filtrar)]
 
         return df_filtrada
 
