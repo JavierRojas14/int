@@ -14,6 +14,10 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 
 class AnalizadorSuministros:
+    '''
+    Esta clase permite desglosar los suministros de la cartola valorizada del SCI, y generar
+    el formato 4 de Suministros del SIGCOM.
+    '''
     def __init__(self):
         pass
 
@@ -34,10 +38,21 @@ class AnalizadorSuministros:
 
     def leer_asociar_y_filtrar_cartola(self):
         '''
-        Esta función solamente se ejecuta si es que NO existe un archivo llamado
-        "cartola_valorizada_con_cc.xlsx" en input. Si es que existe un archivo con ese nombre,
-        entonces lo lee y lo retorna.
+        Esta función controla el flujo de creación de la cartola traducida.
+        Si NO existe la cartola traducida, entonces crea una nueva desde la cartola cruda.
+        Si existe una cartola traducida, entonces lee esta y la trata.
+        '''
+        if 'cartola_valorizada_traducida.xlsx' not in os.listdir('input'):
+            df_filtrada = self.leer_cartola_desde_cero()
+            df_filtrada.to_excel('input\\cartola_valorizada_traducida.xlsx', index=False)
 
+        else:
+            df_filtrada = pd.read_excel('input\\cartola_valorizada_traducida.xlsx')
+
+        return df_filtrada
+
+    def leer_cartola_desde_cero(self):
+        '''
         Esta función permite leer el archivo de la Cartola Valorizada del SCI. Luego, trata
         este archivo de la siguiente forma:
 
@@ -53,26 +68,20 @@ class AnalizadorSuministros:
         7 - Filtra todos los artículos que sean del tipo Farmacia (ya que estos vienen desde
         la planilla de Juan Pablo).
         '''
-        if 'cartola_valorizada_con_cc.xlsx' not in os.listdir('input'):
-            df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
-            df_filtrada = df_cartola.copy()
+        df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
+        df_filtrada = df_cartola.copy()
 
-            df_filtrada = df_filtrada.query('Movimiento == "Salida"')
-            mask_farmacia = ~(df_filtrada['Destino'].str.contains('FARMACIA')) | \
+        df_filtrada = df_filtrada.query('Movimiento == "Salida"')
+        mask_farmacia = ~(df_filtrada['Destino'].str.contains('FARMACIA')) | \
                 (df_filtrada['Destino'].str.contains('SECRE. FARMACIA'))
-            df_filtrada = df_filtrada[mask_farmacia]
-            motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
-            df_filtrada = df_filtrada[~df_filtrada['Motivo'].isin(motivos_a_filtrar)]
+        df_filtrada = df_filtrada[mask_farmacia]
+        motivos_a_filtrar = ['Merma', 'Préstamo', 'Devolución al Proveedor']
+        df_filtrada = df_filtrada[~df_filtrada['Motivo'].isin(motivos_a_filtrar)]
 
-            df_filtrada = self.asociar_codigo_articulo_a_sigcom(df_filtrada)
-            df_filtrada = self.asociar_destino_int_a_sigcom(df_filtrada)
-            df_filtrada = df_filtrada.query('Tipo_Articulo_SIGFE != "Farmacia"')
-            df_filtrada = df_filtrada.sort_values(['CC SIGCOM', 'Nombre'], na_position='first')
-
-            df_filtrada.to_excel('input\\cartola_valorizada_con_cc.xlsx', index=False)
-
-        else:
-            df_filtrada = pd.read_excel('input\\cartola_valorizada_con_cc.xlsx')
+        df_filtrada = self.asociar_codigo_articulo_a_sigcom(df_filtrada)
+        df_filtrada = self.asociar_destino_int_a_sigcom(df_filtrada)
+        df_filtrada = df_filtrada.query('Tipo_Articulo_SIGFE != "Farmacia"')
+        df_filtrada = df_filtrada.sort_values(['CC SIGCOM', 'Nombre'], na_position='first')
 
         return df_filtrada
 
@@ -128,7 +137,7 @@ class AnalizadorSuministros:
                 else:
                     print('Debes ingresar un destino válido.')
 
-            df_cartola.to_excel('input\\cartola_valorizada_con_cc.xlsx', index=False)
+            df_cartola.to_excel('input\\cartola_valorizada_traducida.xlsx', index=False)
 
         return df_cartola
 
