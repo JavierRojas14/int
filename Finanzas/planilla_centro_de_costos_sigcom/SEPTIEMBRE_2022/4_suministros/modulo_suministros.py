@@ -18,6 +18,14 @@ class AnalizadorSuministros:
         pass
 
     def correr_programa(self):
+        '''
+        Esta es la función principal para correr el programa. Ejecuta las siguientes funciones:
+
+        1 - Leer, Traducir y filtrar la cartola valorizada del SCI.
+        2 - Permite rellenar los artículos que NO tengan un destino asociado en el INT.
+        3 - Rellena el formato del SIGCOM.
+        4 - Guarda los archivos generados
+        '''
         df_cartola = self.leer_asociar_y_filtrar_cartola()
         df_completa = self.rellenar_destinos(df_cartola)
         formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(df_completa)
@@ -45,7 +53,7 @@ class AnalizadorSuministros:
         7 - Filtra todos los artículos que sean del tipo Farmacia (ya que estos vienen desde
         la planilla de Juan Pablo).
         '''
-        if not 'cartola_valorizada_con_cc.xlsx' in os.listdir('input'):
+        if 'cartola_valorizada_con_cc.xlsx' not in os.listdir('input'):
             df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
             df_filtrada = df_cartola.copy()
 
@@ -69,6 +77,10 @@ class AnalizadorSuministros:
         return df_filtrada
 
     def asociar_codigo_articulo_a_sigcom(self, df_cartola):
+        '''
+        Esta función permite relacionar el código de bodega con el código presupuestario
+        SIGCOM y SIGFE.
+        '''
         df_filtrada = df_cartola.copy()
         df_filtrada['Tipo_Articulo_SIGCOM'] = df_filtrada['Codigo Articulo'].apply(
             lambda x: BODEGA_SIGFE_SIGCOM[x]['Total_SIGCOM'])
@@ -79,6 +91,9 @@ class AnalizadorSuministros:
         return df_filtrada
 
     def asociar_destino_int_a_sigcom(self, df_cartola):
+        '''
+        Esta función permite asociar el destino INT con el centro de costo SIGCOM.
+        '''
         df_filtrada = df_cartola.copy()
         df_filtrada['CC SIGCOM'] = df_filtrada['Destino'].apply(
             lambda x: DESTINO_INT_CC_SIGCOM[x])
@@ -86,6 +101,10 @@ class AnalizadorSuministros:
         return df_filtrada
 
     def rellenar_destinos(self, df_cartola):
+        '''
+        Esta función permite rellenar todos los ítems que tengan algún destino que NO
+        tenga relacionado algún centro de costo SIGCOM (Ej: Hospital del Salvador, INT, otros).
+        '''
         sin_cc = df_cartola[df_cartola['CC SIGCOM'].isna()]
         a_printear = sin_cc[["Nombre", "Destino", "Tipo_Articulo_SIGFE", "Tipo_Articulo_SIGCOM"]]
 
@@ -114,21 +133,26 @@ class AnalizadorSuministros:
         return df_cartola
 
     def convertir_a_tabla_din_y_rellenar_formato(self, df_consolidada):
+        '''
+        Esta función permite convertir la cartola valorizada en una tabla al estilo wide.
+        '''
         tabla_dinamica = pd.pivot_table(df_consolidada, values='Neto Total', index='CC SIGCOM',
                                         columns='Tipo_Articulo_SIGCOM', aggfunc=np.sum)
 
-        formato = pd.read_excel(
-            'input\\Formato 4_Distribución Suministro 2022-10.xlsx')
+        formato = pd.read_excel('input\\Formato 4_Distribución Suministro 2022-10.xlsx')
         formato = formato.set_index('Centro de Costo')
 
-        for cc in tabla_dinamica.index:
+        for centro_costo in tabla_dinamica.index:
             for item_sigcom in tabla_dinamica.columns:
-                formato.loc[cc,
-                            item_sigcom] = tabla_dinamica.loc[cc, item_sigcom]
+                formato.loc[centro_costo, item_sigcom] = tabla_dinamica.loc[centro_costo,
+                                                                            item_sigcom]
 
         return formato
 
     def guardar_archivos(self, formato_relleno, df_cartola):
+        '''
+        Esta función permite guardar los archivos generados en el programa.
+        '''
         with pd.ExcelWriter('output_suministros.xlsx') as writer:
             formato_relleno.to_excel(writer, sheet_name='formato_relleno')
             df_cartola.to_excel(writer, sheet_name='cartola_con_cc_sigcom')
