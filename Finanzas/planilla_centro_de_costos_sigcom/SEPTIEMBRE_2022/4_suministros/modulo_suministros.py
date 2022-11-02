@@ -45,7 +45,7 @@ class AnalizadorSuministros:
         7 - Filtra todos los artículos que sean del tipo Farmacia (ya que estos vienen desde
         la planilla de Juan Pablo).
         '''
-        if not ('cartola_valorizada_con_cc.xlsx' in os.listdir('input')):
+        if not 'cartola_valorizada_con_cc.xlsx' in os.listdir('input'):
             df_cartola = pd.read_csv('input\\Cartola valorizada.csv')
             df_filtrada = df_cartola.copy()
 
@@ -59,6 +59,7 @@ class AnalizadorSuministros:
             df_filtrada = self.asociar_codigo_articulo_a_sigcom(df_filtrada)
             df_filtrada = self.asociar_destino_int_a_sigcom(df_filtrada)
             df_filtrada = df_filtrada.query('Tipo_Articulo_SIGFE != "Farmacia"')
+            df_filtrada = df_filtrada.sort_values(['CC SIGCOM', 'Nombre'], na_position='first')
 
             df_filtrada.to_excel('input\\cartola_valorizada_con_cc.xlsx', index=False)
 
@@ -91,20 +92,24 @@ class AnalizadorSuministros:
         print('\n- Se rellenarán los centros de costo NO ASIGNADOS asociados a cada artículo - \n')
         print(f'{a_printear.to_markdown()}')
 
-        for fila_sin_cc in sin_cc.itertuples():
+        for nombre_articulo in sin_cc['Nombre'].unique():
             while True:
-                destino = input('Qué destino crees que es? (están en constantes.py) ')
+                destino = input(f'\n{nombre_articulo}\n'
+                                f'Qué destino crees que es? (están en constantes.py): ')
 
                 if destino in DESTINO_INT_CC_SIGCOM:
-                    centro_de_costo = DESTINO_INT_CC_SIGCOM[destino]
-                    df_cartola.loc[fila_sin_cc.Index, 'Destino'] = destino
-                    df_cartola.loc[fila_sin_cc.Index, 'CC SIGCOM'] = centro_de_costo
+                    cc_sigcom = DESTINO_INT_CC_SIGCOM[destino]
+
+                    mask_articulos_mismo_nombre = sin_cc['Nombre'] == nombre_articulo
+                    a_cambiar = sin_cc[mask_articulos_mismo_nombre]
+                    df_cartola.loc[a_cambiar.index, 'Destino'] = destino
+                    df_cartola.loc[a_cambiar.index, 'CC SIGCOM'] = cc_sigcom
                     break
 
                 else:
                     print('Debes ingresar un destino válido.')
 
-        df_cartola.to_excel('input\\cartola_valorizada_con_cc.xlsx', index=False)
+            df_cartola.to_excel('input\\cartola_valorizada_con_cc.xlsx', index=False)
 
         return df_cartola
 
