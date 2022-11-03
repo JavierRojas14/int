@@ -260,24 +260,25 @@ class GeneradorPlanillaFinanzas:
         factura que esté asociada.
         '''
         oc_sigfe = pd.read_excel('crudos\\analisis_posterior_cruce\\SIGFE REPORTS\\SA_ListadoDisponibilidadCompromiso.xls', header = 5)
-        oc_pendientes = oc_sigfe.query('`Monto Disponible` > 0')
-        mask_subtitulo_22 = oc_pendientes['Concepto Presupuesto'].str[:2] == '22'
-        oc_pendientes_subt_22 = oc_pendientes[mask_subtitulo_22]
+        # oc_pendientes = oc_sigfe.query('`Monto Disponible` > 0')
+        # mask_subtitulo_22 = oc_pendientes['Concepto Presupuesto'].str[:2] == '22'
+        # oc_pendientes_subt_22 = oc_pendientes[mask_subtitulo_22]
 
-        for orden_compra in oc_pendientes_subt_22['Número Documento'].unique():
+        for orden_compra in oc_sigfe['Número Documento'].unique():
             if not(orden_compra in ['2022', '2']):
 
-                mask_oc_sigfe = (oc_pendientes_subt_22['Número Documento'] == orden_compra)
-                datos_oc = oc_pendientes_subt_22[mask_oc_sigfe]
+                mask_oc_sigfe = (oc_sigfe['Número Documento'] == orden_compra)
+                datos_oc = oc_sigfe[mask_oc_sigfe]
                 monto_disponible = datos_oc['Monto Disponible'].iloc[0]
                 numero_compromiso = datos_oc['Folio'].iloc[0]
-                
+
                 mask_oc_acepta = (df_junta['folio_oc ACEPTA'] == orden_compra)
                 facturas_asociadas = df_junta[mask_oc_acepta]
 
-                df_junta.loc[mask_oc_acepta, 'NUMERO_COMPROMISO_OC'] = numero_compromiso
-                df_junta.loc[mask_oc_acepta, 'MONTO_DISPONIBLE_OC'] = monto_disponible
-        
+                if not facturas_asociadas.empty:
+                    df_junta.loc[mask_oc_acepta, 'NUMERO_COMPROMISO_OC'] = numero_compromiso
+                    df_junta.loc[mask_oc_acepta, 'MONTO_DISPONIBLE_OC'] = monto_disponible
+
         return df_junta
 
 
