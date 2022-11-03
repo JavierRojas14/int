@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from bodega_sigfe_sigcom import BODEGA_SIGFE_SIGCOM
-from constantes import DESTINO_INT_CC_SIGCOM
+from constantes import DESTINO_INT_CC_SIGCOM, DICCIONARIO_UNIDADES_A_DESGLOSAR
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -34,6 +34,7 @@ class AnalizadorSuministros:
         df_cartola = self.leer_asociar_y_filtrar_cartola()
         df_completa = self.rellenar_destinos(df_cartola)
         formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(df_completa)
+        formato_desglosado = self.desglosar_por_produccion(formato_relleno)
 
         self.guardar_archivos(formato_relleno, df_completa)
 
@@ -191,6 +192,27 @@ class AnalizadorSuministros:
                                                                             item_sigcom]
 
         return formato
+
+    def desglosar_por_produccion(self, formato_relleno):
+        '''
+        Esta función permite hacer el desglose, con los montos respectivos, de cada uno de los
+        Centros de Costos que lo requieran. Solamente desglosa los que están en el formato.
+        '''
+        producciones = pd.ExcelFile('input\\output_producciones.xlsx')
+        for i, cc_a_desglosar in enumerate(DICCIONARIO_UNIDADES_A_DESGLOSAR):
+            if cc_a_desglosar in formato_relleno.index:
+                produccion_cc = pd.read_excel(producciones, sheet_name=i)
+                total = formato_relleno.loc[cc_a_desglosar, :]
+
+                producciones_a_imputar = producciones
+                for desglose in produccion_cc.itertuples():
+                    parcelado = total * desglose.PORCENTAJES
+                    total_cc_a_desglosar = pd.concat([total_cc_a_desglosar, parcelado], axis=1)
+                
+                print(total_cc_a_desglosar)
+
+
+        
 
     def guardar_archivos(self, formato_relleno, df_cartola):
         '''

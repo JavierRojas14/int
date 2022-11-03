@@ -18,6 +18,10 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 
 class ModuloProducciones:
+    '''
+    Esta clase permite obtener el desglose/análisis de cada una de las producciones presentes
+    en el archivo de Producciones del INT.
+    '''
     def __init__(self):
         pass
 
@@ -31,7 +35,7 @@ class ModuloProducciones:
 
     def cargar_archivo(self):
         '''
-        Esta función permite cargar el archivo de producciones, y obtener el mes que se 
+        Esta función permite cargar el archivo de producciones, y obtener el mes que se
         quiera analizar.
         '''
         nombre_archivo = [nombre for nombre in os.listdir('input') if 'Producción' in nombre][0]
