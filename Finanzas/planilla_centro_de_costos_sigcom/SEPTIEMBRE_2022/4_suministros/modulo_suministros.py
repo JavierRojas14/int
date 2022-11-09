@@ -210,6 +210,8 @@ class AnalizadorSuministros:
                     total_cc_a_desglosar = pd.concat([total_cc_a_desglosar, parcelado], axis=1)
                 
                 print(total_cc_a_desglosar)
+    
+    
 
 
         
