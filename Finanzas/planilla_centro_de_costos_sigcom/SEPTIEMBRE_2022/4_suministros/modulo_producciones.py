@@ -2,6 +2,7 @@
 Este es un archivo para hacer un resumen de las producciones por Unidad
 '''
 import os
+import sys
 
 import pandas as pd
 
@@ -42,7 +43,7 @@ class ModuloProducciones:
         nombre_archivo = os.path.join('input', nombre_archivo)
         df_producciones = pd.read_excel(nombre_archivo, header=3)
         df_producciones['EGRESOS'] = df_producciones['EGRESOS'].fillna('PLACEHOLDER')
-        mes_a_analizar = input('¿Qué mes quieres analizar? (DEBE IR EN MAYÚSCULAS): ')
+        mes_a_analizar = sys.argv[1].upper()
         df_producciones = df_producciones[['EGRESOS', mes_a_analizar]]
         return df_producciones
 
