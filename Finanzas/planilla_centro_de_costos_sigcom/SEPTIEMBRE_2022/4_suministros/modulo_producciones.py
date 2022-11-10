@@ -41,10 +41,19 @@ class ModuloProducciones:
         '''
         nombre_archivo = [nombre for nombre in os.listdir('input') if 'Producción' in nombre][0]
         nombre_archivo = os.path.join('input', nombre_archivo)
-        df_producciones = pd.read_excel(nombre_archivo, header=3)
+        df_total = pd.read_excel(nombre_archivo)
+        df_hospitalizaciones = df_total.iloc[:2, :]
+        df_producciones = df_total.iloc[2:, :]
+        df_producciones.columns = df_producciones.iloc[0]
+        df_producciones = df_producciones.drop([2])
+        df_hospitalizaciones.columns = df_producciones.columns
+
         df_producciones['EGRESOS'] = df_producciones['EGRESOS'].fillna('PLACEHOLDER')
         mes_a_analizar = sys.argv[1].upper()
         df_producciones = df_producciones[['EGRESOS', mes_a_analizar]]
+
+        print(df_producciones)
+        print(df_hospitalizaciones)
         return df_producciones
 
     def obtener_desglose_por_unidad(self, df_prod):
