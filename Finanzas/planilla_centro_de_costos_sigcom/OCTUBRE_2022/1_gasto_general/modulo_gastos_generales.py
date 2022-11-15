@@ -195,7 +195,7 @@ class ModuloGastosGeneralesSIGCOM:
               f'{suma_fondos_fijos.to_markdown()}')
 
         for codigo_sigfe in suma_fondos_fijos.index:
-            monto = suma_fondos_fijos.loc[codigo_sigfe][0]
+            monto = suma_fondos_fijos.loc[codigo_sigfe, 'Monto Vigente']
 
             mask_fondo_fijo = (estado_ej_presup['COD SIGFE'] == codigo_sigfe)
             estado_ej_presup.loc[mask_fondo_fijo, 'Descuento_fondo_fijo'] = monto
@@ -318,7 +318,7 @@ class ModuloGastosGeneralesSIGCOM:
 
         for tipo_gasto_m2 in GASTOS_METROS_CUADRADOS:
             tipo_gasto_m2 = str(tipo_gasto_m2)
-            formato_gg.loc['Tipo de Distribución', tipo_gasto_m2] = 1 
+            formato_gg.loc['Tipo de Distribución', tipo_gasto_m2] = 1
             for centro_costo_m2, monto_m2 in CC_M2_COSTOS:
                 centro_costo_m2 = str(centro_costo_m2)
                 formato_gg.loc[centro_costo_m2, tipo_gasto_m2] = monto_m2
