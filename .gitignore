@@ -137,3 +137,4 @@ dmypy.json
 prueba*
 *.json
 *.docx
+*.pbix
