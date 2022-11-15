@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 
 from bodega_sigfe_sigcom import BODEGA_SIGFE_SIGCOM
-from constantes import DESTINO_INT_CC_SIGCOM, DICCIONARIO_UNIDADES_A_DESGLOSAR
+from constantes import (DESTINO_INT_CC_SIGCOM, DICCIONARIO_UNIDADES_A_DESGLOSAR,
+                        WINSIG_SERVICIO_FARMACIA_CC_SIGCOM)
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -34,9 +35,11 @@ class AnalizadorSuministros:
         df_cartola = self.leer_asociar_y_filtrar_cartola()
         df_completa = self.rellenar_destinos(df_cartola)
         formato_relleno = self.convertir_a_tabla_din_y_rellenar_formato(df_completa)
-        formato_desglosado = self.desglosar_por_produccion(formato_relleno)
+        formato_con_medicamentos = self.rellenar_columna_medicamentos_winsig(formato_relleno)
 
-        self.guardar_archivos(formato_relleno, df_completa)
+        # formato_desglosado = self.desglosar_por_produccion(formato_relleno)
+
+        self.guardar_archivos(formato_con_medicamentos, df_completa)
 
     def leer_asociar_y_filtrar_cartola(self):
         '''
@@ -142,7 +145,7 @@ class AnalizadorSuministros:
             df_cartola.to_excel('input\\cartola_valorizada_traducida.xlsx', index=False)
 
         return df_cartola
-    
+
     # def rellenar_item_presupuestario_sigcom(self, df_cartola):
     #     '''
     #     Esta función permite rellenar todos los ítems que les falten ítems presupuestarios en
@@ -193,6 +196,56 @@ class AnalizadorSuministros:
 
         return formato
 
+    def desglosar_centro_de_costo(self, desglose, total_dinero):
+        con_dinero = desglose.copy()
+        con_dinero['TOTAL_X_PORCENTAJE'] = con_dinero['PORCENTAJES'] * total_dinero
+
+        return con_dinero
+
+    def rellenar_columna_medicamentos_winsig(self, formato_relleno):
+        df_winsig = pd.read_excel('input\\Informe Winsig Septiembre 2022.xlsx', header=7)
+        df_winsig = df_winsig.dropna(axis=1, how='all').dropna(axis=0, how='all')
+        archivo_produccion = pd.ExcelFile('input\\output_producciones.xlsx')
+
+        desglose_pabellon = pd.read_excel(archivo_produccion, sheet_name='PABELLÓN')
+        total_pabellon = df_winsig.query('SERVICIO == "B. PABELLON"')['Gasto Servicio'].iloc[0]
+        con_gastos_pabellon = self.desglosar_centro_de_costo(desglose_pabellon, total_pabellon)
+
+        desglose_policlinico = pd.read_excel(
+            archivo_produccion, sheet_name='CONSULTAS SIN MANEJO DEL DOLOR')
+        total_policlinico = df_winsig.query('SERVICIO == "POLICLÍNICO"')['Gasto Servicio'].iloc[0]
+        con_gastos_policlinico = self.desglosar_centro_de_costo(
+            desglose_policlinico, total_policlinico)
+
+        con_gastos_pabellon_para_concatenar = con_gastos_pabellon.iloc[:, [0, 1, 2, -1, 3]]
+        con_gastos_pabellon_para_concatenar.iloc[:, [1, 2, -1]] = None
+        con_gastos_pabellon_para_concatenar.columns = df_winsig.columns
+
+        con_gastos_policlinico_para_concatenar = con_gastos_policlinico.iloc[:, [0, 1, 2, -1, 3]]
+        con_gastos_policlinico_para_concatenar.iloc[:, [1, 2, -1]] = None
+        con_gastos_policlinico_para_concatenar.columns = df_winsig.columns
+
+        winsig_concatenado = df_winsig.copy()
+        winsig_mas_desglose = pd.concat([winsig_concatenado, con_gastos_pabellon_para_concatenar])
+        winsig_mas_desglose = pd.concat(
+            [winsig_mas_desglose, con_gastos_policlinico_para_concatenar])
+        servicios_a_sacar = ['B. PABELLON', 'PABELLÓN',
+                             'POLICLÍNICO', 'CONSULTAS SIN MANEJO DEL DOLOR']
+        servicios_a_dejar = ~(winsig_mas_desglose['SERVICIO'].isin(servicios_a_sacar))
+
+        winsig_final = winsig_mas_desglose[servicios_a_dejar]
+        winsig_sigcom = winsig_final.copy()
+        winsig_sigcom['CC_SIGCOM'] = winsig_sigcom['SERVICIO'].apply(
+            lambda x: WINSIG_SERVICIO_FARMACIA_CC_SIGCOM[x])
+
+        agrupado_sigcom = winsig_sigcom.groupby('CC_SIGCOM')['Gasto Servicio'].sum()
+
+        for cc, valor in agrupado_sigcom.items():
+            print(f'Imputando {cc} {valor}')
+            formato_relleno.loc[cc, '30-MEDICAMENTOS'] = valor
+
+        return formato_relleno
+
     def desglosar_por_produccion(self, formato_relleno):
         '''
         Esta función permite hacer el desglose, con los montos respectivos, de cada uno de los
@@ -208,13 +261,8 @@ class AnalizadorSuministros:
                 for desglose in produccion_cc.itertuples():
                     parcelado = total * desglose.PORCENTAJES
                     total_cc_a_desglosar = pd.concat([total_cc_a_desglosar, parcelado], axis=1)
-                
+
                 print(total_cc_a_desglosar)
-    
-    
-
-
-        
 
     def guardar_archivos(self, formato_relleno, df_cartola):
         '''

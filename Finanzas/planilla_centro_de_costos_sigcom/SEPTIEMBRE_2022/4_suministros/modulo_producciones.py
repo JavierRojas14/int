@@ -23,6 +23,7 @@ class ModuloProducciones:
     Esta clase permite obtener el desglose/análisis de cada una de las producciones presentes
     en el archivo de Producciones del INT.
     '''
+
     def __init__(self):
         pass
 
@@ -30,7 +31,7 @@ class ModuloProducciones:
         '''
         Esta funcion permite correr el programa para analizar las producciones mensuales del INT
         '''
-        df_prod = self.cargar_archivo()
+        df_prod, df_hosp = self.cargar_archivo()
         producciones_por_unidad = self.obtener_desglose_por_unidad(df_prod)
         self.guardar_archivos(producciones_por_unidad)
 
@@ -41,20 +42,21 @@ class ModuloProducciones:
         '''
         nombre_archivo = [nombre for nombre in os.listdir('input') if 'Producción' in nombre][0]
         nombre_archivo = os.path.join('input', nombre_archivo)
-        df_total = pd.read_excel(nombre_archivo)
-        df_hospitalizaciones = df_total.iloc[:2, :]
-        df_producciones = df_total.iloc[2:, :]
-        df_producciones.columns = df_producciones.iloc[0]
-        df_producciones = df_producciones.drop([2])
-        df_hospitalizaciones.columns = df_producciones.columns
+        producciones = pd.read_excel(nombre_archivo)
 
-        df_producciones['EGRESOS'] = df_producciones['EGRESOS'].fillna('PLACEHOLDER')
+        producciones = producciones.loc[:, 'SERVICIOS FINALES':'TOTAL AÑO']
+        producciones.columns = producciones.iloc[2]
+        producciones = producciones.drop(producciones.index[2]).reset_index(drop=True)
+
+        producciones['EGRESOS'] = producciones['EGRESOS'].fillna('PLACEHOLDER')
         mes_a_analizar = sys.argv[1].upper()
-        df_producciones = df_producciones[['EGRESOS', mes_a_analizar]]
+        df_producciones = df_producciones[['EGRESOS', mes_a_analizar]].reset_index()
+        df_hospitalizaciones = df_hospitalizaciones[['EGRESOS', mes_a_analizar]].reset_index()
 
         print(df_producciones)
         print(df_hospitalizaciones)
-        return df_producciones
+
+        return df_producciones, df_hospitalizaciones
 
     def obtener_desglose_por_unidad(self, df_prod):
         '''
@@ -192,6 +194,7 @@ class ModuloProducciones:
             porcentajes_hemo = (procedimientos_hemo.iloc[:, 1] /
                                 procedimientos_hemo.iloc[:, 1].sum())
 
+            print(produccion_unidad)
             tavi = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO TAVI (4 horas c/u)"')
             ebus = produccion_unidad.query('EGRESOS == "PROCEDIMIENTO EBUS"')
             valor_total_tavi = tavi.iloc[:, 1] * VALOR_TAVI_SUMINISTROS
@@ -277,13 +280,16 @@ class ModuloProducciones:
 
             return series_admin['PORCENTAJES']
 
-    def guardar_archivos(self, produccion_por_unidad):
+    def guardar_archivos(self, produccion_por_unidad, produccion_hospitalizaciones):
         '''
         Esta función guarda el desglose de las producciones!
         '''
         with pd.ExcelWriter('output_producciones.xlsx') as writer:
             for desglose_por_unidad, df_unidad in produccion_por_unidad.items():
                 df_unidad.to_excel(writer, sheet_name=f'{desglose_por_unidad[:31]}', index=False)
+
+            produccion_hospitalizaciones.to_excel(
+                writer, sheet_name=f'PORCENTAJES_HOSP', index=False)
 
 
 modulo_producciones = ModuloProducciones()

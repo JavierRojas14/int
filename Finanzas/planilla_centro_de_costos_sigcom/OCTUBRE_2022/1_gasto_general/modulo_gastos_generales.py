@@ -10,7 +10,8 @@ import numpy as np
 import pandas as pd
 import requests
 
-from constantes import (CODIGOS_CENTRO_DE_COSTO, EXCEPCIONES_SIGFE, TICKET_MERCADO_PUBLICO)
+from constantes import (CODIGOS_CENTRO_DE_COSTO, EXCEPCIONES_SIGFE, TICKET_MERCADO_PUBLICO,
+                        GASTOS_METROS_CUADRADOS, CC_M2_COSTOS)
 
 pd.set_option('display.max_colwidth', None)
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -59,7 +60,7 @@ class ModuloGastosGeneralesSIGCOM:
         están en formato str.
         '''
         print('- Cargando los archivos -')
-        estado_ej_presup = pd.read_excel('input\\SA_EstadoEjecucionPresupuestaria_SEPTIEMBRE.xls',
+        estado_ej_presup = pd.read_excel('input\\SA_EstadoEjecucionPresupuestaria_OCTUBRE.xls',
                                          header = 6)
         estado_ej_presup = estado_ej_presup[['Concepto Presupuestario', 'Devengado']]
         estado_ej_presup = estado_ej_presup.query('`Devengado` != "Devengado"')
@@ -68,7 +69,7 @@ class ModuloGastosGeneralesSIGCOM:
         estado_ej_presup['COD SIGFE'] = estado_ej_presup['Concepto Presupuestario'].str.split()\
                                                                                    .str[0]
 
-        ruta_archivo_dispo_devengo = 'input\\SA_DisponibilidadDevengoPresupuestario_SEPTIEMBRE.xls'
+        ruta_archivo_dispo_devengo = 'input\\SA_DisponibilidadDevengoPresupuestario_OCTUBRE.xls'
         disponibilidad_devengo = pd.read_excel(ruta_archivo_dispo_devengo, header = 5)
         disponibilidad_devengo = disponibilidad_devengo[['Titulo', 'Principal', 'Número Documento',\
                                                         'Concepto Presupuestario', 'Monto Vigente']]
@@ -109,7 +110,7 @@ class ModuloGastosGeneralesSIGCOM:
 
         print('- Analizando la disponbilidad de devengo y sus facturas - \n')
         filtro_metros_cuadrados = disponibilidad_devengo['COD SIGCOM'].isin( \
-                                            ['92', '93', '100', '133', '170'])
+                                            GASTOS_METROS_CUADRADOS)
 
         facturas_a_gg = disponibilidad_devengo[~filtro_metros_cuadrados]
 
@@ -313,6 +314,12 @@ class ModuloGastosGeneralesSIGCOM:
             tipo_de_gasto = str(tipo_de_gasto)
             centro_de_costo = str(centro_de_costo)
             formato_gg.loc[centro_de_costo, tipo_de_gasto] = monto
+
+        for tipo_gasto_m2 in GASTOS_METROS_CUADRADOS:
+            for centro_costo_m2, monto_m2 in CC_M2_COSTOS:
+                tipo_gasto_m2 = str(tipo_gasto_m2)
+                centro_costo_m2 = str(centro_costo_m2)
+                formato_gg.loc[centro_costo_m2, tipo_gasto_m2] = monto_m2
 
         formato_gg.index = indice_original
         formato_gg = formato_gg.reset_index()
