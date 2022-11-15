@@ -308,6 +308,7 @@ class ModuloGastosGeneralesSIGCOM:
 
         for tipo_de_gasto, monto in estado_ej_presup_agrupado.items():
             formato_gg.loc['Valor General', tipo_de_gasto] = monto
+            formato_gg.loc['Tipo de Distribución', tipo_de_gasto] = 4
 
         for indice, monto in facturas_a_gg_agrupado.items():
             tipo_de_gasto, centro_de_costo = indice
@@ -316,16 +317,25 @@ class ModuloGastosGeneralesSIGCOM:
             formato_gg.loc[centro_de_costo, tipo_de_gasto] = monto
 
         for tipo_gasto_m2 in GASTOS_METROS_CUADRADOS:
+            tipo_gasto_m2 = str(tipo_gasto_m2)
+            formato_gg.loc['Tipo de Distribución', tipo_gasto_m2] = 1 
             for centro_costo_m2, monto_m2 in CC_M2_COSTOS:
-                tipo_gasto_m2 = str(tipo_gasto_m2)
                 centro_costo_m2 = str(centro_costo_m2)
                 formato_gg.loc[centro_costo_m2, tipo_gasto_m2] = monto_m2
+
+
+        # Ahora hay que sacar las columnas que tengan "Valor General" = 0.
+        # Para esto hay que: 
+        # Iterar por las columnas, e identificar las que tengan un Valor General == 0
+        columnas_sin_costo = formato_gg.loc['Valor General'] == 0
+        formato_gg.loc[:, columnas_sin_costo] = None
 
         formato_gg.index = indice_original
         formato_gg = formato_gg.reset_index()
         formato_gg.columns = columnas_originales
 
         return formato_gg
+    
 
     def obtener_formato_gastos_generales(self):
         '''
