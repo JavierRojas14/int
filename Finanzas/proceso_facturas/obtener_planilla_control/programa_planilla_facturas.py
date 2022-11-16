@@ -46,12 +46,12 @@ class GeneradorPlanillaFinanzas:
         print('\nListo! No hubo ningún problema')
 
     def obtener_archivos_a_leer(self):
-        todos_los_archivos = {}
+        archivos_a_leer = {}
         for carpeta_base_de_datos in os.listdir('crudos'):
-            todos_los_archivos[carpeta_base_de_datos] = []
+            archivos_a_leer[carpeta_base_de_datos] = []
             for archivo in os.listdir(os.path.join('crudos', carpeta_base_de_datos)):
                 ruta_archivo = os.path.join('crudos', carpeta_base_de_datos, archivo)
-                todos_los_archivos[carpeta_base_de_datos].append(ruta_archivo)
+                archivos_a_leer[carpeta_base_de_datos].append(ruta_archivo)
 
         hoy = datetime.date.today()
         anio_actual = str(hoy.year)
@@ -62,11 +62,11 @@ class GeneradorPlanillaFinanzas:
                      '> ')
 
         if leer == '1':
-            for base_de_datos, lista_archivos in todos_los_archivos.items():
-                todos_los_archivos[base_de_datos] = [
+            for base_de_datos, lista_archivos in archivos_a_leer.items():
+                archivos_a_leer[base_de_datos] = [
                     archivo for archivo in lista_archivos if anio_actual in archivo]
 
-        return todos_los_archivos
+        return archivos_a_leer
 
     def leer_y_limpiar_dfs(self):
         '''
