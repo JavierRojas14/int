@@ -33,7 +33,10 @@ class GeneradorPlanillaFinanzas:
         - Obtener las referencias entre Notas de Créditos y Facturas.
         - Filtrar columnas innecesarias, y solo dejar las columnas necesarias
         '''
-        dfs_limpias = self.leer_y_limpiar_dfs()
+        archivos_facturas = self.obtener_archivos_facturas()
+        dfs_limpias = self.obtener_facturas_base_de_datos(archivos_facturas)
+        print(dfs_limpias)
+
         df_izquierda = self.unir_dfs(dfs_limpias)
 
         df_izquierda = self.calcular_tiempo_8_dias(df_izquierda)
@@ -45,12 +48,14 @@ class GeneradorPlanillaFinanzas:
 
         print('\nListo! No hubo ningún problema')
 
-    def obtener_archivos_a_leer(self):
+    def obtener_archivos_facturas(self):
         archivos_a_leer = {}
-        for carpeta_base_de_datos in os.listdir('crudos'):
+        for carpeta_base_de_datos in os.listdir('crudos\\base_de_datos_facturas'):
             archivos_a_leer[carpeta_base_de_datos] = []
-            for archivo in os.listdir(os.path.join('crudos', carpeta_base_de_datos)):
-                ruta_archivo = os.path.join('crudos', carpeta_base_de_datos, archivo)
+            for archivo in os.listdir(
+                    os.path.join('crudos\\base_de_datos_facturas', carpeta_base_de_datos)):
+                ruta_archivo = os.path.join(
+                    'crudos\\base_de_datos_facturas', carpeta_base_de_datos, archivo)
                 archivos_a_leer[carpeta_base_de_datos].append(ruta_archivo)
 
         hoy = datetime.date.today()
@@ -68,119 +73,139 @@ class GeneradorPlanillaFinanzas:
 
         return archivos_a_leer
 
-    def leer_y_limpiar_dfs(self):
-        '''
-        Esta función permite leer las bases de datos del SII, ACEPTA, SIGFE, TURBO, SCI y
-        el archivo de OBSERVACIONES.
-
-        Es la función más costosa.
-
-        Además, permite unificar los formatos de cada base de datos (en específico, el RUT y el
-        nombre de la columna Folio).
-        '''
-        diccionario_dfs = {}
-        for base_de_datos in os.listdir('crudos\\cruce'):
-            ruta_carpeta = os.path.join('crudos\\cruce', base_de_datos)
-            ruta_dfs = list(map(lambda x: os.path.join(ruta_carpeta, x), os.listdir(ruta_carpeta)))
-            print(f'Leo {base_de_datos}')
-
+    def obtener_facturas_base_de_datos(self, archivos_a_leer):
+        diccionario_base_de_datos = {}
+        for base_de_datos, lista_archivos in archivos_a_leer.items():
+            print(f'Leyendo {base_de_datos} - {lista_archivos}')
             if base_de_datos == 'ACEPTA':
-                dfs = list(map(pd.read_excel, ruta_dfs))
-                df_sumada = pd.concat(dfs)
-                df_sumada = df_sumada.rename(columns={'emisor': 'RUT Emisor', 'folio': 'Folio'})
-
-            elif base_de_datos == 'SCI':
-                dfs = list(map(lambda x: pd.read_csv(x, delimiter=','), ruta_dfs))
-                df_sumada = pd.concat(dfs)
-                df_sumada = df_sumada.rename(columns={'Rut Proveedor': 'RUT Emisor',
-                                                      'Numero Documento': 'Folio'})
-
-                df_sumada['Folio'] = df_sumada['Folio'].astype(str) \
-                    .str.replace('.0', '', regex=False)
-
-            elif base_de_datos == 'SIGFE':
-                dfs = list(map(lambda x: pd.read_csv(x, delimiter=',', header=10), ruta_dfs))
-                df_sumada = pd.concat(dfs)
-                df_sumada = df_sumada.dropna(subset=['Folio'])
-                df_sumada = df_sumada.query('`Cuenta Contable` != "Cuenta Contable"')
-
-                df_sumada['RUT Emisor'] = df_sumada['Principal'].str.split(' ').str[0]
-
-                df_sumada = df_sumada.rename(columns={'Folio': 'Folio_interno',
-                                                      'Número ': 'Folio'})
-                df_sumada = df_sumada.reset_index()
-
-                df_sumada['Fecha'] = pd.to_datetime(df_sumada['Fecha'], dayfirst=True)
-                df_sumada['Folio_interno'] = df_sumada['Folio_interno'].astype('Int32')
-
-                mask_debe = (df_sumada['Debe'] != "0")
-                mask_haber = (df_sumada['Haber'] != "0")
-
-                df_sumada['Folio_interno PAGO'] = df_sumada[mask_debe]['Folio_interno']
-                df_sumada['Fecha PAGO'] = df_sumada[mask_debe]['Fecha']
-
-                df_sumada['Folio_interno DEVENGO'] = df_sumada['Folio_interno'][mask_haber]
-                df_sumada['Fecha DEVENGO'] = df_sumada['Fecha'][mask_haber]
-
-            elif base_de_datos == 'SII':
-                dfs = list(map(lambda x: pd.read_csv(x, delimiter=';', index_col=False),
-                               ruta_dfs))
-
-                dfs = list(map(lambda x: x.drop(columns=['Tabacos Puros', 'Tabacos Cigarrillos',
-                                                         'Tabacos Elaborados'])
-                               if len(x.columns) == 27
-                               else x, dfs))
-
-                df_sumada = pd.concat(dfs).rename(columns={'RUT Proveedor': 'RUT Emisor'})
-                mask_negativas = (df_sumada['Tipo Doc'] == 61) | (df_sumada['Tipo Doc'] == 56)
-                columnas_negativas = ['Monto Exento', 'Monto Neto', 'Monto IVA Recuperable',
-                                      'Monto Total']
-
-                df_sumada.loc[mask_negativas, columnas_negativas] = df_sumada.loc[mask_negativas,
-                                                                                  columnas_negativas] * -1
-
-            elif base_de_datos == 'TURBO':
-                dfs = list(map(lambda x: pd.read_excel(x, header=3), ruta_dfs))
-                df_sumada = pd.concat(dfs)
-                df_sumada = df_sumada.rename(columns={'Rut': 'RUT Emisor',
-                                                      'Folio': 'Folio_interno',
-                                                      'NºDoc.': 'Folio'})
-
-                df_sumada['Folio'] = df_sumada['Folio'].astype(str) \
-                    .str.replace('.0', '', regex=False)
+                df_sumada = self.leer_acepta(lista_archivos)
 
             elif base_de_datos == 'OBSERVACIONES':
-                dfs = list(map(pd.read_excel, ruta_dfs))
-                df_sumada = pd.concat(dfs)
-                df_sumada = df_sumada[['RUT Emisor SII', 'Folio SII', 'OBSERVACION OBSERVACIONES']]
-                df_sumada = df_sumada.rename(columns={'RUT Emisor SII': 'RUT Emisor',
-                                                      'Folio SII': 'Folio',
-                                                      'OBSERVACION OBSERVACIONES': 'OBSERVACION'})
+                df_sumada = self.leer_observaciones(lista_archivos)
+
+            elif base_de_datos == 'SCI':
+                df_sumada = self.leer_sci(lista_archivos)
+
+            elif base_de_datos == 'SIGFE':
+                df_sumada = self.leer_sigfe(lista_archivos)
+
+            elif base_de_datos == 'SII':
+                df_sumada = self.leer_sii(lista_archivos)
+
+            elif base_de_datos == 'TURBO':
+                df_sumada = self.leer_turbo(lista_archivos)
 
             df_sumada['RUT Emisor'] = df_sumada['RUT Emisor'].str.replace('.', '', regex=False) \
                 .str.upper() \
                 .str.strip()
 
-            df_sumada.columns = df_sumada.columns + f' {base_de_datos}'
+            df_sumada['llave_id'] = df_sumada['RUT Emisor'].astype(
+                str) + df_sumada['Folio'].astype(str)
+            df_sumada = df_sumada.set_index('llave_id')
 
-            df_sumada['llave_id'] = df_sumada[f'RUT Emisor {base_de_datos}'].astype(str) + \
-                df_sumada[f'Folio {base_de_datos}'].astype(str)
+            df_sumada.columns = df_sumada.columns + f'_{base_de_datos}'
+            df_sumada.columns = df_sumada.columns.str.replace(' ', '_')
 
-            df_sumada.set_index('llave_id', drop=True, inplace=True)
+            diccionario_base_de_datos[base_de_datos] = df_sumada
 
-            diccionario_dfs[base_de_datos] = df_sumada
+        return diccionario_base_de_datos
 
-        df_sigfe = diccionario_dfs['SIGFE']
-        fecha_devengo_mas_antigua = df_sigfe.groupby('llave_id')['Fecha DEVENGO SIGFE'].min()
-        folio_devengo = df_sigfe.groupby('llave_id')['Folio_interno DEVENGO SIGFE'].min()
-        fecha_pago = df_sigfe.groupby('llave_id')['Fecha PAGO SIGFE'].min()
-        folio_pago = df_sigfe.groupby('llave_id')['Folio_interno PAGO SIGFE'].min()
-        juntos = pd.concat([fecha_devengo_mas_antigua, folio_devengo, fecha_pago, folio_pago],
-                           axis=1)
+    def leer_acepta(self, lista_archivos):
+        dfs = map(pd.read_excel, lista_archivos)
+        df_sumada = pd.concat(dfs)
+        df_sumada = df_sumada.rename(columns={'emisor': 'RUT Emisor', 'folio': 'Folio'})
 
-        diccionario_dfs['SIGFE'] = juntos
+        return df_sumada
 
-        return diccionario_dfs
+    def leer_observaciones(self, lista_archivos):
+        dfs = map(pd.read_excel, lista_archivos)
+        df_sumada = pd.concat(dfs)
+        df_sumada = df_sumada[['RUT Emisor SII', 'Folio SII', 'OBSERVACION OBSERVACIONES']]
+        df_sumada = df_sumada.rename(columns={'RUT Emisor SII': 'RUT Emisor',
+                                              'Folio SII': 'Folio',
+                                              'OBSERVACION OBSERVACIONES': 'OBSERVACION'})
+
+        return df_sumada
+
+    def leer_sci(self, lista_archivos):
+        dfs = map(lambda x: pd.read_csv(x, delimiter=','), lista_archivos)
+        df_sumada = pd.concat(dfs)
+        df_sumada = df_sumada.rename(columns={'Rut Proveedor': 'RUT Emisor',
+                                              'Numero Documento': 'Folio'})
+
+        df_sumada['Folio'] = df_sumada['Folio'].astype(str) \
+            .str.replace('.0', '', regex=False)
+
+        return df_sumada
+
+    def leer_sigfe(self, lista_archivos):
+        dfs = map(lambda x: pd.read_csv(x, delimiter=',', header=10), lista_archivos)
+        df_sumada = pd.concat(dfs)
+        df_sumada = df_sumada.dropna(subset=['Folio'])
+        df_sumada = df_sumada.query('`Cuenta Contable` != "Cuenta Contable"')
+
+        df_sumada['RUT Emisor'] = df_sumada['Principal'].str.split(' ').str[0]
+
+        df_sumada = df_sumada.rename(columns={'Folio': 'Folio_interno',
+                                              'Número ': 'Folio'})
+        df_sumada = df_sumada.reset_index()
+
+        df_sumada['Fecha'] = pd.to_datetime(df_sumada['Fecha'], dayfirst=True)
+        df_sumada['Folio_interno'] = df_sumada['Folio_interno'].astype('Int32')
+
+        mask_debe = (df_sumada['Debe'] != "0")
+        mask_haber = (df_sumada['Haber'] != "0")
+
+        df_sumada['Folio_interno PAGO'] = df_sumada[mask_debe]['Folio_interno']
+        df_sumada['Fecha PAGO'] = df_sumada[mask_debe]['Fecha']
+
+        df_sumada['Folio_interno DEVENGO'] = df_sumada['Folio_interno'][mask_haber]
+        df_sumada['Fecha DEVENGO'] = df_sumada['Fecha'][mask_haber]
+
+        df_sumada['RUT Emisor'] = df_sumada['RUT Emisor'].str.replace('.', '', regex=False) \
+            .str.upper() \
+            .str.strip()
+
+        fecha_devengo_mas_antigua = df_sumada.groupby(by=['RUT Emisor', 'Folio'])[
+            'Fecha DEVENGO'].min()
+        folio_devengo = df_sumada.groupby(by=['RUT Emisor', 'Folio'])['Folio_interno DEVENGO'].min()
+        fecha_pago = df_sumada.groupby(by=['RUT Emisor', 'Folio'])['Fecha PAGO'].min()
+        folio_pago = df_sumada.groupby(by=['RUT Emisor', 'Folio'])['Folio_interno PAGO'].min()
+        df_sumada = pd.concat([fecha_devengo_mas_antigua, folio_devengo, fecha_pago, folio_pago],
+                              axis=1).reset_index()
+
+        return df_sumada
+
+    def leer_sii(self, lista_archivos):
+        dfs = map(lambda x: pd.read_csv(x, delimiter=';', index_col=False),
+                  lista_archivos)
+
+        dfs = map(lambda x: x.drop(columns=['Tabacos Puros', 'Tabacos Cigarrillos',
+                                            'Tabacos Elaborados'])
+                  if len(x.columns) == 27
+                  else x, dfs)
+
+        df_sumada = pd.concat(dfs).rename(columns={'RUT Proveedor': 'RUT Emisor'})
+        mask_negativas = (df_sumada['Tipo Doc'] == 61) | (df_sumada['Tipo Doc'] == 56)
+        columnas_negativas = ['Monto Exento', 'Monto Neto', 'Monto IVA Recuperable',
+                              'Monto Total']
+
+        df_sumada.loc[mask_negativas, columnas_negativas] = df_sumada.loc[mask_negativas,
+                                                                          columnas_negativas] * -1
+
+        return df_sumada
+
+    def leer_turbo(self, lista_archivos):
+        dfs = list(map(lambda x: pd.read_excel(x, header=3), lista_archivos))
+        df_sumada = pd.concat(dfs)
+        df_sumada = df_sumada.rename(columns={'Rut': 'RUT Emisor',
+                                              'Folio': 'Folio_interno',
+                                              'NºDoc.': 'Folio'})
+
+        df_sumada['Folio'] = df_sumada['Folio'].astype(str) \
+            .str.replace('.0', '', regex=False)
+
+        return df_sumada
 
     def unir_dfs(self, diccionario_dfs_limpias):
         '''
