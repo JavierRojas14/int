@@ -33,7 +33,7 @@ class GeneradorPlanillaFinanzas:
         - Obtener las referencias entre Notas de Créditos y Facturas.
         - Filtrar columnas innecesarias, y solo dejar las columnas necesarias
         '''
-        archivos_facturas = self.obtener_archivos_facturas()
+        archivos_facturas = self.obtener_archivos('facturas')
         dfs_limpias = self.obtener_facturas_base_de_datos(archivos_facturas)
         print(dfs_limpias)
 
@@ -48,14 +48,16 @@ class GeneradorPlanillaFinanzas:
 
         print('\nListo! No hubo ningún problema')
 
-    def obtener_archivos_facturas(self):
+    def obtener_archivos(self, base_de_datos):
         archivos_a_leer = {}
-        for carpeta_base_de_datos in os.listdir('crudos\\base_de_datos_facturas'):
+        base_de_datos_a_leer = f'crudos\\base_de_datos_{base_de_datos}'
+
+        for carpeta_base_de_datos in os.listdir(base_de_datos_a_leer):
             archivos_a_leer[carpeta_base_de_datos] = []
             for archivo in os.listdir(
-                    os.path.join('crudos\\base_de_datos_facturas', carpeta_base_de_datos)):
+                    os.path.join(base_de_datos_a_leer, carpeta_base_de_datos)):
                 ruta_archivo = os.path.join(
-                    'crudos\\base_de_datos_facturas', carpeta_base_de_datos, archivo)
+                    base_de_datos_a_leer, carpeta_base_de_datos, archivo)
                 archivos_a_leer[carpeta_base_de_datos].append(ruta_archivo)
 
         hoy = datetime.date.today()
@@ -196,7 +198,7 @@ class GeneradorPlanillaFinanzas:
         return df_sumada
 
     def leer_turbo(self, lista_archivos):
-        dfs = list(map(lambda x: pd.read_excel(x, header=3), lista_archivos))
+        dfs = map(lambda x: pd.read_excel(x, header=3), lista_archivos)
         df_sumada = pd.concat(dfs)
         df_sumada = df_sumada.rename(columns={'Rut': 'RUT Emisor',
                                               'Folio': 'Folio_interno',
