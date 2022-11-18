@@ -33,23 +33,25 @@ class GeneradorPlanillaFinanzas:
         - Obtener las referencias entre Notas de Créditos y Facturas.
         - Filtrar columnas innecesarias, y solo dejar las columnas necesarias
         '''
+        start_time = time.time()
         archivos_facturas = self.obtener_archivos('facturas')
-        dfs_limpias = self.obtener_facturas_base_de_datos(archivos_facturas)
+        tablas_de_facturas = self.obtener_facturas_base_de_datos(archivos_facturas)
 
         # archivos_oc = self.obtener_archivos('oc')
         # oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
         # print(oc_limpias)
 
-        df_izquierda = self.unir_dfs(dfs_limpias)
+        facturas_unidas = self.unir_dfs(tablas_de_facturas)
 
-        df_izquierda = self.calcular_tiempo_8_dias(df_izquierda)
-        df_izquierda = self.obtener_referencias_nc(df_izquierda)
-        df_izquierda = self.asociar_saldo_de_oc(df_izquierda)
-        df_izquierda = self.obtener_columnas_necesarias(df_izquierda)
+        facturas_cumplen_tiempo = self.calcular_tiempo_8_dias(facturas_unidas)
+        facturas_con_ref_nc = self.obtener_referencias_nc(facturas_cumplen_tiempo)
+        # facturas_con_oc = self.asociar_saldo_de_oc(facturas_con_ref_nc)
+        facturas_con_columnas_necesarias = self.obtener_columnas_necesarias(facturas_con_ref_nc)
 
-        self.guardar_dfs(df_izquierda)
+        self.guardar_dfs(facturas_con_columnas_necesarias)
 
         print('\nListo! No hubo ningún problema')
+        print(f'--- {time.time() - start_time} seconds ---')
 
     def obtener_archivos(self, base_de_datos):
         archivos_a_leer = {}
@@ -388,8 +390,6 @@ class GeneradorPlanillaFinanzas:
         with pd.ExcelWriter(nombre_archivo, datetime_format='DD-MM-YYYY') as writer:
             df_columnas_utiles.to_excel(writer)
 
-
-start_time = time.time()
 programa = GeneradorPlanillaFinanzas()
 programa.correr_programa()
-print(f'--- {time.time() - start_time} seconds ---')
+
