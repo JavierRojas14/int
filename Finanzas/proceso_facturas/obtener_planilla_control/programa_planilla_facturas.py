@@ -37,16 +37,15 @@ class GeneradorPlanillaFinanzas:
         archivos_facturas = self.obtener_archivos('facturas')
         tablas_de_facturas = self.obtener_facturas_base_de_datos(archivos_facturas)
 
-        # archivos_oc = self.obtener_archivos('oc')
-        # oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
-        # print(oc_limpias)
+        archivos_oc = self.obtener_archivos('oc')
+        oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
 
         facturas_unidas = self.unir_dfs(tablas_de_facturas)
 
         facturas_cumplen_tiempo = self.calcular_tiempo_8_dias(facturas_unidas)
         facturas_con_ref_nc = self.obtener_referencias_nc(facturas_cumplen_tiempo)
-        # facturas_con_oc = self.asociar_saldo_de_oc(facturas_con_ref_nc)
-        facturas_con_columnas_necesarias = self.obtener_columnas_necesarias(facturas_con_ref_nc)
+        facturas_con_oc = self.asociar_saldo_de_oc(facturas_con_ref_nc, oc_limpias['SIGFE_REPORTS'])
+        facturas_con_columnas_necesarias = self.obtener_columnas_necesarias(facturas_con_oc)
 
         self.guardar_dfs(facturas_con_columnas_necesarias)
 
@@ -226,7 +225,10 @@ class GeneradorPlanillaFinanzas:
         return diccionario_base_de_datos
 
     def leer_sigfe_reports(self, lista_archivos):
-        pass
+        dfs = map(lambda x: pd.read_excel(x, header=5), lista_archivos)
+        df_sumada = pd.concat(dfs)
+
+        return df_sumada
 
     def unir_dfs(self, diccionario_dfs_limpias):
         '''
@@ -317,14 +319,11 @@ class GeneradorPlanillaFinanzas:
 
         return None
 
-    def asociar_saldo_de_oc(self, df_junta):
+    def asociar_saldo_de_oc(self, df_junta, oc_sigfe):
         '''
         Esta función permite agregar el saldo disponible de las ordenes de compra a cada
         factura que esté asociada.
         '''
-        oc_sigfe = pd.read_excel(
-            'crudos\\analisis_posterior_cruce\\SIGFE REPORTS\\SA_ListadoDisponibilidadCompromiso.xls',
-            header=5)
         # oc_pendientes = oc_sigfe.query('`Monto Disponible` > 0')
         # mask_subtitulo_22 = oc_pendientes['Concepto Presupuesto'].str[:2] == '22'
         # oc_pendientes_subt_22 = oc_pendientes[mask_subtitulo_22]
@@ -336,13 +335,15 @@ class GeneradorPlanillaFinanzas:
                 datos_oc = oc_sigfe[mask_oc_sigfe]
                 monto_disponible = datos_oc['Monto Disponible'].iloc[0]
                 numero_compromiso = datos_oc['Folio'].iloc[0]
+                concepto_presupuesto = datos_oc['Concepto Presupuesto'].iloc[0]
 
-                mask_oc_acepta = (df_junta['folio_oc ACEPTA'] == orden_compra)
+                mask_oc_acepta = (df_junta['folio_oc_ACEPTA'] == orden_compra)
                 facturas_asociadas = df_junta[mask_oc_acepta]
 
                 if not facturas_asociadas.empty:
-                    df_junta.loc[mask_oc_acepta, 'NUMERO_COMPROMISO_OC'] = numero_compromiso
-                    df_junta.loc[mask_oc_acepta, 'MONTO_DISPONIBLE_OC'] = monto_disponible
+                    df_junta.loc[mask_oc_acepta, 'Numero_Compromiso_OC'] = numero_compromiso
+                    df_junta.loc[mask_oc_acepta, 'Monto_Disponible_OC'] = monto_disponible
+                    df_junta.loc[mask_oc_acepta, 'Concepto_Presupuesto_OC'] = concepto_presupuesto
 
         return df_junta
 
@@ -365,14 +366,15 @@ class GeneradorPlanillaFinanzas:
             'Fecha_Recepcion_SII', 'Fecha_Reclamo_SII', 'Monto_Exento_SII', 'Monto_Neto_SII',
             'Monto_IVA_Recuperable_SII', 'Monto_Total_SII', 'publicacion_ACEPTA',
             'estado_acepta_ACEPTA', 'estado_sii_ACEPTA', 'estado_nar_ACEPTA',
-            'estado_devengo_ACEPTA', 'folio_oc_ACEPTA', 'folio_rc_ACEPTA',
+            'estado_devengo_ACEPTA', 'folio_oc_ACEPTA', 'Numero_Compromiso_OC', 'Monto_Disponible_OC',
+            'Concepto_Presupuesto_OC', 'folio_rc_ACEPTA',
             'fecha_ingreso_rc_ACEPTA', 'folio_sigfe_ACEPTA', 'tarea_actual_ACEPTA',
             'estado_cesion_ACEPTA', 'Fecha_DEVENGO_SIGFE', 'Folio_interno_DEVENGO_SIGFE',
             'Fecha_PAGO_SIGFE', 'Folio_interno_PAGO_SIGFE', 'Fecha_Recepción_SCI',
             'Registrador_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 'Ubic._TURBO', 'NºPresu_TURBO',
             'Folio_interno_TURBO', 'NºPago_TURBO', 'tiempo_diferencia_SII', 'esta_al_dia',
-            'REFERENCIAS', 'OBSERVACION_OBSERVACIONES', 'NUMERO_COMPROMISO_OC',
-            'MONTO_DISPONIBLE_OC']
+            'REFERENCIAS', 'OBSERVACION_OBSERVACIONES',
+        ]
 
         df_filtrada = df_izquierda[columnas_a_ocupar]
         df_filtrada['Tipo_Doc_SII'] = df_filtrada['Tipo_Doc_SII'].astype('category')
