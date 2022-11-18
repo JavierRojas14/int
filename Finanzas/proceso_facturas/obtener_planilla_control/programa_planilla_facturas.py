@@ -357,26 +357,28 @@ class GeneradorPlanillaFinanzas:
         - Utiliza 4 columnas de SCI
         - Utiliza 4 columnas de TURBO
         - Utiliza 4 columnas calculadas internamente.
+
+        Además, la ordena por fecha de Docto del SII
         '''
         columnas_a_ocupar = [
-            'Tipo Doc SII', 'RUT Emisor SII', 'Razon Social SII', 'Folio SII', 'Fecha Docto SII',
-            'Fecha Recepcion SII', 'Fecha Reclamo SII', 'Monto Exento SII', 'Monto Neto SII',
-            'Monto IVA Recuperable SII', 'Monto Total SII', 'publicacion ACEPTA',
-            'estado_acepta ACEPTA', 'estado_sii ACEPTA', 'estado_nar ACEPTA',
-            'estado_devengo ACEPTA', 'folio_oc ACEPTA', 'folio_rc ACEPTA',
-            'fecha_ingreso_rc ACEPTA', 'folio_sigfe ACEPTA', 'tarea_actual ACEPTA',
-            'estado_cesion ACEPTA', 'Fecha DEVENGO SIGFE', 'Folio_interno DEVENGO SIGFE',
-            'Fecha PAGO SIGFE', 'Folio_interno PAGO SIGFE', 'Fecha Recepción SCI',
-            'Registrador SCI', 'Articulo SCI', 'N° Acta SCI', 'Ubic. TURBO', 'NºPresu TURBO',
-            'Folio_interno TURBO', 'NºPago TURBO', 'tiempo_diferencia SII', 'esta_al_dia',
-            'REFERENCIAS', 'OBSERVACION OBSERVACIONES', 'NUMERO_COMPROMISO_OC',
+            'Tipo_Doc_SII', 'RUT_Emisor_SII', 'Razon_Social_SII', 'Folio_SII', 'Fecha_Docto_SII',
+            'Fecha_Recepcion_SII', 'Fecha_Reclamo_SII', 'Monto_Exento_SII', 'Monto_Neto_SII',
+            'Monto_IVA_Recuperable_SII', 'Monto_Total_SII', 'publicacion_ACEPTA',
+            'estado_acepta_ACEPTA', 'estado_sii_ACEPTA', 'estado_nar_ACEPTA',
+            'estado_devengo_ACEPTA', 'folio_oc_ACEPTA', 'folio_rc_ACEPTA',
+            'fecha_ingreso_rc_ACEPTA', 'folio_sigfe_ACEPTA', 'tarea_actual_ACEPTA',
+            'estado_cesion_ACEPTA', 'Fecha_DEVENGO_SIGFE', 'Folio_interno_DEVENGO_SIGFE',
+            'Fecha_PAGO_SIGFE', 'Folio_interno_PAGO_SIGFE', 'Fecha_Recepción_SCI',
+            'Registrador_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 'Ubic._TURBO', 'NºPresu_TURBO',
+            'Folio_interno_TURBO', 'NºPago_TURBO', 'tiempo_diferencia_SII', 'esta_al_dia',
+            'REFERENCIAS', 'OBSERVACION_OBSERVACIONES', 'NUMERO_COMPROMISO_OC',
             'MONTO_DISPONIBLE_OC']
 
-        df_util = df_izquierda[columnas_a_ocupar]
-        df_util['Tipo Doc SII'] = df_util['Tipo Doc SII'].astype('category')
-        df_util = df_util.sort_values(by=['Fecha Docto SII'])
+        df_filtrada = df_izquierda[columnas_a_ocupar]
+        df_filtrada['Tipo_Doc_SII'] = df_filtrada['Tipo_Doc_SII'].astype('category')
+        df_filtrada = df_filtrada.sort_values(by=['Fecha_Docto_SII'])
 
-        return df_util
+        return df_filtrada
 
     def guardar_dfs(self, df_columnas_utiles):
         '''
@@ -390,6 +392,6 @@ class GeneradorPlanillaFinanzas:
         with pd.ExcelWriter(nombre_archivo, datetime_format='DD-MM-YYYY') as writer:
             df_columnas_utiles.to_excel(writer)
 
+
 programa = GeneradorPlanillaFinanzas()
 programa.correr_programa()
-
