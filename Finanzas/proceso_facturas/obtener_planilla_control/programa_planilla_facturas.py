@@ -239,42 +239,37 @@ class GeneradorPlanillaFinanzas:
 
         for df_derecha in lista_dfs_secuenciales:
             df_sii = pd.merge(df_sii, df_derecha, how='left', left_index=True,
-                                    right_index=True)
+                              right_index=True)
 
         df_sii = df_sii[~df_sii.index.duplicated(keep='first')]
 
         return df_sii
 
-    def calcular_tiempo_8_dias(self, df_izquierda):
+    def calcular_tiempo_8_dias(self, df_unida):
         '''
         Esta función permite calcular la diferencia de tiempo entre el día actual, y el día en que
         se recibió la factura ("Fecha Recepción SII").
 
         Este calculo solo se realiza a las facturas que NO estén devengadas.
         '''
-        mask_no_devengadas = pd.isna(df_izquierda['Fecha DEVENGO SIGFE'])
+        mask_no_devengadas = pd.isna(df_unida['Fecha_DEVENGO_SIGFE'])
 
-        df_izquierda['Fecha Docto SII'] = pd.to_datetime(df_izquierda['Fecha Docto SII'],
+        df_unida['Fecha_Docto_SII'] = pd.to_datetime(df_unida['Fecha_Docto_SII'], dayfirst=True)
+
+        df_unida['Fecha_Recepcion_SII'] = pd.to_datetime(df_unida['Fecha_Recepcion_SII'],
                                                          dayfirst=True)
 
-        df_izquierda['Fecha Recepcion SII'] = pd.to_datetime(df_izquierda['Fecha Recepcion SII'],
-                                                             dayfirst=True)
+        df_unida['Fecha_Reclamo_SII'] = pd.to_datetime(df_unida['Fecha_Reclamo_SII'], dayfirst=True)
 
-        df_izquierda['Fecha Reclamo SII'] = pd.to_datetime(df_izquierda['Fecha Reclamo SII'],
-                                                           dayfirst=True)
+        diferencia = (pd.to_datetime(
+            'today') - df_unida[mask_no_devengadas]['Fecha_Recepcion_SII']) + pd.Timedelta(days=1)
 
-        diferencia = (pd.to_datetime('today')
-                      - df_izquierda[mask_no_devengadas]['Fecha Recepcion SII']) \
-            + pd.Timedelta(days=1)
+        df_unida['tiempo_diferencia_SII'] = diferencia
+        esta_al_dia = df_unida[mask_no_devengadas]['tiempo_diferencia_SII'] <= datetime.timedelta(8)
 
-        df_izquierda['tiempo_diferencia SII'] = diferencia
+        df_unida['esta_al_dia'] = esta_al_dia
 
-        esta_al_dia = df_izquierda[mask_no_devengadas]['tiempo_diferencia SII'] \
-            <= datetime.timedelta(8)
-
-        df_izquierda['esta_al_dia'] = esta_al_dia
-
-        return df_izquierda
+        return df_unida
 
     def obtener_ref_de_nc(self, string_json):
         '''
