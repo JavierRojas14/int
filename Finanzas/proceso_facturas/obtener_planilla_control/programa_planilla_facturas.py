@@ -35,7 +35,10 @@ class GeneradorPlanillaFinanzas:
         '''
         archivos_facturas = self.obtener_archivos('facturas')
         dfs_limpias = self.obtener_facturas_base_de_datos(archivos_facturas)
-        print(dfs_limpias)
+
+        archivos_oc = self.obtener_archivos('oc')
+        oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
+        print(oc_limpias)
 
         df_izquierda = self.unir_dfs(dfs_limpias)
 
@@ -208,6 +211,23 @@ class GeneradorPlanillaFinanzas:
             .str.replace('.0', '', regex=False)
 
         return df_sumada
+
+    def obtener_oc_base_de_datos(self, archivos_a_leer):
+        diccionario_base_de_datos = {}
+        for base_de_datos, lista_archivos in archivos_a_leer.items():
+            print(f'Leyendo {base_de_datos} - {lista_archivos}')
+            if base_de_datos == 'SIGFE_REPORTS':
+                df_sumada = self.leer_sigfe_reports(lista_archivos)
+
+
+            diccionario_base_de_datos[base_de_datos] = df_sumada
+
+        return diccionario_base_de_datos
+    
+    def leer_sigfe_reports(self, lista_archivos):
+        pass
+        
+
 
     def unir_dfs(self, diccionario_dfs_limpias):
         '''
