@@ -271,7 +271,39 @@ class GeneradorPlanillaFinanzas:
 
         return df_unida
 
-    def obtener_ref_de_nc(self, string_json):
+    def obtener_referencias_nc(self, df_izquierda):
+        '''
+        Esta función permite obtener las referencias que contienen las Notas de Crédito, y
+        agregarlas a la columna REFERENCIAS
+        '''
+        mask_notas_credito = df_izquierda['Tipo_Doc_SII'] == 61
+        notas_credito_refs = df_izquierda[mask_notas_credito]['referencias_ACEPTA']
+        referencias_nc = notas_credito_refs.apply(lambda x: self.extraer_referencia_de_nc_de_json(x)
+                                                  if isinstance(x, str) else None)
+        df_izquierda['REFERENCIAS'] = referencias_nc
+
+        nc_con_referencias = df_izquierda[df_izquierda['REFERENCIAS'].notna()]
+        llaves_nc = nc_con_referencias['RUT_Emisor_SII'] + nc_con_referencias['REFERENCIAS']
+
+        df_izquierda['LLAVES_REFERENCIAS_PARA_NC'] = llaves_nc
+
+        df_izquierda['REFERENCIAS'] = 'FE ' + df_izquierda[mask_notas_credito]['REFERENCIAS']
+
+        for referencia in df_izquierda['LLAVES_REFERENCIAS_PARA_NC'].unique():
+            if not isinstance(referencia, float):
+
+                nota_c = df_izquierda.query('LLAVES_REFERENCIAS_PARA_NC == @referencia').index[0]
+                nota_c = nota_c.split('-')[1][1:]
+                nota_c = f'NC {nota_c}'
+
+                mask_boletas_referenciadas = df_izquierda.index == referencia
+                df_izquierda.loc[mask_boletas_referenciadas, 'REFERENCIAS'] = nota_c
+
+        df_izquierda = df_izquierda.drop(columns='LLAVES_REFERENCIAS_PARA_NC')
+
+        return df_izquierda
+
+    def extraer_referencia_de_nc_de_json(self, string_json):
         '''
         Esta función permite obtener las referencias que tienen las Notas de Crédito dentro la
         base de datos ACEPTA
@@ -282,38 +314,6 @@ class GeneradorPlanillaFinanzas:
                 return documento_referencia['Folio']
 
         return None
-
-    def obtener_referencias_nc(self, df_izquierda):
-        '''
-        Esta función permite obtener las referencias que contienen las Notas de Crédito, y
-        agregarlas a la columna REFERENCIAS
-        '''
-        mask_notas_credito = df_izquierda['Tipo Doc SII'] == 61
-        notas_credito_refs = df_izquierda[mask_notas_credito]['referencias ACEPTA']
-        referencias_nc = notas_credito_refs.apply(lambda x: self.obtener_ref_de_nc(x)
-                                                  if isinstance(x, str) else None)
-        df_izquierda['REFERENCIAS'] = referencias_nc
-
-        nc_con_referencias = df_izquierda[df_izquierda['REFERENCIAS'].notna()]
-        llaves_nc = nc_con_referencias['RUT Emisor SII'] + nc_con_referencias['REFERENCIAS']
-
-        df_izquierda['LLAVES REFERENCIAS PARA NC'] = llaves_nc
-
-        df_izquierda['REFERENCIAS'] = 'FE ' + df_izquierda[mask_notas_credito]['REFERENCIAS']
-
-        for referencia in df_izquierda['LLAVES REFERENCIAS PARA NC'].unique():
-            if not isinstance(referencia, float):
-
-                nota_c = df_izquierda.query('`LLAVES REFERENCIAS PARA NC` == @referencia').index[0]
-                nota_c = nota_c.split('-')[1][1:]
-                nota_c = f'NC {nota_c}'
-
-                mask_boletas_referenciadas = df_izquierda.index == referencia
-                df_izquierda.loc[mask_boletas_referenciadas, 'REFERENCIAS'] = nota_c
-
-        df_izquierda = df_izquierda.drop(columns='LLAVES REFERENCIAS PARA NC')
-
-        return df_izquierda
 
     def asociar_saldo_de_oc(self, df_junta):
         '''
