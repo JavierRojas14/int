@@ -36,9 +36,9 @@ class GeneradorPlanillaFinanzas:
         archivos_facturas = self.obtener_archivos('facturas')
         dfs_limpias = self.obtener_facturas_base_de_datos(archivos_facturas)
 
-        archivos_oc = self.obtener_archivos('oc')
-        oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
-        print(oc_limpias)
+        # archivos_oc = self.obtener_archivos('oc')
+        # oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
+        # print(oc_limpias)
 
         df_izquierda = self.unir_dfs(dfs_limpias)
 
@@ -219,15 +219,12 @@ class GeneradorPlanillaFinanzas:
             if base_de_datos == 'SIGFE_REPORTS':
                 df_sumada = self.leer_sigfe_reports(lista_archivos)
 
-
             diccionario_base_de_datos[base_de_datos] = df_sumada
 
         return diccionario_base_de_datos
-    
+
     def leer_sigfe_reports(self, lista_archivos):
         pass
-        
-
 
     def unir_dfs(self, diccionario_dfs_limpias):
         '''
@@ -237,16 +234,16 @@ class GeneradorPlanillaFinanzas:
         - El orden en que se agregan las bases de datos es: SII -> ACEPTA -> OBSERVACIONES -> SCI
         -> SIGFE -> TURBO
         '''
+        df_sii = diccionario_dfs_limpias.pop('SII')
         lista_dfs_secuenciales = list(diccionario_dfs_limpias.values())
-        df_izquierda = lista_dfs_secuenciales.pop(4)
 
         for df_derecha in lista_dfs_secuenciales:
-            df_izquierda = pd.merge(df_izquierda, df_derecha, how='left', left_index=True,
+            df_sii = pd.merge(df_sii, df_derecha, how='left', left_index=True,
                                     right_index=True)
 
-        df_izquierda = df_izquierda[~df_izquierda.index.duplicated(keep='first')]
+        df_sii = df_sii[~df_sii.index.duplicated(keep='first')]
 
-        return df_izquierda
+        return df_sii
 
     def calcular_tiempo_8_dias(self, df_izquierda):
         '''
