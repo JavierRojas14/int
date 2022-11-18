@@ -34,10 +34,15 @@ class GeneradorPlanillaFinanzas:
         - Filtrar columnas innecesarias, y solo dejar las columnas necesarias
         '''
         start_time = time.time()
-        archivos_facturas = self.obtener_archivos('facturas')
+        leer = input('¿Quieres leer los archivos de este año o todos los años? \n'
+                     '1) Este año \n'
+                     '2) Todos los años \n'
+                     '> ')
+
+        archivos_facturas = self.obtener_archivos('facturas', leer)
         tablas_de_facturas = self.obtener_facturas_base_de_datos(archivos_facturas)
 
-        archivos_oc = self.obtener_archivos('oc')
+        archivos_oc = self.obtener_archivos('oc', leer)
         oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
 
         facturas_unidas = self.unir_dfs(tablas_de_facturas)
@@ -52,7 +57,7 @@ class GeneradorPlanillaFinanzas:
         print('\nListo! No hubo ningún problema')
         print(f'--- {time.time() - start_time} seconds ---')
 
-    def obtener_archivos(self, base_de_datos):
+    def obtener_archivos(self, base_de_datos, leer):
         archivos_a_leer = {}
         base_de_datos_a_leer = f'crudos\\base_de_datos_{base_de_datos}'
 
@@ -66,11 +71,6 @@ class GeneradorPlanillaFinanzas:
 
         hoy = datetime.date.today()
         anio_actual = str(hoy.year)
-
-        leer = input('¿Quieres leer los archivos de este año o todos los años? \n'
-                     '1) Este año \n'
-                     '2) Todos los años \n'
-                     '> ')
 
         if leer == '1':
             for base_de_datos, lista_archivos in archivos_a_leer.items():
@@ -238,6 +238,7 @@ class GeneradorPlanillaFinanzas:
         - El orden en que se agregan las bases de datos es: SII -> ACEPTA -> OBSERVACIONES -> SCI
         -> SIGFE -> TURBO
         '''
+        print('\nUniendo todas las bases de dato!')
         df_sii = diccionario_dfs_limpias.pop('SII')
         lista_dfs_secuenciales = list(diccionario_dfs_limpias.values())
 
@@ -256,6 +257,7 @@ class GeneradorPlanillaFinanzas:
 
         Este calculo solo se realiza a las facturas que NO estén devengadas.
         '''
+        print('\nCalculando los 8 días de las facturas!')
         mask_no_devengadas = pd.isna(df_unida['Fecha_DEVENGO_SIGFE'])
 
         df_unida['Fecha_Docto_SII'] = pd.to_datetime(df_unida['Fecha_Docto_SII'], dayfirst=True)
@@ -280,6 +282,7 @@ class GeneradorPlanillaFinanzas:
         Esta función permite obtener las referencias que contienen las Notas de Crédito, y
         agregarlas a la columna REFERENCIAS
         '''
+        print('\nReferenciando las Notas de Crédito...')
         mask_notas_credito = df_izquierda['Tipo_Doc_SII'] == 61
         notas_credito_refs = df_izquierda[mask_notas_credito]['referencias_ACEPTA']
         referencias_nc = notas_credito_refs.apply(lambda x: self.extraer_referencia_de_nc_de_json(x)
@@ -328,6 +331,7 @@ class GeneradorPlanillaFinanzas:
         # mask_subtitulo_22 = oc_pendientes['Concepto Presupuesto'].str[:2] == '22'
         # oc_pendientes_subt_22 = oc_pendientes[mask_subtitulo_22]
 
+        print('\nAsociando Órdenes de Compra!')
         for orden_compra in oc_sigfe['Número Documento'].unique():
             if not (orden_compra in ['2022', '2']):
 
@@ -361,6 +365,7 @@ class GeneradorPlanillaFinanzas:
 
         Además, la ordena por fecha de Docto del SII
         '''
+        print('\nFiltrando las columnas necesarias!')
         columnas_a_ocupar = [
             'Tipo_Doc_SII', 'RUT_Emisor_SII', 'Razon_Social_SII', 'Folio_SII', 'Fecha_Docto_SII',
             'Fecha_Recepcion_SII', 'Fecha_Reclamo_SII', 'Monto_Exento_SII', 'Monto_Neto_SII',
@@ -388,6 +393,7 @@ class GeneradorPlanillaFinanzas:
         - El nombre del archivo es PLANILLA DE CONTROL AL  (fecha actual)
         - Se formatea automáticamente la fecha al escribirse a formato excel.
         '''
+        print('\nGuardando la planilla...')
         fecha_actual = str(pd.to_datetime('today')).split(' ', maxsplit=1)[0]
         nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}.xlsx'
 
