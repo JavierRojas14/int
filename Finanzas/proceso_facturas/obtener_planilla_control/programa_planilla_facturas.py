@@ -392,28 +392,23 @@ class GeneradorPlanillaFinanzas:
         - Se formatea automáticamente la fecha al escribirse a formato excel.
         '''
         print('Guardando la planilla...')
-        fecha_actual = str(pd.to_datetime('today')).split(' ', maxsplit=1)[0]
         diccionario_nombres = {'1': pd.to_datetime('today').year, '2': 'historico'}
         periodo_a_guardar = diccionario_nombres[leer]
 
-        nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}_{periodo_a_guardar}.xlsx'
+        if periodo_a_guardar != 'historico':
+            self.filtrar_y_guardar_observaciones(df_columnas_utiles, periodo_a_guardar)
 
-        # with pd.ExcelWriter(nombre_archivo, datetime_format='DD-MM-YYYY') as writer:
-        #     df_columnas_utiles.to_excel(writer)
-
-        self.guardar_observaciones(df_columnas_utiles, periodo_a_guardar)
-
-    def guardar_observaciones(self, df_columnas_utiles, leer):
-        if leer != 'historico':
-            pass
-        
         else:
             for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
-                df_observaciones_año = df_columnas_utiles.query('Fecha_Docto_SII.dt.year == @año')
-                nombre_archivo = f'OBSERVACIONES {año}.csv'
-                df_observaciones_año.to_csv(
-                    f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
-                    index=False, decimal=',', encoding='latin-1')
+                self.filtrar_y_guardar_observaciones(df_columnas_utiles, año)
+
+    def filtrar_y_guardar_observaciones(self, df_columnas_utiles, periodo_a_guardar):
+        df_observaciones_año = df_columnas_utiles.query(
+            'Fecha_Docto_SII.dt.year == @periodo_a_guardar')
+        nombre_archivo = f'OBSERVACIONES {periodo_a_guardar}.csv'
+        df_observaciones_año.to_csv(
+            f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
+            index=False, decimal=',', encoding='latin-1')
 
 
 programa = GeneradorPlanillaFinanzas()
