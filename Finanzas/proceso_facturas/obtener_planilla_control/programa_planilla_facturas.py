@@ -123,12 +123,12 @@ class GeneradorPlanillaFinanzas:
         return df_sumada
 
     def leer_observaciones(self, lista_archivos):
-        dfs = map(pd.read_excel, lista_archivos)
+        dfs = map(lambda x: pd.read_csv(x, encoding='latin-1', delimiter=';'), lista_archivos)
         df_sumada = pd.concat(dfs)
-        df_sumada = df_sumada[['RUT Emisor SII', 'Folio SII', 'OBSERVACION OBSERVACIONES']]
-        df_sumada = df_sumada.rename(columns={'RUT Emisor SII': 'RUT Emisor',
-                                              'Folio SII': 'Folio',
-                                              'OBSERVACION OBSERVACIONES': 'OBSERVACION'})
+        df_sumada = df_sumada[['RUT_Emisor_SII', 'Folio_SII', 'OBSERVACION_OBSERVACIONES']]
+        df_sumada = df_sumada.rename(columns={'RUT_Emisor_SII': 'RUT Emisor',
+                                              'Folio_SII': 'Folio',
+                                              'OBSERVACION_OBSERVACIONES': 'OBSERVACION'})
 
         return df_sumada
 
@@ -394,11 +394,22 @@ class GeneradorPlanillaFinanzas:
         print('Guardando la planilla...')
         fecha_actual = str(pd.to_datetime('today')).split(' ', maxsplit=1)[0]
         diccionario_nombres = {'1': pd.to_datetime('today').year, '2': 'historico'}
+        periodo_a_guardar = diccionario_nombres[leer]
 
-        nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}_{diccionario_nombres[leer]}.xlsx'
+        nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}_{periodo_a_guardar}.xlsx'
 
-        with pd.ExcelWriter(nombre_archivo, datetime_format='DD-MM-YYYY') as writer:
-            df_columnas_utiles.to_excel(writer)
+        # with pd.ExcelWriter(nombre_archivo, datetime_format='DD-MM-YYYY') as writer:
+        #     df_columnas_utiles.to_excel(writer)
+
+        self.guardar_observaciones(df_columnas_utiles)
+
+    def guardar_observaciones(self, df_columnas_utiles):
+        for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
+            df_observaciones_año = df_columnas_utiles.query('Fecha_Docto_SII.dt.year == @año')
+            nombre_archivo = f'OBSERVACIONES {año}.csv'
+            df_observaciones_año.to_csv(
+                f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
+                index=False, decimal=',', encoding='latin-1')
 
 
 programa = GeneradorPlanillaFinanzas()
