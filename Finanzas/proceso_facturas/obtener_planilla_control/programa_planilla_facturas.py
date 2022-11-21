@@ -408,7 +408,7 @@ class GeneradorPlanillaFinanzas:
         nombre_archivo = f'OBSERVACIONES {periodo_a_guardar}.csv'
         df_observaciones_año.to_csv(
             f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
-            index=False, decimal=',', encoding='latin-1')
+            decimal=',', encoding='latin-1')
 
 
 programa = GeneradorPlanillaFinanzas()
