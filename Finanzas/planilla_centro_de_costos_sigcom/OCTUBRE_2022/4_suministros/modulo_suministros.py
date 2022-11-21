@@ -3,11 +3,14 @@ Programa para obtener el formato 4 de Suministros del SIGCOM. Unidad de Finanzas
 Javier Rojas Benítez'''
 
 import os
+import json
 
 import numpy as np
 import pandas as pd
 
-from bodega_sigfe_sigcom import BODEGA_SIGFE_SIGCOM
+with open('maestro_articulos_sigcom.json') as file:
+    MAESTRO_ARTICULOS = json.load(file)
+
 from constantes import (DESTINO_INT_CC_SIGCOM, DICCIONARIO_UNIDADES_A_DESGLOSAR,
                         WINSIG_SERVICIO_FARMACIA_CC_SIGCOM)
 
@@ -97,10 +100,10 @@ class AnalizadorSuministros:
         '''
         df_filtrada = df_cartola.copy()
         df_filtrada['Tipo_Articulo_SIGCOM'] = df_filtrada['Codigo Articulo'].apply(
-            lambda x: BODEGA_SIGFE_SIGCOM[x]['Total_SIGCOM'])
+            lambda x: MAESTRO_ARTICULOS[x]['Total_SIGCOM'])
 
         df_filtrada['Tipo_Articulo_SIGFE'] = df_filtrada['Codigo Articulo'].apply(
-            lambda x: BODEGA_SIGFE_SIGCOM[x]['Item SIGFE'])
+            lambda x: MAESTRO_ARTICULOS[x]['Item SIGFE'])
 
         return df_filtrada
 
