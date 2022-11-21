@@ -405,11 +405,8 @@ class GeneradorPlanillaFinanzas:
 
     def guardar_observaciones(self, df_columnas_utiles, leer):
         if leer != 'historico':
-            nombre_archivo = f'OBSERVACIONES {leer}.csv'
-            df_columnas_utiles.to_csv(
-                f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
-                index=False, decimal=',', encoding='latin-1')
-
+            pass
+        
         else:
             for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
                 df_observaciones_año = df_columnas_utiles.query('Fecha_Docto_SII.dt.year == @año')
