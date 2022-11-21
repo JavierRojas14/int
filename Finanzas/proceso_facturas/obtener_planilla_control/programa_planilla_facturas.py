@@ -401,15 +401,22 @@ class GeneradorPlanillaFinanzas:
         # with pd.ExcelWriter(nombre_archivo, datetime_format='DD-MM-YYYY') as writer:
         #     df_columnas_utiles.to_excel(writer)
 
-        self.guardar_observaciones(df_columnas_utiles)
+        self.guardar_observaciones(df_columnas_utiles, periodo_a_guardar)
 
-    def guardar_observaciones(self, df_columnas_utiles):
-        for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
-            df_observaciones_año = df_columnas_utiles.query('Fecha_Docto_SII.dt.year == @año')
-            nombre_archivo = f'OBSERVACIONES {año}.csv'
-            df_observaciones_año.to_csv(
+    def guardar_observaciones(self, df_columnas_utiles, leer):
+        if leer != 'historico':
+            nombre_archivo = f'OBSERVACIONES {leer}.csv'
+            df_columnas_utiles.to_csv(
                 f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
                 index=False, decimal=',', encoding='latin-1')
+
+        else:
+            for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
+                df_observaciones_año = df_columnas_utiles.query('Fecha_Docto_SII.dt.year == @año')
+                nombre_archivo = f'OBSERVACIONES {año}.csv'
+                df_observaciones_año.to_csv(
+                    f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
+                    index=False, decimal=',', encoding='latin-1')
 
 
 programa = GeneradorPlanillaFinanzas()
