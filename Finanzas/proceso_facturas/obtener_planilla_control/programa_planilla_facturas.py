@@ -8,7 +8,6 @@ import json
 import os
 
 import pandas as pd
-from pandas.core.arrays import base
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -52,10 +51,10 @@ class GeneradorPlanillaFinanzas:
         facturas_con_oc = self.asociar_saldo_de_oc(facturas_con_ref_nc, oc_limpias['SIGFE_REPORTS'])
         facturas_con_columnas_necesarias = self.obtener_columnas_necesarias(facturas_con_oc)
 
-        self.guardar_dfs(facturas_con_columnas_necesarias)
+        self.guardar_dfs(facturas_con_columnas_necesarias, leer)
 
         print('\nListo! No hubo ningún problema')
-        print(f'--- {time.time() - start_time} seconds ---')
+        print(f'--- {round(time.time() - start_time, 1)} seconds ---')
 
     def obtener_archivos(self, base_de_datos, leer):
         archivos_a_leer = {}
@@ -371,15 +370,14 @@ class GeneradorPlanillaFinanzas:
             'Fecha_Recepcion_SII', 'Fecha_Reclamo_SII', 'Monto_Exento_SII', 'Monto_Neto_SII',
             'Monto_IVA_Recuperable_SII', 'Monto_Total_SII', 'publicacion_ACEPTA',
             'estado_acepta_ACEPTA', 'estado_sii_ACEPTA', 'estado_nar_ACEPTA',
-            'estado_devengo_ACEPTA', 'folio_oc_ACEPTA', 'Numero_Compromiso_OC', 'Monto_Disponible_OC',
-            'Concepto_Presupuesto_OC', 'folio_rc_ACEPTA',
+            'estado_devengo_ACEPTA', 'folio_oc_ACEPTA', 'Numero_Compromiso_OC',
+            'Monto_Disponible_OC', 'Concepto_Presupuesto_OC', 'folio_rc_ACEPTA',
             'fecha_ingreso_rc_ACEPTA', 'folio_sigfe_ACEPTA', 'tarea_actual_ACEPTA',
             'estado_cesion_ACEPTA', 'Fecha_DEVENGO_SIGFE', 'Folio_interno_DEVENGO_SIGFE',
             'Fecha_PAGO_SIGFE', 'Folio_interno_PAGO_SIGFE', 'Fecha_Recepción_SCI',
             'Registrador_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 'Ubic._TURBO', 'NºPresu_TURBO',
             'Folio_interno_TURBO', 'NºPago_TURBO', 'tiempo_diferencia_SII', 'esta_al_dia',
-            'REFERENCIAS', 'OBSERVACION_OBSERVACIONES',
-        ]
+            'REFERENCIAS', 'OBSERVACION_OBSERVACIONES', ]
 
         df_filtrada = df_izquierda[columnas_a_ocupar]
         df_filtrada['Tipo_Doc_SII'] = df_filtrada['Tipo_Doc_SII'].astype('category')
@@ -387,7 +385,7 @@ class GeneradorPlanillaFinanzas:
 
         return df_filtrada
 
-    def guardar_dfs(self, df_columnas_utiles):
+    def guardar_dfs(self, df_columnas_utiles, leer):
         '''
         Esta función permite guardar la planilla de facturas para el control de Devengo.
         - El nombre del archivo es PLANILLA DE CONTROL AL  (fecha actual)
@@ -395,7 +393,9 @@ class GeneradorPlanillaFinanzas:
         '''
         print('Guardando la planilla...')
         fecha_actual = str(pd.to_datetime('today')).split(' ', maxsplit=1)[0]
-        nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}.xlsx'
+        diccionario_nombres = {'1': pd.to_datetime('today').year, '2': 'historico'}
+
+        nombre_archivo = f'PLANILLA DE CONTROL AL {fecha_actual}_{diccionario_nombres[leer]}.xlsx'
 
         with pd.ExcelWriter(nombre_archivo, datetime_format='DD-MM-YYYY') as writer:
             df_columnas_utiles.to_excel(writer)
