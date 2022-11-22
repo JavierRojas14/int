@@ -401,7 +401,7 @@ class GeneradorPlanillaFinanzas:
             df_historico = pd.read_csv('control_facturas_historico.csv',
                                        sep=';', encoding='latin-1')
             concatenado = pd.concat([df_historico, df_columnas_utiles])
-            concatenado = concatenado.drop_duplicates(subset='llave_id')
+            concatenado = concatenado.drop_duplicates(subset='llave_id', keep='last')
             concatenado.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
                                encoding='latin-1', index=False)
 
