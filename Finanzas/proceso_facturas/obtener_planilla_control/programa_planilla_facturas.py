@@ -282,6 +282,7 @@ class GeneradorPlanillaFinanzas:
         agregarlas a la columna REFERENCIAS
         '''
         print('Referenciando las Notas de Crédito...')
+        df_izquierda.to_csv('prueba.csv', encoding='latin-1', sep=';')
         mask_notas_credito = df_izquierda['Tipo_Doc_SII'] == 61
         notas_credito_refs = df_izquierda[mask_notas_credito]['referencias_ACEPTA']
         referencias_nc = notas_credito_refs.apply(lambda x: self.extraer_referencia_de_nc_de_json(x)
@@ -381,7 +382,8 @@ class GeneradorPlanillaFinanzas:
 
         df_filtrada = df_izquierda[columnas_a_ocupar]
         df_filtrada['Tipo_Doc_SII'] = df_filtrada['Tipo_Doc_SII'].astype('category')
-        df_filtrada = df_filtrada.sort_values(by=['Fecha_Docto_SII'])
+        df_filtrada = df_filtrada.sort_values(by=['Fecha_Docto_SII', 'tiempo_diferencia_SII'],
+                                              ascending=[True, False])
 
         return df_filtrada
 
