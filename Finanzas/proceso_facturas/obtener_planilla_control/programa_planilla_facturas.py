@@ -282,7 +282,6 @@ class GeneradorPlanillaFinanzas:
         agregarlas a la columna REFERENCIAS
         '''
         print('Referenciando las Notas de Crédito...')
-        df_izquierda.to_csv('prueba.csv', encoding='latin-1', sep=';')
         mask_notas_credito = df_izquierda['Tipo_Doc_SII'] == 61
         notas_credito_refs = df_izquierda[mask_notas_credito]['referencias_ACEPTA']
         referencias_nc = notas_credito_refs.apply(lambda x: self.extraer_referencia_de_nc_de_json(x)
@@ -401,6 +400,8 @@ class GeneradorPlanillaFinanzas:
             self.filtrar_y_guardar_observaciones(df_columnas_utiles, periodo_a_guardar)
 
         else:
+            df_columnas_utiles.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
+            encoding='latin-1')
             for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
                 self.filtrar_y_guardar_observaciones(df_columnas_utiles, año)
 
