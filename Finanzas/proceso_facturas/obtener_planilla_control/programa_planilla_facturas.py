@@ -397,11 +397,19 @@ class GeneradorPlanillaFinanzas:
         periodo_a_guardar = diccionario_nombres[leer]
 
         if periodo_a_guardar != 'historico':
+            df_columnas_utiles.to_csv(
+                'control_facturas_historico.csv', mode='a', header=False, sep=';', decimal=',',
+                encoding='latin-1')
+
+            df = pd.read_csv('control_facturas_historico.csv', sep=';', encoding='latin-1', )
+            df = df.drop_duplicates(subset='llave_id')
+            df.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
+                                      encoding='latin-1')
             self.filtrar_y_guardar_observaciones(df_columnas_utiles, periodo_a_guardar)
 
         else:
             df_columnas_utiles.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
-            encoding='latin-1')
+                                      encoding='latin-1')
             for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
                 self.filtrar_y_guardar_observaciones(df_columnas_utiles, año)
 
