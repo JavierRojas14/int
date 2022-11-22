@@ -395,21 +395,21 @@ class GeneradorPlanillaFinanzas:
         print('Guardando la planilla...')
         diccionario_nombres = {'1': pd.to_datetime('today').year, '2': 'historico'}
         periodo_a_guardar = diccionario_nombres[leer]
+        df_columnas_utiles = df_columnas_utiles.reset_index()
 
         if periodo_a_guardar != 'historico':
-            df_columnas_utiles.to_csv(
-                'control_facturas_historico.csv', mode='a', header=False, sep=';', decimal=',',
-                encoding='latin-1')
+            df_historico = pd.read_csv('control_facturas_historico.csv',
+                                       sep=';', encoding='latin-1')
+            concatenado = pd.concat([df_historico, df_columnas_utiles])
+            concatenado = concatenado.drop_duplicates(subset='llave_id')
+            concatenado.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
+                               encoding='latin-1', index=False)
 
-            df = pd.read_csv('control_facturas_historico.csv', sep=';', encoding='latin-1', )
-            df = df.drop_duplicates(subset='llave_id')
-            df.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
-                                      encoding='latin-1')
             self.filtrar_y_guardar_observaciones(df_columnas_utiles, periodo_a_guardar)
 
         else:
             df_columnas_utiles.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
-                                      encoding='latin-1')
+                                      encoding='latin-1', index=False)
             for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
                 self.filtrar_y_guardar_observaciones(df_columnas_utiles, año)
 
@@ -419,7 +419,7 @@ class GeneradorPlanillaFinanzas:
         nombre_archivo = f'OBSERVACIONES {periodo_a_guardar}.csv'
         df_observaciones_año.to_csv(
             f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
-            decimal=',', encoding='latin-1')
+            decimal=',', encoding='latin-1', index=False)
 
 
 programa = GeneradorPlanillaFinanzas()
