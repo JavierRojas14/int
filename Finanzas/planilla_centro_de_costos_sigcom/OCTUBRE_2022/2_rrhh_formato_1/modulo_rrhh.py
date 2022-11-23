@@ -7,7 +7,7 @@ import json
 
 import pandas as pd
 
-from constantes import (DICCIONARIO_CC_INT_CC_SIGCOM, CARGOS_RRHH_HONORARIOS,
+from constantes import (DICCIONARIO_CARGO_INT_CARGO_SIGCOM, CARGOS_RRHH_HONORARIOS,
                         TRADUCTOR_CC_INT_CC_SIGCOM)
 
 
@@ -31,9 +31,14 @@ class ModuloRecursosHumanosSIGCOM:
         df_leyes_juntas, honorarios = self.cargar_archivos_y_formatearlos()
         suma_leyes_honorarios = self.juntar_leyes_y_honorarios(df_leyes_juntas, honorarios)
         suma_leyes_honorarios_traducido = self.traducir_a_sigcom(suma_leyes_honorarios)
+        formato_sigcom = self.agregar_columnas_formato(
+            suma_leyes_honorarios_traducido)
 
-        self.guardar_archivos(suma_leyes_honorarios_traducido, suma_leyes_honorarios,
-                              df_leyes_juntas, honorarios)
+        self.guardar_archivos(
+            formato_sigcom=formato_sigcom,
+            suma_leyes_honorarios_traducido=suma_leyes_honorarios_traducido,
+            suma_leyes_honorarios=suma_leyes_honorarios, df_leyes_juntas=df_leyes_juntas,
+            honorarios=honorarios)
 
     def cargar_archivos_y_formatearlos(self):
         '''
@@ -258,11 +263,27 @@ class ModuloRecursosHumanosSIGCOM:
         df_traducida['Tipo Cargo SIGCOM'] = df_traducida['CARGO'].str.upper() \
                                                                  .apply(lambda x:
                                                                         CARGOS_RRHH_HONORARIOS[x])
+        df_traducida['Codigo Cargo SIGCOM'] = df_traducida['Tipo Cargo SIGCOM'].apply(
+            lambda x: DICCIONARIO_CARGO_INT_CARGO_SIGCOM[x]
+        )
 
         return df_traducida
 
-    def guardar_archivos(self, suma_leyes_honorarios_traducido, suma_leyes_honorarios,
-                         df_leyes_juntas, honorarios):
+    def agregar_columnas_formato(self, suma_leyes_honorarios_traducido):
+        df_nueva = suma_leyes_honorarios_traducido.copy()
+        df_nueva[['Bonificaciones', 'Beneficios Laborales']] = 0
+        df_nueva['Niveles Laborales'] = '00'
+        df_nueva = df_nueva[['RUT-DV', 'NOMBRE', 'TOTAL HABER', 'Codigo Cargo SIGCOM',
+                             'Niveles Laborales', 'Bonificaciones', 'Beneficios Laborales',
+                             'TIPO_CONTRATA']]
+
+        df_nueva.columns = [
+            'Rut', 'Nombre', 'Salario Base', 'Categoría de Empleado', 'Niveles Laborales',
+            'Bonificaciones', 'Beneficios laborales', 'Tipo de Contrato']
+
+        return df_nueva
+
+    def guardar_archivos(self, **kwargs):
         '''
         Esta función permite guardar 3 archivos:
 
@@ -275,12 +296,8 @@ class ModuloRecursosHumanosSIGCOM:
         - El archivo de honorarios juntas, previamente a unificar NOMBRE, CARGO y UNIDAD.
         '''
         with pd.ExcelWriter('output.xlsx') as writer:
-            suma_leyes_honorarios_traducido.to_excel(
-                writer, sheet_name='suma_leyes_honorarios_traducido', index=False)
-            suma_leyes_honorarios.to_excel(writer, sheet_name='suma_leyes_honorarios',
-                                           index=False)
-            df_leyes_juntas.to_excel(writer, sheet_name='leyes_juntas_preprocesadas')
-            honorarios.to_excel(writer, sheet_name='honorarios_preprocesados')
+            for nombre_df, df in kwargs.items():
+                df.to_excel(writer, sheet_name=nombre_df, index=False)
 
 
 modulo_rrhh_sigcom = ModuloRecursosHumanosSIGCOM()
