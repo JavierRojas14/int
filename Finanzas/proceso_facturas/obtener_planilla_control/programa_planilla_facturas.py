@@ -269,8 +269,8 @@ class GeneradorPlanillaFinanzas:
         diferencia = (pd.to_datetime(
             'today') - df_unida[mask_no_devengadas]['Fecha_Recepcion_SII']) + pd.Timedelta(days=1)
 
-        df_unida['tiempo_diferencia_SII'] = diferencia
-        esta_al_dia = df_unida[mask_no_devengadas]['tiempo_diferencia_SII'] <= datetime.timedelta(8)
+        df_unida['tiempo_diferencia_SII'] = round(diferencia / pd.Timedelta(days=1), 2)
+        esta_al_dia = df_unida[mask_no_devengadas]['tiempo_diferencia_SII'] <= 8
 
         df_unida['esta_al_dia'] = esta_al_dia
 
@@ -383,8 +383,6 @@ class GeneradorPlanillaFinanzas:
         df_filtrada['Tipo_Doc_SII'] = df_filtrada['Tipo_Doc_SII'].astype('category')
         df_filtrada = df_filtrada.sort_values(by=['Fecha_Docto_SII', 'tiempo_diferencia_SII'],
                                               ascending=[True, False])
-        df_filtrada['tiempo_diferencia_SII'] = df_filtrada['tiempo_diferencia_SII'].astype(
-            str).str.split().str[0]
 
         return df_filtrada
 
@@ -404,13 +402,13 @@ class GeneradorPlanillaFinanzas:
                                        sep=';', encoding='latin-1', low_memory=False)
             concatenado = pd.concat([df_historico, df_columnas_utiles])
             concatenado = concatenado.drop_duplicates(subset='llave_id', keep='last')
-            concatenado.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
+            concatenado.to_csv('control_facturas_historico.csv', sep=';', decimal='.',
                                encoding='latin-1', index=False)
 
             self.filtrar_y_guardar_observaciones(df_columnas_utiles, periodo_a_guardar)
 
         else:
-            df_columnas_utiles.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
+            df_columnas_utiles.to_csv('control_facturas_historico.csv', sep=';', decimal='.',
                                       encoding='latin-1', index=False)
             for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
                 self.filtrar_y_guardar_observaciones(df_columnas_utiles, año)
@@ -421,7 +419,7 @@ class GeneradorPlanillaFinanzas:
         nombre_archivo = f'OBSERVACIONES {periodo_a_guardar}.csv'
         df_observaciones_año.to_csv(
             f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
-            decimal=',', encoding='latin-1', index=False)
+            decimal='.', encoding='latin-1', index=False)
 
 
 programa = GeneradorPlanillaFinanzas()
