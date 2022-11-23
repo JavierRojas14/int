@@ -170,7 +170,7 @@ class ModuloRecursosHumanosSIGCOM:
         ley_honorario_modificada = ley_honorario.copy()
         informacion_a_consolidar_juntos = ['NOMBRE', 'CARGO', 'UNIDAD', 'TIPO_CONTRATA']
 
-        for info in informacion_a_consolidar:
+        for info in informacion_a_consolidar_juntos:
             ley_honorario_modificada = self.unificar_redundancias(ley_honorario_modificada, info)
 
         suma_ley_honorario = ley_honorario_modificada.groupby(['RUT-DV'] +
@@ -196,8 +196,9 @@ class ModuloRecursosHumanosSIGCOM:
                                                                redundancia_a_identificar)
 
         string_caract_seleccionadas = json.dumps(caract_seleccionadas, indent=1)
-        print(f'Se identificaron las siguientes redundancias:\n{df_repetidos} \n'
-              f'Se consolidaron de la siguiente forma:\n{string_caract_seleccionadas} \n')
+        print(
+            f'Se identificaron las siguientes redundancias de {redundancia_a_identificar}:\n{df_repetidos} \n'
+            f'Se consolidaron de la siguiente forma:\n{string_caract_seleccionadas} \n')
 
         return df_funcionarios_unificados
 
@@ -227,7 +228,7 @@ class ModuloRecursosHumanosSIGCOM:
 
         '''
         a_dejar = df_con_duplicados.iloc[::2]
-        if caracteristica != 'CONTRATO':
+        if caracteristica != 'TIPO_CONTRATA':
             diccionario = dict(zip(a_dejar['RUT-DV'], a_dejar[caracteristica]))
 
         else:
@@ -254,6 +255,9 @@ class ModuloRecursosHumanosSIGCOM:
         df_traducida = df_sumada.copy()
         df_traducida['CC SIGCOM'] = df_traducida['UNIDAD'].apply(lambda x:
                                                                  TRADUCTOR_CC_INT_CC_SIGCOM[x])
+        # df_traducida['Tipo Cargo SIGCOM'] = df_traducida['CARGO'].str.upper() \
+        #                                                          .apply(lambda x:
+        #                                                                 CARGOS_RRHH_HONORARIOS[x])
 
         return df_traducida
 
