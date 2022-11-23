@@ -383,6 +383,8 @@ class GeneradorPlanillaFinanzas:
         df_filtrada['Tipo_Doc_SII'] = df_filtrada['Tipo_Doc_SII'].astype('category')
         df_filtrada = df_filtrada.sort_values(by=['Fecha_Docto_SII', 'tiempo_diferencia_SII'],
                                               ascending=[True, False])
+        df_filtrada['tiempo_diferencia_SII'] = df_filtrada['tiempo_diferencia_SII'].astype(
+            str).str.split().str[0]
 
         return df_filtrada
 
