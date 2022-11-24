@@ -53,7 +53,7 @@ class ModuloProducciones:
 
         producciones['SERVICIOS FINALES'] = producciones['SERVICIOS FINALES'].fillna('PLACEHOLDER')
 
-        df_hospitalizaciones = producciones.loc[0:2, ['SERVICIOS FINALES', mes_a_analizar]]
+        df_hospitalizaciones = producciones.loc[0:1, ['SERVICIOS FINALES', mes_a_analizar]]
         df_producciones = producciones.loc[3:, ['SERVICIOS FINALES', mes_a_analizar]]
 
         return df_hospitalizaciones, df_producciones
@@ -151,23 +151,15 @@ class ModuloProducciones:
             # Aislar los procedimientos
             series_hemodinamia = produccion_unidad.copy()
             mask_procedimientos = (produccion_unidad['SERVICIOS FINALES'].str.contains(
-                'NEUMOLOGIA') | produccion_unidad['SERVICIOS FINALES'].str.contains('HEMODINAMIA'))
+                'NEUMOLOGIA') | produccion_unidad['SERVICIOS FINALES'].str.contains('HEMODINAMIA')
+                | produccion_unidad['SERVICIOS FINALES'].str.contains('ONCOLOGIA'))
 
             procedimientos_hemo = produccion_unidad[mask_procedimientos]
 
             porcentajes_hemo = (procedimientos_hemo.iloc[:, 1] /
                                 procedimientos_hemo.iloc[:, 1].sum())
 
-            print(produccion_unidad)
-            tavi = produccion_unidad.query(
-                '`SERVICIOS FINALES` == "PROCEDIMIENTO TAVI (4 horas c/u)"')
-            ebus = produccion_unidad.query('`SERVICIOS FINALES` == "PROCEDIMIENTO EBUS"')
-            valor_total_tavi = tavi.iloc[:, 1] * VALOR_TAVI_SUMINISTROS
-            valor_total_ebus = ebus.iloc[:, 1] * VALOR_EBUS_SUMINISTROS
-
             series_hemodinamia.loc[porcentajes_hemo.index, 'PORCENTAJES'] = porcentajes_hemo
-            series_hemodinamia.loc[valor_total_tavi.index, 'PORCENTAJES'] = valor_total_tavi
-            series_hemodinamia.loc[valor_total_ebus.index, 'PORCENTAJES'] = valor_total_ebus
 
             print(f'Hemodinamia se desglosó en:\n{series_hemodinamia.to_markdown()}\n')
 
@@ -175,10 +167,6 @@ class ModuloProducciones:
 
         if unidad_a_desglosar == '15026-PROCEDIMIENTOS DE CARDIOLOGÍA':
             series_cardiologia = produccion_unidad.copy()
-
-            ecmo = produccion_unidad.query(
-                '`SERVICIOS FINALES` == "PROCEDIMIENTO ECMO (1,5 horas c/u/)"')
-            valor_total_ecmo = ecmo.iloc[:, 1] * VALOR_ECMO_SUMINISTROS
 
             mask_consultas_cardio = produccion_unidad['SERVICIOS FINALES'].str.contains('CONSULTA')
             consultas_cardio = produccion_unidad[mask_consultas_cardio]
@@ -193,7 +181,6 @@ class ModuloProducciones:
                                        procedimientos_cardio.iloc[:, 1].sum()) * \
                 PORCENTAJES_A_PROCEDIMIENTOS_CARDIOLOGIA
 
-            series_cardiologia.loc[valor_total_ecmo.index, 'PORCENTAJES'] = valor_total_ecmo
             series_cardiologia.loc[porcentajes_consultas_cardio.index, 'PORCENTAJES'] = \
                 porcentajes_consultas_cardio
 
@@ -204,47 +191,25 @@ class ModuloProducciones:
 
             return series_cardiologia['PORCENTAJES']
 
-        if unidad_a_desglosar == '15038-PROCEDIMIENTO ONCOLOGÍA':
-            series_oncologia = produccion_unidad.copy()
+        if unidad_a_desglosar == 'TAVI_ECMO_EBUS':
+            series_tavi_ecmo_ebus = produccion_unidad.copy()
+            ecmo = produccion_unidad.query(
+                '`SERVICIOS FINALES` == "PROCEDIMIENTO ECMO (1,5 horas c/u/)"')
+            valor_total_ecmo = ecmo.iloc[:, 1] * VALOR_ECMO_SUMINISTROS
+            tavi = produccion_unidad.query(
+                '`SERVICIOS FINALES` == "PROCEDIMIENTO TAVI (4 horas c/u)"')
+            ebus = produccion_unidad.query('`SERVICIOS FINALES` == "PROCEDIMIENTO EBUS"')
+            valor_total_tavi = tavi.iloc[:, 1] * VALOR_TAVI_SUMINISTROS
+            valor_total_ebus = ebus.iloc[:, 1] * VALOR_EBUS_SUMINISTROS
 
-            mask_consultas_onco = produccion_unidad['SERVICIOS FINALES'].str.contains('CONSULTA')
-            consultas_onco = produccion_unidad[mask_consultas_onco]
+            series_tavi_ecmo_ebus.loc[valor_total_tavi.index, 'PORCENTAJES'] = valor_total_tavi
+            series_tavi_ecmo_ebus.loc[valor_total_ebus.index, 'PORCENTAJES'] = valor_total_ebus
+            series_tavi_ecmo_ebus.loc[valor_total_ecmo.index, 'PORCENTAJES'] = valor_total_ecmo
 
-            porcentajes_consultas_onco = (consultas_onco.iloc[:, 1] /
-                                          consultas_onco.iloc[:, 1].sum()) * \
-                PORCENTAJES_A_CONSULTAS_ONCOLOGIA
+            print(f'TAVI_ECMO_EBUS se imputaron con:\n{series_tavi_ecmo_ebus.to_markdown()}\n')
 
-            procedimientos_onco = produccion_unidad.query('`SERVICIOS FINALES` == '
-                                                          '"PROCEDIMIENTO ONCOLOGIA"')
-            porcentajes_proc_onco = (procedimientos_onco.iloc[:, 1] /
-                                     procedimientos_onco.iloc[:, 1].sum()) * \
-                PORCENTAJES_A_PROCEDIMIENTOS_ONCOLOGIA
+            return series_tavi_ecmo_ebus['PORCENTAJES']
 
-            series_oncologia.loc[porcentajes_consultas_onco.index, 'PORCENTAJES'] = \
-                porcentajes_consultas_onco
-
-            series_oncologia.loc[porcentajes_proc_onco.index, 'PORCENTAJES'] = \
-                porcentajes_proc_onco
-
-            print(f'Oncologia se desglosó en:\n{series_oncologia.to_markdown()}\n')
-
-            return series_oncologia['PORCENTAJES']
-
-        if unidad_a_desglosar == '670-ADMINISTRACIÓN':
-            series_admin = produccion_unidad.copy()
-
-            mask_consultas_admin = produccion_unidad['SERVICIOS FINALES'].str.contains('CONSULTA')
-            consultas_admin = produccion_unidad[mask_consultas_admin]
-
-            valor_total_consultas_admin = consultas_admin.iloc[:, 1] * \
-                VALOR_CONSULTAS_ADMIN_SUMINISTROS
-
-            series_admin.loc[valor_total_consultas_admin.index, 'PORCENTAJES'] = \
-                valor_total_consultas_admin
-
-            print(f'Administración se desglosó en:\n{series_admin.to_markdown()}\n')
-
-            return series_admin['PORCENTAJES']
 
     def guardar_archivos(self, produccion_por_unidad, produccion_hospitalizaciones):
         '''
