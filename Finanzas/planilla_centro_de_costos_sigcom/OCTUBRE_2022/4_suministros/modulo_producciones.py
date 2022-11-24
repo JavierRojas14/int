@@ -123,12 +123,10 @@ class ModuloProducciones:
             'PROCEDIMIENTO DE CARDIOLOGIA',
             "195-UNIDAD DE TRATAMIENTO INTENSIVO ADULTO":
             (df_prod['SERVICIOS FINALES'].str.contains('UNIDAD DE TRATAMIENTO INTENSIVO') & ~
-             (df_prod['SERVICIOS FINALES'].str.contains('(SERVICIOS FINALES)', regex=False) |
-              df_prod['SERVICIOS FINALES'].str.contains('(Traslados)', regex=False))),
+             (df_prod['SERVICIOS FINALES'].str.contains('+', regex=False))),
             "166-UNIDAD DE CUIDADOS INTENSIVOS":
             (df_prod['SERVICIOS FINALES'].str.contains('UNIDAD DE CUIDADOS INTENSIVOS') & ~
-             (df_prod['SERVICIOS FINALES'].str.contains('(SERVICIOS FINALES)', regex=False) |
-              df_prod['SERVICIOS FINALES'].str.contains('(Traslados)', regex=False))),
+             (df_prod['SERVICIOS FINALES'].str.contains('+', regex=False))),
             "15123-PROGRAMA MANEJO DEL DOLOR": df_prod['SERVICIOS FINALES'] ==
             'CONSULTA MANEJO DEL DOLOR', "15107-CONSULTA ONCOLOGÍA": df_prod['SERVICIOS FINALES'] ==
             'CONSULTA ONCOLOGIA', "15038-PROCEDIMIENTO ONCOLOGÍA": df_prod['SERVICIOS FINALES'] ==
