@@ -115242,6 +115242,56 @@
     "Gastos SIGCOM":"Insumos",
     "Total_SIGCOM":"46-VÍVERES"
     
-}
+},
+"F204600":{
+    "Descripción":"AZITROMICINA FORTE 400 MG/5 ML SOL.ORAL",
+    "Cod. SIGFE":"22.04.004.001",
+    "Cod. SIGCOM":30.0,
+    "Nº":743,
+    "Familia":"FARMACIA",
+    "Nombre Items":"Farmacia",
+    "Item en SIGCOM":"MEDICAMENTOS",
+    "Item SIGFE":"Farmacia",
+    "Gastos SIGCOM":"Insumos",
+    "Total_SIGCOM":"30-MEDICAMENTOS"
 
+},
+"D016400":{
+    "Descripción":"SULFAMETOXAZOL/TRIMETOPRIM 800MG/160MG",
+    "Cod. SIGFE":"22.04.004.001",
+    "Cod. SIGCOM":30.0,
+    "Nº":732,
+    "Familia":"FARMACIA",
+    "Nombre Items":"Farmacia",
+    "Item en SIGCOM":"MEDICAMENTOS",
+    "Item SIGFE":"Farmacia",
+    "Gastos SIGCOM":"Insumos",
+    "Total_SIGCOM":"30-MEDICAMENTOS"
+},
+"CO6900800":{
+    "Descripción":"UNIDAD SSD 1 TB",
+    "Cod. SIGFE":"22.04.009",
+    "Cod. SIGCOM":27.0,
+    "Nº":948,
+    "Familia":"INSUMOS PARA COMPUTACION E INFORMATICA",
+    "Nombre Items":"Insumos, repuestos y accesorios computacionales",
+    "Item en SIGCOM":"MATERIALES INFORMATICOS",
+    "Item SIGFE":"Insumos, Repuestos y Accesorios Computacionales",
+    "Gastos SIGCOM":"Insumos",
+    "Total_SIGCOM":"27-MATERIALES INFORMATICOS"
+
+
+},
+"K674700":{
+    "Descripción":"INSUMOS KINESIOLOGIA",
+    "Cod. SIGFE":"22.04.005.003",
+    "Cod. SIGCOM":18.0,
+    "Nº":2483,
+    "Familia":"INSUMOS",
+    "Nombre Items":"Otros Insumos clínicos",
+    "Item en SIGCOM":"MATERIAL MEDICO QUIRURGICO",
+    "Item SIGFE":"Instrumental Quirúrgico",
+    "Gastos SIGCOM":"Insumos",
+    "Total_SIGCOM":"18-MATERIAL MEDICO QUIRURGICO"
+}
 }
