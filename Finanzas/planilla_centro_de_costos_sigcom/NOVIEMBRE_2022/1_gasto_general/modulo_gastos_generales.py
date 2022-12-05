@@ -68,8 +68,8 @@ class ModuloGastosGeneralesSIGCOM:
         estado_ej_presup = estado_ej_presup.query('`Devengado` != "Devengado"')
         estado_ej_presup['Devengado'] = estado_ej_presup['Devengado'].astype(np.int64)
         estado_ej_presup['Devengado_merge'] = estado_ej_presup['Devengado'].astype(np.int64)
-        estado_ej_presup['TIPO GASTO SIGFE'] = estado_ej_presup['Concepto Presupuestario'].str.split()\
-                                                                                   .str[0]
+        estado_ej_presup['TIPO GASTO SIGFE'] = estado_ej_presup['Concepto Presupuestario'].str.split(
+        ) .str[0]
 
         ruta_archivo_dispo_devengo = 'input\\SA_DisponibilidadDevengoPresupuestario_NOVIEMBRE.xls'
         disponibilidad_devengo = pd.read_excel(ruta_archivo_dispo_devengo, header=5)
@@ -82,7 +82,7 @@ class ModuloGastosGeneralesSIGCOM:
         traductor_sigfe_sigcom = pd.read_excel('input\\relacion_sigfe_sigcom_cristian_GG.xlsx')
         traductor_sigfe_sigcom['TIPO GASTO SIGFE'] = traductor_sigfe_sigcom['TIPO GASTO SIGFE'] \
             .str.replace("'", "", regex=False)
-        traductor_sigfe_sigcom['COD SIGCOM'] = traductor_sigfe_sigcom['COD SIGCOM'] \
+        traductor_sigfe_sigcom['TIPO GASTO SIGCOM'] = traductor_sigfe_sigcom['TIPO GASTO SIGCOM'] \
             .str.replace("'", "", regex=False)
 
         estado_ej_presup = pd.merge(estado_ej_presup, traductor_sigfe_sigcom, how='inner',
@@ -96,7 +96,7 @@ class ModuloGastosGeneralesSIGCOM:
         '''
         Esta función permite desglosar el detalle de cada ítem SIGFE, y sus facturas asociadas.
 
-        - En este caso, se filtran las facturas asociadas a gastos por m2 (COD SIGCOM
+        - En este caso, se filtran las facturas asociadas a gastos por m2 (TIPO GASTO SIGCOM
         92, 93, 100, 133 y 170), ya que no es necesario analizarlas (Sin embargo, se podrían
         dejar para ver si los gastos coinciden con los de la ejecución presupuestaria
 
@@ -110,7 +110,7 @@ class ModuloGastosGeneralesSIGCOM:
         '''
 
         print('- Analizando la disponbilidad de devengo y sus facturas - \n')
-        filtro_metros_cuadrados = disponibilidad_devengo['COD SIGCOM'].isin(
+        filtro_metros_cuadrados = disponibilidad_devengo['TIPO GASTO SIGCOM'].isin(
             GASTOS_METROS_CUADRADOS)
 
         facturas_a_gg = disponibilidad_devengo[~filtro_metros_cuadrados]
@@ -135,7 +135,8 @@ class ModuloGastosGeneralesSIGCOM:
 
         for codigo_sigfe_excepcion in EXCEPCIONES_SIGFE:
             print(f'\n Analizando la excepcion: {codigo_sigfe_excepcion} \n')
-            query_excepcion = facturas_a_analizar.query('`TIPO GASTO SIGFE` == @codigo_sigfe_excepcion')
+            query_excepcion = facturas_a_analizar.query(
+                '`TIPO GASTO SIGFE` == @codigo_sigfe_excepcion')
 
             if codigo_sigfe_excepcion == '221299901601':
                 mask_a_rrhh = query_excepcion['Principal'].str.contains('BARAONA')
@@ -187,7 +188,7 @@ class ModuloGastosGeneralesSIGCOM:
 
         facturas_a_fondos_fijos = facturas_a_analizar[mask_fondos_fijos]
 
-        columnas_para_print = ["Titulo", "Principal", "TIPO GASTO SIGFE", "COD SIGCOM"]
+        columnas_para_print = ["Titulo", "Principal", "TIPO GASTO SIGFE", "TIPO GASTO SIGCOM"]
         formato_print = facturas_a_fondos_fijos[columnas_para_print].to_markdown()
         print(f'Las facturas que van a fondos fijos son: \n {formato_print}')
 
@@ -224,7 +225,7 @@ class ModuloGastosGeneralesSIGCOM:
             mask_con_oc = facturas_a_gg['oc'].str.contains('-')
             facturas_a_buscar = facturas_a_gg[mask_con_oc]
 
-            cols_a_mostrar = ['Titulo', 'Número Documento', 'COD SIGCOM', 'TIPO GASTO SIGFE']
+            cols_a_mostrar = ['Titulo', 'Número Documento', 'TIPO GASTO SIGCOM', 'TIPO GASTO SIGFE']
             print(facturas_a_buscar[cols_a_mostrar].to_markdown())
 
             facturas_a_gg['detalle_oc'] = facturas_a_buscar['oc'] \
@@ -302,9 +303,10 @@ class ModuloGastosGeneralesSIGCOM:
         '''
         print('- Rellenando la planilla formato -')
         formato_gg, indice_original, columnas_originales = self.obtener_formato_gastos_generales()
-        estado_ej_presup_agrupado = estado_ej_presup.groupby('COD SIGCOM')['Devengado_merge'].sum()
-        facturas_a_gg_agrupado = facturas_a_gg.groupby(by=['COD SIGCOM', 'centro_de_costo_asignado'])[
-            'Monto Vigente'].sum()
+        estado_ej_presup_agrupado = estado_ej_presup.groupby('TIPO GASTO SIGCOM')[
+            'Devengado_merge'].sum()
+        facturas_a_gg_agrupado = facturas_a_gg.groupby(
+            by=['TIPO GASTO SIGCOM', 'centro_de_costo_asignado'])['Monto Vigente'].sum()
 
         for tipo_de_gasto, monto in estado_ej_presup_agrupado.items():
             formato_gg.loc['Valor General', tipo_de_gasto] = monto
