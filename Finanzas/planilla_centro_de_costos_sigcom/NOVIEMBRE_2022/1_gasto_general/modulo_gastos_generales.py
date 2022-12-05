@@ -231,7 +231,7 @@ class ModuloGastosGeneralesSIGCOM:
             facturas_a_gg['detalle_oc'] = facturas_a_buscar['oc'] \
                 .apply(self.funcion_obtener_requests_mercado_publico)
 
-            facturas_a_gg['centro_de_costo_asignado'] = None
+            facturas_a_gg['CC SIGCOM'] = None
 
             facturas_a_gg.to_excel('input\\facturas_gg_con_detalle_de_oc.xlsx', index=False)
 
@@ -264,7 +264,7 @@ class ModuloGastosGeneralesSIGCOM:
         En este caso, va printeando el detalle de cada factura.
         '''
         print('\n- Se rellenarán los centros de costo NO ASIGNADOS asociados a cada factura - \n')
-        mask_no_rellenadas = facturas_a_gg['centro_de_costo_asignado'].isna()
+        mask_no_rellenadas = facturas_a_gg['CC SIGCOM'].isna()
         facturas_no_rellenadas = facturas_a_gg[mask_no_rellenadas]
 
         for factura in facturas_no_rellenadas.itertuples():
@@ -288,7 +288,7 @@ class ModuloGastosGeneralesSIGCOM:
                 else:
                     print('Debes ingresar un código válido.')
 
-            facturas_a_gg.loc[factura.Index, 'centro_de_costo_asignado'] = centro_de_costo
+            facturas_a_gg.loc[factura.Index, 'CC SIGCOM'] = centro_de_costo
             print('------------------------------------------------')
             print('------------------------------------------------\n\n')
 
@@ -306,7 +306,7 @@ class ModuloGastosGeneralesSIGCOM:
         estado_ej_presup_agrupado = estado_ej_presup.groupby('TIPO GASTO SIGCOM')[
             'Devengado_merge'].sum()
         facturas_a_gg_agrupado = facturas_a_gg.groupby(
-            by=['TIPO GASTO SIGCOM', 'centro_de_costo_asignado'])['Monto Vigente'].sum()
+            by=['TIPO GASTO SIGCOM', 'CC SIGCOM'])['Monto Vigente'].sum()
 
         for tipo_de_gasto, monto in estado_ej_presup_agrupado.items():
             formato_gg.loc['Valor General', tipo_de_gasto] = monto
@@ -348,8 +348,8 @@ class ModuloGastosGeneralesSIGCOM:
 
         formato_sigcom_gg['Unnamed: 0'] = formato_sigcom_gg['Unnamed: 0'].str.split('-').str[0]
         formato_sigcom_gg = formato_sigcom_gg.rename(columns={'Unnamed: 0':
-                                                              'centro_de_costo_asignado'})
-        formato_sigcom_gg = formato_sigcom_gg.set_index('centro_de_costo_asignado')
+                                                              'CC SIGCOM'})
+        formato_sigcom_gg = formato_sigcom_gg.set_index('CC SIGCOM')
 
         formato_sigcom_gg.columns = formato_sigcom_gg.columns.str.split('-').str[0]
 
