@@ -62,7 +62,7 @@ class GeneradorPlanillaFinanzas:
         facturas_con_columnas_necesarias = self.obtener_columnas_necesarias(
             facturas_con_maestro_articulos)
 
-        self.guardar_dfs(facturas_con_maestro_articulos, leer)
+        self.guardar_dfs(facturas_con_columnas_necesarias, leer)
 
         print('\nListo! No hubo ningún problema')
         print(f'--- {round(time.time() - start_time, 1)} seconds ---')
@@ -398,6 +398,7 @@ class GeneradorPlanillaFinanzas:
         return df_junta
 
     def asociar_maestro_articulos(self, df_junta, dict_maestro_articulos):
+        print('Asociando con el Maestro Articulos')
         df_maestro_art = dict_maestro_articulos['MAESTRO_ARTICULOS']
         df_maestro_art.columns = df_maestro_art.columns + '_MAESTRO_ARTICULOS'
         facturas_con_maestro_articulos = pd.merge(df_junta, df_maestro_art, how='inner', 
@@ -432,7 +433,7 @@ class GeneradorPlanillaFinanzas:
             'estado_cesion_ACEPTA', 'Fecha_DEVENGO_SIGFE', 'Folio_interno_DEVENGO_SIGFE',
             'Fecha_PAGO_SIGFE', 'Folio_interno_PAGO_SIGFE', 'Fecha_Recepción_SCI',
             'Registrador_SCI', 'Codigo_Articulo_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 
-            'Código_MAESTRO_ARTICULOS', 'Familia_MAESTRO_ARTICULOS', 'Items_MAESTRO_ARTICULOS', 
+            'Familia_MAESTRO_ARTICULOS', 'Items_MAESTRO_ARTICULOS', 
             'Nombre Items_MAESTRO_ARTICULOS',
             'Ubic._TURBO', 'NºPresu_TURBO',
             'Folio_interno_TURBO', 'NºPago_TURBO', 'tiempo_diferencia_SII', 'esta_al_dia',
@@ -456,7 +457,7 @@ class GeneradorPlanillaFinanzas:
         diccionario_nombres = {'1': pd.to_datetime(
             'today').year, '2': 'historico'}
         periodo_a_guardar = diccionario_nombres[leer]
-        df_columnas_utiles = df_columnas_utiles.reset_index()
+        df_columnas_utiles = df_columnas_utiles.reset_index(drop=True)
 
         if periodo_a_guardar != 'historico':
             df_historico = pd.read_csv('control_facturas_historico.csv',
