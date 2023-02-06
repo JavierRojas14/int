@@ -45,8 +45,10 @@ class GeneradorPlanillaFinanzas:
         archivos_oc = self.obtener_archivos('oc', leer)
         oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
 
-        archivo_maestro_articulo = self.obtener_archivos('maestro_articulo', leer)
-        maestro_articulo = self.obtener_maestro_articulo(archivo_maestro_articulo)
+        archivo_maestro_articulo = self.obtener_archivos(
+            'maestro_articulo', leer)
+        maestro_articulo = self.obtener_maestro_articulo(
+            archivo_maestro_articulo)
 
         facturas_unidas = self.unir_dfs(tablas_de_facturas)
 
@@ -55,11 +57,12 @@ class GeneradorPlanillaFinanzas:
             facturas_cumplen_tiempo)
         facturas_con_oc = self.asociar_saldo_de_oc(
             facturas_con_ref_nc, oc_limpias['SIGFE_REPORTS'])
-        facturas_con_maestro_articulos = self.asociar_maestro_articulos(facturas_con_oc, maestro_articulo)
+        facturas_con_maestro_articulos = self.asociar_maestro_articulos(
+            facturas_con_oc, maestro_articulo)
         facturas_con_columnas_necesarias = self.obtener_columnas_necesarias(
-            facturas_con_oc)
+            facturas_con_maestro_articulos)
 
-        self.guardar_dfs(facturas_con_columnas_necesarias, leer)
+        self.guardar_dfs(facturas_con_maestro_articulos, leer)
 
         print('\nListo! No hubo ningún problema')
         print(f'--- {round(time.time() - start_time, 1)} seconds ---')
@@ -245,7 +248,7 @@ class GeneradorPlanillaFinanzas:
         df_sumada = pd.concat(dfs)
 
         return df_sumada
-    
+
     def obtener_maestro_articulo(self, archivos_a_leer):
         diccionario_base_de_datos = {}
         for base_de_datos, lista_archivos in archivos_a_leer.items():
@@ -256,14 +259,12 @@ class GeneradorPlanillaFinanzas:
             diccionario_base_de_datos[base_de_datos] = df_sumada
 
         return diccionario_base_de_datos
-    
+
     def leer_maestro_articulo(self, lista_archivos):
         dfs = map(lambda x: pd.read_excel(x, header=3), lista_archivos)
         df_sumada = pd.concat(dfs)
 
         return df_sumada
-
-
 
     def unir_dfs(self, diccionario_dfs_limpias):
         '''
@@ -396,9 +397,14 @@ class GeneradorPlanillaFinanzas:
 
         return df_junta
 
-    def asociar_maestro_articulos(self, df_junta):
-        pass
+    def asociar_maestro_articulos(self, df_junta, dict_maestro_articulos):
+        df_maestro_art = dict_maestro_articulos['MAESTRO_ARTICULOS']
+        df_maestro_art.columns = df_maestro_art.columns + '_MAESTRO_ARTICULOS'
+        facturas_con_maestro_articulos = pd.merge(df_junta, df_maestro_art, how='inner', 
+        left_on='Codigo_Articulo_SCI', right_on='Código_MAESTRO_ARTICULOS')
 
+        return facturas_con_maestro_articulos
+    
 
     def obtener_columnas_necesarias(self, df_izquierda):
         '''
@@ -425,7 +431,10 @@ class GeneradorPlanillaFinanzas:
             'fecha_ingreso_rc_ACEPTA', 'folio_sigfe_ACEPTA', 'tarea_actual_ACEPTA',
             'estado_cesion_ACEPTA', 'Fecha_DEVENGO_SIGFE', 'Folio_interno_DEVENGO_SIGFE',
             'Fecha_PAGO_SIGFE', 'Folio_interno_PAGO_SIGFE', 'Fecha_Recepción_SCI',
-            'Registrador_SCI', 'Codigo_Articulo_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 'Ubic._TURBO', 'NºPresu_TURBO',
+            'Registrador_SCI', 'Codigo_Articulo_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 
+            'Código_MAESTRO_ARTICULOS', 'Familia_MAESTRO_ARTICULOS', 'Items_MAESTRO_ARTICULOS', 
+            'Nombre Items_MAESTRO_ARTICULOS',
+            'Ubic._TURBO', 'NºPresu_TURBO',
             'Folio_interno_TURBO', 'NºPago_TURBO', 'tiempo_diferencia_SII', 'esta_al_dia',
             'REFERENCIAS', 'OBSERVACION_OBSERVACIONES', ]
 
