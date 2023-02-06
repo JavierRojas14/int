@@ -399,10 +399,16 @@ class GeneradorPlanillaFinanzas:
 
     def asociar_maestro_articulos(self, df_junta, dict_maestro_articulos):
         print('Asociando con el Maestro Articulos')
+        tmp = df_junta.copy()
+        tmp = tmp.reset_index()
+    
         df_maestro_art = dict_maestro_articulos['MAESTRO_ARTICULOS']
         df_maestro_art.columns = df_maestro_art.columns + '_MAESTRO_ARTICULOS'
-        facturas_con_maestro_articulos = pd.merge(df_junta, df_maestro_art, how='inner', 
+    
+        facturas_con_maestro_articulos = pd.merge(tmp, df_maestro_art, how='inner', 
         left_on='Codigo_Articulo_SCI', right_on='Código_MAESTRO_ARTICULOS')
+
+        facturas_con_maestro_articulos = facturas_con_maestro_articulos.reset_index(drop=True)
 
         return facturas_con_maestro_articulos
     
@@ -422,7 +428,7 @@ class GeneradorPlanillaFinanzas:
         Además, la ordena por fecha de Docto del SII
         '''
         print('Filtrando las columnas necesarias!')
-        columnas_a_ocupar = [
+        columnas_a_ocupar = ['llave_id',
             'Tipo_Doc_SII', 'RUT_Emisor_SII', 'Razon_Social_SII', 'Folio_SII', 'Fecha_Docto_SII',
             'Fecha_Recepcion_SII', 'Fecha_Reclamo_SII', 'Monto_Exento_SII', 'Monto_Neto_SII',
             'Monto_IVA_Recuperable_SII', 'Monto_Total_SII', 'publicacion_ACEPTA',
@@ -457,7 +463,6 @@ class GeneradorPlanillaFinanzas:
         diccionario_nombres = {'1': pd.to_datetime(
             'today').year, '2': 'historico'}
         periodo_a_guardar = diccionario_nombres[leer]
-        df_columnas_utiles = df_columnas_utiles.reset_index(drop=True)
 
         if periodo_a_guardar != 'historico':
             df_historico = pd.read_csv('control_facturas_historico.csv',
