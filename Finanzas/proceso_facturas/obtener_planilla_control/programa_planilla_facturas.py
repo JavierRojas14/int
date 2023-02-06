@@ -39,17 +39,25 @@ class GeneradorPlanillaFinanzas:
                      '> ')
 
         archivos_facturas = self.obtener_archivos('facturas', leer)
-        tablas_de_facturas = self.obtener_facturas_base_de_datos(archivos_facturas)
+        tablas_de_facturas = self.obtener_facturas_base_de_datos(
+            archivos_facturas)
 
         archivos_oc = self.obtener_archivos('oc', leer)
         oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
 
+        archivo_maestro_articulo = self.obtener_archivos('maestro_articulo', leer)
+        maestro_articulo = self.obtener_maestro_articulo(archivo_maestro_articulo)
+
         facturas_unidas = self.unir_dfs(tablas_de_facturas)
 
         facturas_cumplen_tiempo = self.calcular_tiempo_8_dias(facturas_unidas)
-        facturas_con_ref_nc = self.obtener_referencias_nc(facturas_cumplen_tiempo)
-        facturas_con_oc = self.asociar_saldo_de_oc(facturas_con_ref_nc, oc_limpias['SIGFE_REPORTS'])
-        facturas_con_columnas_necesarias = self.obtener_columnas_necesarias(facturas_con_oc)
+        facturas_con_ref_nc = self.obtener_referencias_nc(
+            facturas_cumplen_tiempo)
+        facturas_con_oc = self.asociar_saldo_de_oc(
+            facturas_con_ref_nc, oc_limpias['SIGFE_REPORTS'])
+        facturas_con_maestro_articulos = self.asociar_maestro_articulos(facturas_con_oc, maestro_articulo)
+        facturas_con_columnas_necesarias = self.obtener_columnas_necesarias(
+            facturas_con_oc)
 
         self.guardar_dfs(facturas_con_columnas_necesarias, leer)
 
@@ -118,14 +126,17 @@ class GeneradorPlanillaFinanzas:
     def leer_acepta(self, lista_archivos):
         dfs = map(pd.read_excel, lista_archivos)
         df_sumada = pd.concat(dfs)
-        df_sumada = df_sumada.rename(columns={'emisor': 'RUT Emisor', 'folio': 'Folio'})
+        df_sumada = df_sumada.rename(
+            columns={'emisor': 'RUT Emisor', 'folio': 'Folio'})
 
         return df_sumada
 
     def leer_observaciones(self, lista_archivos):
-        dfs = map(lambda x: pd.read_csv(x, encoding='latin-1', delimiter=';'), lista_archivos)
+        dfs = map(lambda x: pd.read_csv(
+            x, encoding='latin-1', delimiter=';'), lista_archivos)
         df_sumada = pd.concat(dfs)
-        df_sumada = df_sumada[['RUT_Emisor_SII', 'Folio_SII', 'OBSERVACION_OBSERVACIONES']]
+        df_sumada = df_sumada[['RUT_Emisor_SII',
+                               'Folio_SII', 'OBSERVACION_OBSERVACIONES']]
         df_sumada = df_sumada.rename(columns={'RUT_Emisor_SII': 'RUT Emisor',
                                               'Folio_SII': 'Folio',
                                               'OBSERVACION_OBSERVACIONES': 'OBSERVACION'})
@@ -144,7 +155,8 @@ class GeneradorPlanillaFinanzas:
         return df_sumada
 
     def leer_sigfe(self, lista_archivos):
-        dfs = map(lambda x: pd.read_csv(x, delimiter=',', header=10), lista_archivos)
+        dfs = map(lambda x: pd.read_csv(
+            x, delimiter=',', header=10), lista_archivos)
         df_sumada = pd.concat(dfs)
         df_sumada = df_sumada.dropna(subset=['Folio'])
         df_sumada = df_sumada.query('`Cuenta Contable` != "Cuenta Contable"')
@@ -173,9 +185,12 @@ class GeneradorPlanillaFinanzas:
 
         fecha_devengo_mas_antigua = df_sumada.groupby(by=['RUT Emisor', 'Folio'])[
             'Fecha DEVENGO'].min()
-        folio_devengo = df_sumada.groupby(by=['RUT Emisor', 'Folio'])['Folio_interno DEVENGO'].min()
-        fecha_pago = df_sumada.groupby(by=['RUT Emisor', 'Folio'])['Fecha PAGO'].min()
-        folio_pago = df_sumada.groupby(by=['RUT Emisor', 'Folio'])['Folio_interno PAGO'].min()
+        folio_devengo = df_sumada.groupby(by=['RUT Emisor', 'Folio'])[
+            'Folio_interno DEVENGO'].min()
+        fecha_pago = df_sumada.groupby(by=['RUT Emisor', 'Folio'])[
+            'Fecha PAGO'].min()
+        folio_pago = df_sumada.groupby(by=['RUT Emisor', 'Folio'])[
+            'Folio_interno PAGO'].min()
         df_sumada = pd.concat([fecha_devengo_mas_antigua, folio_devengo, fecha_pago, folio_pago],
                               axis=1).reset_index()
 
@@ -190,8 +205,10 @@ class GeneradorPlanillaFinanzas:
                   if len(x.columns) == 27
                   else x, dfs)
 
-        df_sumada = pd.concat(dfs).rename(columns={'RUT Proveedor': 'RUT Emisor'})
-        mask_negativas = (df_sumada['Tipo Doc'] == 61) | (df_sumada['Tipo Doc'] == 56)
+        df_sumada = pd.concat(dfs).rename(
+            columns={'RUT Proveedor': 'RUT Emisor'})
+        mask_negativas = (df_sumada['Tipo Doc'] == 61) | (
+            df_sumada['Tipo Doc'] == 56)
         columnas_negativas = ['Monto Exento', 'Monto Neto', 'Monto IVA Recuperable',
                               'Monto Total']
 
@@ -228,6 +245,25 @@ class GeneradorPlanillaFinanzas:
         df_sumada = pd.concat(dfs)
 
         return df_sumada
+    
+    def obtener_maestro_articulo(self, archivos_a_leer):
+        diccionario_base_de_datos = {}
+        for base_de_datos, lista_archivos in archivos_a_leer.items():
+            print(f'Leyendo {base_de_datos}')
+            if base_de_datos == 'MAESTRO_ARTICULOS':
+                df_sumada = self.leer_maestro_articulo(lista_archivos)
+
+            diccionario_base_de_datos[base_de_datos] = df_sumada
+
+        return diccionario_base_de_datos
+    
+    def leer_maestro_articulo(self, lista_archivos):
+        dfs = map(lambda x: pd.read_excel(x, header=3), lista_archivos)
+        df_sumada = pd.concat(dfs)
+
+        return df_sumada
+
+
 
     def unir_dfs(self, diccionario_dfs_limpias):
         '''
@@ -259,17 +295,20 @@ class GeneradorPlanillaFinanzas:
         print('Calculando los 8 días de las facturas!')
         mask_no_devengadas = pd.isna(df_unida['Fecha_DEVENGO_SIGFE'])
 
-        df_unida['Fecha_Docto_SII'] = pd.to_datetime(df_unida['Fecha_Docto_SII'], dayfirst=True)
+        df_unida['Fecha_Docto_SII'] = pd.to_datetime(
+            df_unida['Fecha_Docto_SII'], dayfirst=True)
 
         df_unida['Fecha_Recepcion_SII'] = pd.to_datetime(df_unida['Fecha_Recepcion_SII'],
                                                          dayfirst=True)
 
-        df_unida['Fecha_Reclamo_SII'] = pd.to_datetime(df_unida['Fecha_Reclamo_SII'], dayfirst=True)
+        df_unida['Fecha_Reclamo_SII'] = pd.to_datetime(
+            df_unida['Fecha_Reclamo_SII'], dayfirst=True)
 
         diferencia = (pd.to_datetime(
             'today') - df_unida[mask_no_devengadas]['Fecha_Recepcion_SII']) + pd.Timedelta(days=1)
 
-        df_unida['tiempo_diferencia_SII'] = round(diferencia / pd.Timedelta(days=1), 2)
+        df_unida['tiempo_diferencia_SII'] = round(
+            diferencia / pd.Timedelta(days=1), 2)
         esta_al_dia = df_unida[mask_no_devengadas]['tiempo_diferencia_SII'] <= 8
 
         df_unida['esta_al_dia'] = esta_al_dia
@@ -289,21 +328,25 @@ class GeneradorPlanillaFinanzas:
         df_izquierda['REFERENCIAS'] = referencias_nc
 
         nc_con_referencias = df_izquierda[df_izquierda['REFERENCIAS'].notna()]
-        llaves_nc = nc_con_referencias['RUT_Emisor_SII'] + nc_con_referencias['REFERENCIAS']
+        llaves_nc = nc_con_referencias['RUT_Emisor_SII'] + \
+            nc_con_referencias['REFERENCIAS']
 
         df_izquierda['LLAVES_REFERENCIAS_PARA_NC'] = llaves_nc
 
-        df_izquierda['REFERENCIAS'] = 'FE ' + df_izquierda[mask_notas_credito]['REFERENCIAS']
+        df_izquierda['REFERENCIAS'] = 'FE ' + \
+            df_izquierda[mask_notas_credito]['REFERENCIAS']
 
         for referencia in df_izquierda['LLAVES_REFERENCIAS_PARA_NC'].unique():
             if not isinstance(referencia, float):
 
-                nota_c = df_izquierda.query('LLAVES_REFERENCIAS_PARA_NC == @referencia').index[0]
+                nota_c = df_izquierda.query(
+                    'LLAVES_REFERENCIAS_PARA_NC == @referencia').index[0]
                 nota_c = nota_c.split('-')[1][1:]
                 nota_c = f'NC {nota_c}'
 
                 mask_boletas_referenciadas = df_izquierda.index == referencia
-                df_izquierda.loc[mask_boletas_referenciadas, 'REFERENCIAS'] = nota_c
+                df_izquierda.loc[mask_boletas_referenciadas,
+                                 'REFERENCIAS'] = nota_c
 
         df_izquierda = df_izquierda.drop(columns='LLAVES_REFERENCIAS_PARA_NC')
 
@@ -344,11 +387,18 @@ class GeneradorPlanillaFinanzas:
                 facturas_asociadas = df_junta[mask_oc_acepta]
 
                 if not facturas_asociadas.empty:
-                    df_junta.loc[mask_oc_acepta, 'Numero_Compromiso_OC'] = numero_compromiso
-                    df_junta.loc[mask_oc_acepta, 'Monto_Disponible_OC'] = monto_disponible
-                    df_junta.loc[mask_oc_acepta, 'Concepto_Presupuesto_OC'] = concepto_presupuesto
+                    df_junta.loc[mask_oc_acepta,
+                                 'Numero_Compromiso_OC'] = numero_compromiso
+                    df_junta.loc[mask_oc_acepta,
+                                 'Monto_Disponible_OC'] = monto_disponible
+                    df_junta.loc[mask_oc_acepta,
+                                 'Concepto_Presupuesto_OC'] = concepto_presupuesto
 
         return df_junta
+
+    def asociar_maestro_articulos(self, df_junta):
+        pass
+
 
     def obtener_columnas_necesarias(self, df_izquierda):
         '''
@@ -375,12 +425,13 @@ class GeneradorPlanillaFinanzas:
             'fecha_ingreso_rc_ACEPTA', 'folio_sigfe_ACEPTA', 'tarea_actual_ACEPTA',
             'estado_cesion_ACEPTA', 'Fecha_DEVENGO_SIGFE', 'Folio_interno_DEVENGO_SIGFE',
             'Fecha_PAGO_SIGFE', 'Folio_interno_PAGO_SIGFE', 'Fecha_Recepción_SCI',
-            'Registrador_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 'Ubic._TURBO', 'NºPresu_TURBO',
+            'Registrador_SCI', 'Codigo_Articulo_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 'Ubic._TURBO', 'NºPresu_TURBO',
             'Folio_interno_TURBO', 'NºPago_TURBO', 'tiempo_diferencia_SII', 'esta_al_dia',
             'REFERENCIAS', 'OBSERVACION_OBSERVACIONES', ]
 
         df_filtrada = df_izquierda[columnas_a_ocupar]
-        df_filtrada['Tipo_Doc_SII'] = df_filtrada['Tipo_Doc_SII'].astype('category')
+        df_filtrada['Tipo_Doc_SII'] = df_filtrada['Tipo_Doc_SII'].astype(
+            'category')
         df_filtrada = df_filtrada.sort_values(by=['Fecha_Docto_SII', 'tiempo_diferencia_SII'],
                                               ascending=[True, False])
 
@@ -393,7 +444,8 @@ class GeneradorPlanillaFinanzas:
         - Se formatea automáticamente la fecha al escribirse a formato excel.
         '''
         print('Guardando la planilla...')
-        diccionario_nombres = {'1': pd.to_datetime('today').year, '2': 'historico'}
+        diccionario_nombres = {'1': pd.to_datetime(
+            'today').year, '2': 'historico'}
         periodo_a_guardar = diccionario_nombres[leer]
         df_columnas_utiles = df_columnas_utiles.reset_index()
 
@@ -401,14 +453,16 @@ class GeneradorPlanillaFinanzas:
             df_historico = pd.read_csv('control_facturas_historico.csv',
                                        sep=';', encoding='latin-1', low_memory=False)
             concatenado = pd.concat([df_historico, df_columnas_utiles])
-            concatenado = concatenado.drop_duplicates(subset='llave_id', keep='last')
-            concatenado.to_csv('control_facturas_historico.csv', sep=';', decimal='.',
+            concatenado = concatenado.drop_duplicates(
+                subset='llave_id', keep='last')
+            concatenado.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
                                encoding='latin-1', index=False)
 
-            self.filtrar_y_guardar_observaciones(df_columnas_utiles, periodo_a_guardar)
+            self.filtrar_y_guardar_observaciones(
+                df_columnas_utiles, periodo_a_guardar)
 
         else:
-            df_columnas_utiles.to_csv('control_facturas_historico.csv', sep=';', decimal='.',
+            df_columnas_utiles.to_csv('control_facturas_historico.csv', sep=';', decimal=',',
                                       encoding='latin-1', index=False)
             for año in df_columnas_utiles['Fecha_Docto_SII'].dt.year.unique():
                 self.filtrar_y_guardar_observaciones(df_columnas_utiles, año)
@@ -419,7 +473,7 @@ class GeneradorPlanillaFinanzas:
         nombre_archivo = f'OBSERVACIONES {periodo_a_guardar}.csv'
         df_observaciones_año.to_csv(
             f'crudos\\base_de_datos_facturas\\OBSERVACIONES\\{nombre_archivo}', sep=';',
-            decimal='.', encoding='latin-1', index=False)
+            decimal=',', encoding='latin-1', index=False)
 
 
 programa = GeneradorPlanillaFinanzas()
