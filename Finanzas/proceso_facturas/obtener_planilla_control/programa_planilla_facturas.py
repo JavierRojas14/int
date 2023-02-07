@@ -409,12 +409,12 @@ class GeneradorPlanillaFinanzas:
 
         return df_junta
 
-    def asociar_maestro_articulos(self, df_junta, dict_maestro_articulos):
+    def asociar_maestro_articulos(self, df_junta, df_maestro_articulo):
         print('Asociando con el Maestro Articulos')
         tmp = df_junta.copy()
         tmp = tmp.reset_index()
     
-        df_maestro_art = dict_maestro_articulos['MAESTRO_ARTICULOS']
+        df_maestro_art = df_maestro_articulo.copy()
         df_maestro_art.columns = df_maestro_art.columns + '_MAESTRO_ARTICULOS'
     
         facturas_con_maestro_articulos = pd.merge(tmp, df_maestro_art, how='inner', 
@@ -424,8 +424,21 @@ class GeneradorPlanillaFinanzas:
 
         return facturas_con_maestro_articulos
     
-    def asociar_ley_presupuesto(self, df_junta, dict_ley_presupuestos):
-        pass
+    def asociar_ley_presupuesto(self, df_junta, df_ley_presupuestos):
+        print('Asociando con la Ley de Presupuestos!')
+        tmp = df_junta.copy()
+
+        ley_presupuesto = df_ley_presupuestos.copy()
+        ley_presupuesto.columns = ley_presupuesto.columns + '_LEY_PRESUPUESTO'
+        tmp['Items_MAESTRO_ARTICULOS'] = tmp['Items_MAESTRO_ARTICULOS'].astype(str)
+        ley_presupuesto['Numero_Concepto_LEY_PRESUPUESTO'] = ley_presupuesto['Numero_Concepto_LEY_PRESUPUESTO'].astype(str)
+        
+        facturas_con_ley_presupuesto = pd.merge(tmp, ley_presupuesto, how='inner',
+        left_on='Items_MAESTRO_ARTICULOS', right_on='Numero_Concepto_LEY_PRESUPUESTO')
+
+        facturas_con_ley_presupuesto = facturas_con_ley_presupuesto.reset_index(drop=True)
+
+        return facturas_con_ley_presupuesto
     
 
     def obtener_columnas_necesarias(self, df_izquierda):
@@ -456,6 +469,7 @@ class GeneradorPlanillaFinanzas:
             'Registrador_SCI', 'Codigo_Articulo_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 
             'Familia_MAESTRO_ARTICULOS', 'Items_MAESTRO_ARTICULOS', 
             'Nombre Items_MAESTRO_ARTICULOS',
+            'Cargar_en_LEY_PRESUPUESTO',
             'Ubic._TURBO', 'NºPresu_TURBO',
             'Folio_interno_TURBO', 'NºPago_TURBO', 'tiempo_diferencia_SII', 'esta_al_dia',
             'REFERENCIAS', 'OBSERVACION_OBSERVACIONES', ]
