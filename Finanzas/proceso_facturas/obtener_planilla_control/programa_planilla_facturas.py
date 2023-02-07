@@ -45,10 +45,9 @@ class GeneradorPlanillaFinanzas:
         archivos_oc = self.obtener_archivos('oc', leer)
         oc_limpias = self.obtener_oc_base_de_datos(archivos_oc)
 
-        archivo_maestro_articulo = self.obtener_archivos(
-            'maestro_articulo', leer)
-        maestro_articulo = self.obtener_maestro_articulo(
-            archivo_maestro_articulo)
+        archivo_articulos = self.obtener_archivos(
+            'articulos', leer)
+        articulos = self.obtener_articulos_base_de_datos(archivo_articulos)
 
         facturas_unidas = self.unir_dfs(tablas_de_facturas)
 
@@ -58,9 +57,13 @@ class GeneradorPlanillaFinanzas:
         facturas_con_oc = self.asociar_saldo_de_oc(
             facturas_con_ref_nc, oc_limpias['SIGFE_REPORTS'])
         facturas_con_maestro_articulos = self.asociar_maestro_articulos(
-            facturas_con_oc, maestro_articulo)
+            facturas_con_oc, articulos['MAESTRO_ARTICULOS'])
+        
+        facturas_con_ley_presupuesto = self.asociar_ley_presupuesto(
+            facturas_con_maestro_articulos, articulos['LEY_PRESUPUESTOS']
+        )
         facturas_con_columnas_necesarias = self.obtener_columnas_necesarias(
-            facturas_con_maestro_articulos)
+            facturas_con_ley_presupuesto)
 
         self.guardar_dfs(facturas_con_columnas_necesarias, leer)
 
@@ -249,12 +252,15 @@ class GeneradorPlanillaFinanzas:
 
         return df_sumada
 
-    def obtener_maestro_articulo(self, archivos_a_leer):
+    def obtener_articulos_base_de_datos(self, archivos_a_leer):
         diccionario_base_de_datos = {}
         for base_de_datos, lista_archivos in archivos_a_leer.items():
             print(f'Leyendo {base_de_datos}')
             if base_de_datos == 'MAESTRO_ARTICULOS':
                 df_sumada = self.leer_maestro_articulo(lista_archivos)
+            
+            elif base_de_datos == 'LEY_PRESUPUESTOS':
+                df_sumada = self.leer_ley_de_presupuestos(lista_archivos)
 
             diccionario_base_de_datos[base_de_datos] = df_sumada
 
@@ -264,7 +270,13 @@ class GeneradorPlanillaFinanzas:
         dfs = map(lambda x: pd.read_excel(x, header=3), lista_archivos)
         df_sumada = pd.concat(dfs)
 
-        return df_sumada
+        return df_sumada 
+
+    def leer_ley_de_presupuestos(self, lista_archivos):
+        dfs = map(lambda x: pd.read_excel(x), lista_archivos)
+        df_sumada = pd.concat(dfs)
+
+        return df_sumada 
 
     def unir_dfs(self, diccionario_dfs_limpias):
         '''
@@ -411,6 +423,9 @@ class GeneradorPlanillaFinanzas:
         facturas_con_maestro_articulos = facturas_con_maestro_articulos.reset_index(drop=True)
 
         return facturas_con_maestro_articulos
+    
+    def asociar_ley_presupuesto(self, df_junta, dict_ley_presupuestos):
+        pass
     
 
     def obtener_columnas_necesarias(self, df_izquierda):
