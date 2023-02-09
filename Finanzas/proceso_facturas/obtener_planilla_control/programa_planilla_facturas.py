@@ -58,7 +58,7 @@ class GeneradorPlanillaFinanzas:
             facturas_con_ref_nc, oc_limpias['SIGFE_REPORTS'])
         facturas_con_maestro_articulos = self.asociar_maestro_articulos(
             facturas_con_oc, articulos['MAESTRO_ARTICULOS'])
-        
+
         facturas_con_ley_presupuesto = self.asociar_ley_presupuesto(
             facturas_con_maestro_articulos, articulos['LEY_PRESUPUESTOS']
         )
@@ -258,7 +258,7 @@ class GeneradorPlanillaFinanzas:
             print(f'Leyendo {base_de_datos}')
             if base_de_datos == 'MAESTRO_ARTICULOS':
                 df_sumada = self.leer_maestro_articulo(lista_archivos)
-            
+
             elif base_de_datos == 'LEY_PRESUPUESTOS':
                 df_sumada = self.leer_ley_de_presupuestos(lista_archivos)
 
@@ -270,13 +270,13 @@ class GeneradorPlanillaFinanzas:
         dfs = map(lambda x: pd.read_excel(x, header=3), lista_archivos)
         df_sumada = pd.concat(dfs)
 
-        return df_sumada 
+        return df_sumada
 
     def leer_ley_de_presupuestos(self, lista_archivos):
         dfs = map(lambda x: pd.read_excel(x), lista_archivos)
         df_sumada = pd.concat(dfs)
 
-        return df_sumada 
+        return df_sumada
 
     def unir_dfs(self, diccionario_dfs_limpias):
         '''
@@ -413,17 +413,17 @@ class GeneradorPlanillaFinanzas:
         print('Asociando con el Maestro Articulos')
         tmp = df_junta.copy()
         tmp = tmp.reset_index()
-    
+
         df_maestro_art = df_maestro_articulo.copy()
         df_maestro_art.columns = df_maestro_art.columns + '_MAESTRO_ARTICULOS'
-    
-        facturas_con_maestro_articulos = pd.merge(tmp, df_maestro_art, how='inner', 
-        left_on='Codigo_Articulo_SCI', right_on='Código_MAESTRO_ARTICULOS')
+
+        facturas_con_maestro_articulos = pd.merge(tmp, df_maestro_art, how='left',
+                                                  left_on='Codigo_Articulo_SCI', right_on='Código_MAESTRO_ARTICULOS')
 
         facturas_con_maestro_articulos = facturas_con_maestro_articulos.reset_index(drop=True)
 
         return facturas_con_maestro_articulos
-    
+
     def asociar_ley_presupuesto(self, df_junta, df_ley_presupuestos):
         print('Asociando con la Ley de Presupuestos!')
         tmp = df_junta.copy()
@@ -431,15 +431,15 @@ class GeneradorPlanillaFinanzas:
         ley_presupuesto = df_ley_presupuestos.copy()
         ley_presupuesto.columns = ley_presupuesto.columns + '_LEY_PRESUPUESTO'
         tmp['Items_MAESTRO_ARTICULOS'] = tmp['Items_MAESTRO_ARTICULOS'].astype(str)
-        ley_presupuesto['Numero_Concepto_LEY_PRESUPUESTO'] = ley_presupuesto['Numero_Concepto_LEY_PRESUPUESTO'].astype(str)
-        
-        facturas_con_ley_presupuesto = pd.merge(tmp, ley_presupuesto, how='inner',
-        left_on='Items_MAESTRO_ARTICULOS', right_on='Numero_Concepto_LEY_PRESUPUESTO')
+        ley_presupuesto['Numero_Concepto_LEY_PRESUPUESTO'] = ley_presupuesto['Numero_Concepto_LEY_PRESUPUESTO'].astype(
+            str)
+
+        facturas_con_ley_presupuesto = pd.merge(tmp, ley_presupuesto, how='left',
+                                                left_on='Items_MAESTRO_ARTICULOS', right_on='Numero_Concepto_LEY_PRESUPUESTO')
 
         facturas_con_ley_presupuesto = facturas_con_ley_presupuesto.reset_index(drop=True)
 
         return facturas_con_ley_presupuesto
-    
 
     def obtener_columnas_necesarias(self, df_izquierda):
         '''
@@ -457,22 +457,22 @@ class GeneradorPlanillaFinanzas:
         '''
         print('Filtrando las columnas necesarias!')
         columnas_a_ocupar = ['llave_id',
-            'Tipo_Doc_SII', 'RUT_Emisor_SII', 'Razon_Social_SII', 'Folio_SII', 'Fecha_Docto_SII',
-            'Fecha_Recepcion_SII', 'Fecha_Reclamo_SII', 'Monto_Exento_SII', 'Monto_Neto_SII',
-            'Monto_IVA_Recuperable_SII', 'Monto_Total_SII', 'publicacion_ACEPTA',
-            'estado_acepta_ACEPTA', 'estado_sii_ACEPTA', 'estado_nar_ACEPTA',
-            'estado_devengo_ACEPTA', 'folio_oc_ACEPTA', 'Numero_Compromiso_OC',
-            'Monto_Disponible_OC', 'Concepto_Presupuesto_OC', 'folio_rc_ACEPTA',
-            'fecha_ingreso_rc_ACEPTA', 'folio_sigfe_ACEPTA', 'tarea_actual_ACEPTA',
-            'estado_cesion_ACEPTA', 'Fecha_DEVENGO_SIGFE', 'Folio_interno_DEVENGO_SIGFE',
-            'Fecha_PAGO_SIGFE', 'Folio_interno_PAGO_SIGFE', 'Fecha_Recepción_SCI',
-            'Registrador_SCI', 'Codigo_Articulo_SCI', 'Articulo_SCI', 'N°_Acta_SCI', 
-            'Familia_MAESTRO_ARTICULOS', 'Items_MAESTRO_ARTICULOS', 
-            'Nombre Items_MAESTRO_ARTICULOS',
-            'Cargar_en_LEY_PRESUPUESTO',
-            'Ubic._TURBO', 'NºPresu_TURBO',
-            'Folio_interno_TURBO', 'NºPago_TURBO', 'tiempo_diferencia_SII', 'esta_al_dia',
-            'REFERENCIAS', 'OBSERVACION_OBSERVACIONES', ]
+                             'Tipo_Doc_SII', 'RUT_Emisor_SII', 'Razon_Social_SII', 'Folio_SII', 'Fecha_Docto_SII',
+                             'Fecha_Recepcion_SII', 'Fecha_Reclamo_SII', 'Monto_Exento_SII', 'Monto_Neto_SII',
+                             'Monto_IVA_Recuperable_SII', 'Monto_Total_SII', 'publicacion_ACEPTA',
+                             'estado_acepta_ACEPTA', 'estado_sii_ACEPTA', 'estado_nar_ACEPTA',
+                             'estado_devengo_ACEPTA', 'folio_oc_ACEPTA', 'Numero_Compromiso_OC',
+                             'Monto_Disponible_OC', 'Concepto_Presupuesto_OC', 'folio_rc_ACEPTA',
+                             'fecha_ingreso_rc_ACEPTA', 'folio_sigfe_ACEPTA', 'tarea_actual_ACEPTA',
+                             'estado_cesion_ACEPTA', 'Fecha_DEVENGO_SIGFE', 'Folio_interno_DEVENGO_SIGFE',
+                             'Fecha_PAGO_SIGFE', 'Folio_interno_PAGO_SIGFE', 'Fecha_Recepción_SCI',
+                             'Registrador_SCI', 'Codigo_Articulo_SCI', 'Articulo_SCI', 'N°_Acta_SCI',
+                             'Familia_MAESTRO_ARTICULOS', 'Items_MAESTRO_ARTICULOS',
+                             'Nombre Items_MAESTRO_ARTICULOS',
+                             'Cargar_en_LEY_PRESUPUESTO',
+                             'Ubic._TURBO', 'NºPresu_TURBO',
+                             'Folio_interno_TURBO', 'NºPago_TURBO', 'tiempo_diferencia_SII', 'esta_al_dia',
+                             'REFERENCIAS', 'OBSERVACION_OBSERVACIONES', ]
 
         df_filtrada = df_izquierda[columnas_a_ocupar]
         df_filtrada['Tipo_Doc_SII'] = df_filtrada['Tipo_Doc_SII'].astype(
